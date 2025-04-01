@@ -19,7 +19,13 @@ import {
   ListItemIcon,
   Avatar,
   TextField,
-  Stack
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -285,36 +291,46 @@ const PortfolioPage: React.FC = () => {
               Skills
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-              {portfolio.skills && portfolio.skills.length > 0 ? (
-                portfolio.skills.map((skillCategory, index) => (
-                  <Box key={index} sx={{ width: { xs: '100%', md: 'calc(50% - 24px)' }, mb: 2 }}>
-                    <Card elevation={1} sx={{ height: '100%' }}>
-                      <CardContent>
-                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
-                          {skillCategory.category}
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                          {skillCategory.skills.map((skill, idx) => (
-                            <Chip 
-                              key={idx} 
-                              label={skill} 
-                              color="primary" 
-                              variant="outlined" 
-                              size="small"
-                            />
-                          ))}
-                        </Box>
-                      </CardContent>
-                    </Card>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No skills added yet. Add skills to showcase your expertise.
-                </Typography>
-              )}
-            </Box>
+            
+            {portfolio.skills && portfolio.skills.length > 0 ? (
+              <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
+                <Table>
+                  <TableHead>
+                    <TableRow sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
+                      <TableCell width="30%"><Typography fontWeight="bold">Category</Typography></TableCell>
+                      <TableCell><Typography fontWeight="bold">Skills</Typography></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {portfolio.skills.map((skillCategory, index) => (
+                      <TableRow key={index} hover>
+                        <TableCell>
+                          <Typography fontWeight="medium">{skillCategory.category}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {skillCategory.skills.map((skill, idx) => (
+                              <Chip 
+                                key={idx} 
+                                label={skill} 
+                                color="primary" 
+                                variant="outlined" 
+                                size="small"
+                                sx={{ mb: 0.5 }}
+                              />
+                            ))}
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Alert severity="info">
+                No skills added yet. Add skills to showcase your expertise.
+              </Alert>
+            )}
           </Box>
         </TabPanel>
 
@@ -408,37 +424,39 @@ const PortfolioPage: React.FC = () => {
               Projects
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-              {portfolio.projects && portfolio.projects.length > 0 ? (
-                portfolio.projects.map((project, index) => (
-                  <Box key={index} sx={{ width: { xs: '100%', md: 'calc(50% - 24px)' }, mb: 2 }}>
-                    <Card elevation={1} sx={{ height: '100%' }}>
-                      <CardContent>
-                        <Typography variant="h6" fontWeight="bold">{project.name}</Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                          {project.date}
-                        </Typography>
-                        
-                        {project.bullet_points && project.bullet_points.length > 0 && (
-                          <List dense>
-                            {project.bullet_points.map((point, idx) => (
-                              <ListItem key={idx} sx={{ py: 0 }}>
-                                <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
-                                <ListItemText primary={point} />
-                              </ListItem>
-                            ))}
-                          </List>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </Box>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No projects added yet. Showcase your work by adding projects.
-                </Typography>
-              )}
-            </Box>
+            
+            {portfolio.projects && portfolio.projects.length > 0 ? (
+              <Stack spacing={2}>
+                {portfolio.projects.map((project, index) => (
+                  <Paper key={index} variant="outlined" sx={{ p: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                      <Typography variant="subtitle1" fontWeight="bold">{project.name}</Typography>
+                      <Chip 
+                        label={project.date} 
+                        size="small" 
+                        variant="outlined"
+                        color="secondary" 
+                      />
+                    </Box>
+                    
+                    {project.bullet_points && project.bullet_points.length > 0 && (
+                      <List dense disablePadding sx={{ mt: 1 }}>
+                        {project.bullet_points.map((point, idx) => (
+                          <ListItem key={idx} sx={{ py: 0.5 }}>
+                            <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
+                            <ListItemText primary={point} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    )}
+                  </Paper>
+                ))}
+              </Stack>
+            ) : (
+              <Alert severity="info">
+                No projects added yet. Showcase your work by adding projects.
+              </Alert>
+            )}
           </Box>
         </TabPanel>
 

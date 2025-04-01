@@ -74,12 +74,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             title={!drawerOpen ? item.text : ""} 
             placement="right" 
             key={item.text}
+            TransitionProps={{ timeout: 0 }}
           >
             <ListItemButton
               component={RouterLink}
               to={item.path}
               selected={location.pathname === item.path}
-              className="slide-up"
+              className="slide-up nav-item"
               sx={{
                 minHeight: 48,
                 justifyContent: drawerOpen ? 'initial' : 'center',
@@ -92,6 +93,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 },
                 animation: `slideUp 0.3s ease-out forwards ${index * 0.05 + 0.2}s`,
                 opacity: 0,
+                transition: 'background-color 0.2s ease-in-out',
               }}
             >
               <ListItemIcon
@@ -100,6 +102,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   mr: drawerOpen ? 3 : 'auto',
                   justifyContent: 'center',
                   color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                  transition: 'none',
                 }}
               >
                 {item.icon}
@@ -108,8 +111,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <ListItemText 
                   primary={item.text} 
                   sx={{
-                    opacity: drawerOpen ? 1 : 0,
-                    transition: 'opacity 0.3s',
+                    opacity: 1,
+                    display: 'block',
+                    '& span': {
+                      transition: 'none !important',
+                    }
                   }}
                 />
               )}
@@ -119,9 +125,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </List>
       <Divider />
       <List>
-        <Tooltip title={!drawerOpen ? "Logout" : ""} placement="right">
+        <Tooltip 
+          title={!drawerOpen ? "Logout" : ""} 
+          placement="right"
+          TransitionProps={{ timeout: 0 }}
+        >
           <ListItemButton 
             onClick={logout}
+            className="nav-item"
             sx={{
               minHeight: 48,
               justifyContent: drawerOpen ? 'initial' : 'center',
@@ -131,6 +142,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               '&:hover': {
                 backgroundColor: 'rgba(63, 114, 175, 0.08)',
               },
+              transition: 'background-color 0.2s ease-in-out',
             }}
           >
             <ListItemIcon
@@ -139,11 +151,21 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 mr: drawerOpen ? 3 : 'auto',
                 justifyContent: 'center',
                 color: 'error.main',
+                transition: 'none',
               }}
             >
               <LogoutIcon />
             </ListItemIcon>
-            {drawerOpen && <ListItemText primary="Logout" />}
+            {drawerOpen && (
+              <ListItemText 
+                primary="Logout"
+                sx={{
+                  '& span': {
+                    transition: 'none !important',
+                  }
+                }}
+              />
+            )}
           </ListItemButton>
         </Tooltip>
       </List>

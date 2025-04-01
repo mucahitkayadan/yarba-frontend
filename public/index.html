@@ -54,9 +54,22 @@
         animation: slideUp 0.4s ease-out forwards;
       }
       
-      /* Apply smooth transitions to all elements */
-      * {
+      /* Remove global transition that causes unwanted animations */
+      /* * {
         transition: all 0.2s ease-in-out;
+      } */
+      
+      /* Apply transitions only to specific elements */
+      .MuiButton-root, 
+      .MuiCard-root,
+      .MuiListItemButton-root:not(.nav-item),
+      .MuiAvatar-root {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+      }
+      
+      /* Disable transitions for navigation tooltips */
+      .MuiTooltip-popper {
+        transition: none !important;
       }
     </style>
     <title>YARBA - Resume Builder</title>

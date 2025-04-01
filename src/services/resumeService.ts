@@ -15,8 +15,30 @@ export const getResumes = async (
   if (title) params.append('title', title);
   if (template_id) params.append('template_id', template_id);
   
+  console.log(`API Call: GET /resumes?${params.toString()}`);
   const response = await api.get(`/resumes?${params.toString()}`);
-  return response.data;
+  
+  // Backend now returns properly formatted paginated response
+  if (response.data && response.data.items && typeof response.data.total === 'number') {
+    console.log(`API returned ${response.data.items.length} items, total: ${response.data.total}`);
+    return response.data;
+  }
+  
+  // Fallback for backward compatibility or unexpected response format
+  if (Array.isArray(response.data)) {
+    console.warn('API returned array format instead of pagination object');
+    return { 
+      items: response.data, 
+      total: response.data.length 
+    };
+  }
+  
+  // Fallback for other unexpected formats
+  console.warn('Unexpected API response format:', response.data);
+  return { 
+    items: Array.isArray(response.data) ? response.data : [], 
+    total: Array.isArray(response.data) ? response.data.length : 0 
+  };
 };
 
 // Get a single resume by ID

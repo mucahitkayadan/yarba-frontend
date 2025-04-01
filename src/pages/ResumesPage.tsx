@@ -3,9 +3,6 @@ import {
   Box, 
   Typography, 
   Button, 
-  Card, 
-  CardContent, 
-  CardActions, 
   TextField, 
   InputAdornment,
   IconButton,
@@ -28,7 +25,14 @@ import {
   Select,
   FormControl,
   InputLabel,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  ButtonGroup
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -79,7 +83,9 @@ interface APIResume {
   updated_at: string;
 }
 
-const PAGE_SIZE = 6;
+// Define page size options
+const PAGE_SIZE_OPTIONS = [10, 25, 50];
+const DEFAULT_PAGE_SIZE = 10;
 
 const ResumesPage: React.FC = () => {
   const navigate = useNavigate();
@@ -88,6 +94,7 @@ const ResumesPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [selectedResumeId, setSelectedResumeId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -104,22 +111,21 @@ const ResumesPage: React.FC = () => {
   const fetchResumes = async () => {
     setLoading(true);
     try {
-      const skip = (page - 1) * PAGE_SIZE;
+      const skip = (page - 1) * pageSize;
+      const limit = pageSize;
       const title = searchTerm ? searchTerm : undefined;
-      const result = await getResumes(skip, PAGE_SIZE, title);
+      console.log(`Fetching resumes with skip=${skip}, limit=${limit}, title=${title}`);
       
-      if (Array.isArray(result)) {
-        // API returns an array directly
-        setResumes(result as unknown as APIResume[]);
-        setTotalResumes(result.length); // This is not accurate for total count
-      } else if (result?.items) {
-        // API returns pagination object
-        setResumes(result.items as unknown as APIResume[]);
-        setTotalResumes(result.total || 0);
-      } else {
-        setResumes([]);
-        setTotalResumes(0);
-      }
+      const result = await getResumes(skip, limit, title);
+      console.log('API result:', result);
+      
+      // Set the resumes from the items array
+      setResumes(result.items as unknown as APIResume[]);
+      
+      // Set the total count from the total property
+      setTotalResumes(result.total || 0);
+      
+      console.log(`Loaded ${result.items.length} resumes, total: ${result.total}`);
     } catch (error) {
       console.error('Failed to fetch resumes:', error);
       setResumes([]);
@@ -130,8 +136,9 @@ const ResumesPage: React.FC = () => {
   };
 
   useEffect(() => {
+    console.log(`Page/PageSize changed: page=${page}, pageSize=${pageSize}, fetching resumes...`);
     fetchResumes();
-  }, [page, searchTerm]);
+  }, [page, pageSize, searchTerm]);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -139,7 +146,19 @@ const ResumesPage: React.FC = () => {
   };
 
   const handlePageChange = (event: React.ChangeEvent<unknown>, value: number) => {
+    console.log(`Page changing from ${page} to ${value}`);
     setPage(value);
+    window.scrollTo(0, 0); // Scroll to top when changing pages
+  };
+  
+  const handlePageSizeChange = (event: SelectChangeEvent<number>) => {
+    const newPageSize = event.target.value as number;
+    console.log(`Page size changing from ${pageSize} to ${newPageSize}`);
+    // Calculate what page we should be on to show same items when possible
+    const firstItemIndex = (page - 1) * pageSize;
+    const newPage = Math.floor(firstItemIndex / newPageSize) + 1;
+    setPageSize(newPageSize);
+    setPage(newPage);
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, resumeId: string) => {
@@ -371,11 +390,23 @@ const ResumesPage: React.FC = () => {
     return '';
   };
 
+  // Calculate pagination metadata
+  const startItem = (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalResumes);
+  const hasMultiplePages = totalResumes > pageSize;
+
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
-          Resumes
+      <Box sx={{ 
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        mb: 3,
+        flexDirection: { xs: 'column', sm: 'row' },
+        gap: 2
+      }}>
+        <Typography variant="h5" component="h1">
+          Your Resumes
         </Typography>
         <Button
           variant="contained"
@@ -383,15 +414,15 @@ const ResumesPage: React.FC = () => {
           startIcon={<AddIcon />}
           onClick={handleCreateResume}
         >
-          Create Resume
+          Create New Resume
         </Button>
       </Box>
-      
-      <Paper elevation={1} sx={{ p: 2, mb: 3 }}>
+
+      <Paper sx={{ p: 2, mb: 3 }}>
         <TextField
           fullWidth
-          variant="outlined"
           placeholder="Search resumes..."
+          variant="outlined"
           value={searchTerm}
           onChange={handleSearchChange}
           InputProps={{
@@ -401,7 +432,7 @@ const ResumesPage: React.FC = () => {
               </InputAdornment>
             ),
           }}
-          sx={{ mb: 2 }}
+          sx={{ mb: 0 }}
         />
       </Paper>
 
@@ -428,106 +459,161 @@ const ResumesPage: React.FC = () => {
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
-            {resumes.map((resume) => (
-              <Card 
-                key={resume.id} 
-                sx={{ 
-                  width: { xs: '100%', sm: 'calc(50% - 12px)', md: 'calc(33.333% - 16px)' },
-                  display: 'flex',
-                  flexDirection: 'column',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6
-                  }
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="h6" component="div" noWrap>
-                      {resume.title}
-                    </Typography>
-                    <IconButton 
-                      size="small"
-                      onClick={(e) => handleMenuOpen(e, resume.id)}
-                      aria-label="more options"
-                    >
-                      <MoreVertIcon />
-                    </IconButton>
-                  </Box>
-                  
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary" 
-                    sx={{ mb: 1 }}
-                  >
-                    {getPersonalInfo(resume)}
-                  </Typography>
-
-                  <Box sx={{ mb: 2 }}>
-                    <Chip 
-                      label={getJobTitle(resume) || 'No Position'} 
-                      size="small" 
-                      color="primary" 
-                      variant="outlined"
-                      sx={{ mr: 1, mb: 1 }}
-                    />
-                    <Chip 
-                      label={resume.company_name || 'No Company'} 
-                      size="small"
-                      sx={{ mr: 1, mb: 1 }}
-                    />
-                  </Box>
-                  
-                  <Typography 
-                    variant="caption" 
-                    color="text.secondary" 
-                    sx={{ display: 'block', mt: 2 }}
-                  >
-                    Last updated: {formatDate(resume.updated_at)}
-                  </Typography>
-                </CardContent>
-                
-                <CardActions sx={{ justifyContent: 'space-between', p: 2, pt: 0 }}>
-                  <Button 
-                    size="small" 
-                    startIcon={<VisibilityIcon />}
+          <TableContainer component={Paper} sx={{ mb: 3 }}>
+            <Table sx={{ minWidth: 650 }} aria-label="resumes table">
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
+                  <TableCell>Resume Title</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Position & Company</TableCell>
+                  <TableCell>Last Updated</TableCell>
+                  <TableCell align="right">Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {resumes.map((resume) => (
+                  <TableRow 
+                    key={resume.id}
+                    sx={{ 
+                      '&:hover': { 
+                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                        cursor: 'pointer'
+                      },
+                      height: '72px'
+                    }}
                     onClick={() => handleViewResume(resume.id)}
                   >
-                    View
-                  </Button>
-                  <Button 
-                    size="small" 
-                    color="primary" 
-                    startIcon={<EditIcon />}
-                    onClick={() => handleEditResume(resume.id)}
-                  >
-                    Edit
-                  </Button>
-                  <Button 
-                    size="small" 
-                    color="secondary" 
-                    startIcon={<PdfIcon />}
-                    onClick={() => handleDownloadPdf(resume.id)}
-                  >
-                    PDF
-                  </Button>
-                </CardActions>
-              </Card>
-            ))}
-          </Box>
+                    <TableCell 
+                      component="th" 
+                      scope="row"
+                      sx={{ 
+                        fontWeight: 'medium',
+                        maxWidth: 200, 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {resume.title}
+                    </TableCell>
+                    <TableCell>{getPersonalInfo(resume)}</TableCell>
+                    <TableCell>
+                      <Stack direction="column" spacing={0.5}>
+                        {getJobTitle(resume) && (
+                          <Typography variant="body2" component="span">
+                            {getJobTitle(resume)}
+                          </Typography>
+                        )}
+                        {resume.company_name && (
+                          <Typography variant="body2" color="text.secondary" component="span">
+                            {resume.company_name}
+                          </Typography>
+                        )}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDate(resume.updated_at)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                      <ButtonGroup size="small" variant="outlined">
+                        <Tooltip 
+                          title="View" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={() => handleViewResume(resume.id)}>
+                            <VisibilityIcon fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip 
+                          title="Edit" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={() => handleEditResume(resume.id)}>
+                            <EditIcon fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip 
+                          title="Download PDF" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={() => handleDownloadPdf(resume.id)}>
+                            <PdfIcon fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip 
+                          title="More options" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={(e) => handleMenuOpen(e, resume.id)}>
+                            <MoreVertIcon fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                      </ButtonGroup>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
           
-          {totalResumes > PAGE_SIZE && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4, mb: 2 }}>
-              <Pagination 
-                count={Math.ceil(totalResumes / PAGE_SIZE)} 
-                page={page} 
-                onChange={handlePageChange}
-                color="primary"
-              />
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 4
+          }}>
+            <Box sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap'
+            }}>
+              <Typography variant="body2" color="text.secondary">
+                {totalResumes === 0 ? 'No results' : 
+                  `Showing ${startItem}-${endItem} of ${totalResumes} resume${totalResumes !== 1 ? 's' : ''}`
+                }
+              </Typography>
+              
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel id="page-size-select-label">Page Size</InputLabel>
+                <Select
+                  labelId="page-size-select-label"
+                  id="page-size-select"
+                  value={pageSize}
+                  label="Page Size"
+                  onChange={handlePageSizeChange}
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <MenuItem key={size} value={size}>{size} per page</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
             </Box>
-          )}
+            
+            <Pagination 
+              count={Math.max(1, Math.ceil(totalResumes / pageSize))}
+              page={page} 
+              onChange={handlePageChange}
+              color="primary"
+              size="large"
+              showFirstButton
+              showLastButton
+              sx={{
+                '& .MuiPaginationItem-root': {
+                  fontSize: '1rem',
+                }
+              }}
+            />
+          </Box>
         </>
       )}
 
@@ -537,21 +623,9 @@ const ResumesPage: React.FC = () => {
         open={Boolean(anchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => selectedResumeId && handleViewResume(selectedResumeId)}>
-          <VisibilityIcon fontSize="small" sx={{ mr: 1 }} />
-          View
-        </MenuItem>
-        <MenuItem onClick={() => selectedResumeId && handleEditResume(selectedResumeId)}>
-          <EditIcon fontSize="small" sx={{ mr: 1 }} />
-          Edit
-        </MenuItem>
         <MenuItem onClick={() => selectedResumeId && handleDuplicateResume(selectedResumeId)}>
           <FileCopyIcon fontSize="small" sx={{ mr: 1 }} />
           Duplicate
-        </MenuItem>
-        <MenuItem onClick={() => selectedResumeId && handleDownloadPdf(selectedResumeId)}>
-          <PdfIcon fontSize="small" sx={{ mr: 1 }} />
-          Download PDF
         </MenuItem>
         <MenuItem onClick={() => selectedResumeId && handleOpenPortfolioDialog(selectedResumeId)}>
           <LinkIcon fontSize="small" sx={{ mr: 1 }} />
