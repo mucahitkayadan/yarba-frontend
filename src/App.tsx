@@ -10,21 +10,19 @@ import {
   ResumesPage, 
   PortfolioPage, 
   TemplatesPage,
-  ProfilePage
+  ProfilePage,
+  ViewResumePage
 } from './pages';
-import { ThemeProvider, createTheme, CssBaseline } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
+import theme from './theme';
 
 // Note: We'll need to create these page components
 // import ResumeEditPage from './pages/ResumeEditPage';
 // import CoverLettersPage from './pages/CoverLettersPage';
 // import CoverLetterEditPage from './pages/CoverLetterEditPage';
-// import TemplatesPage from './pages/TemplatesPage';
-// import ProfilePage from './pages/ProfilePage';
 // import SettingsPage from './pages/SettingsPage';
-
-// Basic theme (can be expanded later)
-const theme = createTheme();
 
 const App: React.FC = () => {
   return (
@@ -75,7 +73,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div>View Resume Page Placeholder</div>
+                    <ViewResumePage />
                   </MainLayout>
                 </ProtectedRoute>
               }

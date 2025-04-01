@@ -44,10 +44,30 @@ export const deleteResume = async (id: string): Promise<void> => {
 
 // Generate PDF for a resume
 export const getResumePdf = async (id: string, timeout: number = 30): Promise<Blob> => {
-  const response = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`, {
-    responseType: 'blob'
-  });
-  return response.data;
+  console.log(`Requesting PDF for resume ID: ${id} with timeout: ${timeout}`);
+  try {
+    const response = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`, {
+      responseType: 'blob'
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error('PDF generation error:', error);
+    // If we get a response with error details
+    if (error.response) {
+      // Try to extract text error message if server returned blob
+      if (error.response.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text();
+          console.error('Server error message:', errorText);
+          throw new Error(errorText);
+        } catch (blobError) {
+          // If we can't read the blob as text, rethrow original error
+          throw error;
+        }
+      }
+    }
+    throw error;
+  }
 };
 
 // Generate resume content based on job description

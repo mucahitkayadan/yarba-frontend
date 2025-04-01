@@ -13,7 +13,9 @@ import {
   useMediaQuery,
   useTheme,
   ListItemButton,
-  Tooltip
+  Tooltip,
+  Avatar,
+  Fab
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -67,7 +69,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const drawer = (
     <>
       <List sx={{ mt: 1 }}>
-        {navItems.map((item) => (
+        {navItems.map((item, index) => (
           <Tooltip 
             title={!drawerOpen ? item.text : ""} 
             placement="right" 
@@ -77,16 +79,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               component={RouterLink}
               to={item.path}
               selected={location.pathname === item.path}
+              className="slide-up"
               sx={{
                 minHeight: 48,
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 px: 2.5,
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(25, 118, 210, 0.12)',
+                  backgroundColor: 'rgba(63, 114, 175, 0.1)',
                   '&:hover': {
-                    backgroundColor: 'rgba(25, 118, 210, 0.18)',
+                    backgroundColor: 'rgba(63, 114, 175, 0.15)',
                   },
                 },
+                animation: `slideUp 0.3s ease-out forwards ${index * 0.05 + 0.2}s`,
+                opacity: 0,
               }}
             >
               <ListItemIcon
@@ -94,11 +99,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   minWidth: 0,
                   mr: drawerOpen ? 3 : 'auto',
                   justifyContent: 'center',
+                  color: location.pathname === item.path ? 'primary.main' : 'inherit',
                 }}
               >
                 {item.icon}
               </ListItemIcon>
-              {drawerOpen && <ListItemText primary={item.text} />}
+              {drawerOpen && (
+                <ListItemText 
+                  primary={item.text} 
+                  sx={{
+                    opacity: drawerOpen ? 1 : 0,
+                    transition: 'opacity 0.3s',
+                  }}
+                />
+              )}
             </ListItemButton>
           </Tooltip>
         ))}
@@ -112,6 +126,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               minHeight: 48,
               justifyContent: drawerOpen ? 'initial' : 'center',
               px: 2.5,
+              margin: '4px 8px',
+              borderRadius: 2,
+              '&:hover': {
+                backgroundColor: 'rgba(63, 114, 175, 0.08)',
+              },
             }}
           >
             <ListItemIcon
@@ -119,6 +138,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 minWidth: 0,
                 mr: drawerOpen ? 3 : 'auto',
                 justifyContent: 'center',
+                color: 'error.main',
               }}
             >
               <LogoutIcon />
@@ -134,21 +154,46 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     <Box sx={{ display: 'flex' }}>
       <AppBar 
         position="fixed" 
-        sx={{ 
+        sx={{
+          width: '100%',
+          ml: 0,
+          backgroundImage: 'linear-gradient(to right, #3F72AF, #5E60CE)',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           boxShadow: 3,
-          width: '100%'
         }}
       >
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <Toolbar sx={{ minHeight: { xs: 56, sm: 56 }, py: 0.5 }}>
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={toggleDrawer}
+            sx={{ mr: 2, display: { sm: 'none' } }}
+          >
+            <MenuIcon />
+          </IconButton>
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
               YARBA
             </RouterLink>
           </Typography>
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ mr: 2 }}>Welcome, {user.username}</Typography>
+              <Typography sx={{ mr: 2, opacity: 0.9 }}>Welcome, {user.username}</Typography>
+              <Avatar 
+                sx={{ 
+                  bgcolor: 'secondary.main',
+                  width: 36,
+                  height: 36,
+                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
+                  '&:hover': {
+                    transform: 'scale(1.05)',
+                  },
+                  transition: 'transform 0.2s ease-in-out',
+                }}
+              >
+                {user.username?.charAt(0).toUpperCase() || 'U'}
+              </Avatar>
             </Box>
           )}
         </Toolbar>
@@ -172,9 +217,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               duration: theme.transitions.duration.enteringScreen,
             }),
             boxSizing: 'border-box',
-            marginTop: '64px', // Height of AppBar
-            height: 'calc(100% - 64px)',
+            paddingTop: '56px', // Height of thinner AppBar
+            height: '100%',
             ...(isMobile && !drawerOpen && { display: 'none' }),
+            borderRight: 'none',
+            background: 'linear-gradient(180deg, rgba(63, 114, 175, 0.02) 0%, rgba(155, 89, 182, 0.05) 100%)',
+            zIndex: (theme) => theme.zIndex.drawer,
           },
         }}
       >
@@ -184,6 +232,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       {/* Main content */}
       <Box 
         component="main" 
+        className="fade-in"
         sx={{ 
           flexGrow: 1,
           p: 2, // Smaller padding
@@ -195,38 +244,32 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
           }),
+          opacity: 0, // Start with opacity 0 for the fade-in animation
+          animation: 'fadeIn 0.5s ease-out forwards 0.2s',
         }}
       >
         {children}
       </Box>
 
       {/* Floating toggle button */}
-      <IconButton 
-        onClick={toggleDrawer} 
-        aria-label={drawerOpen ? "collapse sidebar" : "expand sidebar"}
+      <Fab
+        size="small"
+        onClick={toggleDrawer}
         sx={{
           position: 'fixed',
-          top: '120px', // Positioned between Dashboard and Resumes tabs
-          left: isMobile ? 
-                 (drawerOpen ? drawerWidth - 20 : 10) : 
-                 (drawerOpen ? drawerWidth - 20 : miniDrawerWidth - 20),
-          backgroundColor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-          boxShadow: 2,
+          left: drawerOpen ? drawerWidth - 20 : 20,
+          bottom: 20,
+          zIndex: 1300,
+          backgroundColor: '#3F72AF',
+          color: 'white',
+          transition: 'left 0.2s ease',
           '&:hover': {
-            backgroundColor: 'action.hover',
-          },
-          zIndex: (theme) => theme.zIndex.drawer + 2,
-          transition: theme.transitions.create(['left'], {
-            easing: theme.transitions.easing.easeOut,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
+            backgroundColor: '#2C5282',
+          }
         }}
-        size="small"
       >
         {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-      </IconButton>
+      </Fab>
     </Box>
   );
 };

@@ -1,9 +1,21 @@
 import api from './api';
 import { Portfolio } from '../types/models';
 
-// Get current user's portfolio
-export const getUserPortfolio = async (): Promise<Portfolio> => {
-  const response = await api.get('/portfolios/me');
+// Get user's portfolios (returns array according to docs)
+export const getUserPortfolios = async (): Promise<Portfolio[]> => {
+  const response = await api.get('/portfolios');
+  return response.data;
+};
+
+// Get portfolio by ID
+export const getPortfolioById = async (portfolioId: string): Promise<Portfolio> => {
+  const response = await api.get(`/portfolios/${portfolioId}`);
+  return response.data;
+};
+
+// Create a new portfolio
+export const createPortfolio = async (data: { profile_id?: string }): Promise<Portfolio> => {
+  const response = await api.post('/portfolios', data);
   return response.data;
 };
 

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { styled } from '@mui/material/styles';
 import { 
   Box, 
   Typography, 
@@ -8,7 +9,17 @@ import {
   Button, 
   CircularProgress, 
   Alert,
-  Divider
+  Divider,
+  Card,
+  CardContent,
+  Chip,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemIcon,
+  Avatar,
+  TextField,
+  Stack
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -20,8 +31,66 @@ import {
   MenuBook as PublicationsIcon,
   Badge as CertificationsIcon
 } from '@mui/icons-material';
-import { getUserPortfolio } from '../services/portfolioService';
+import { getUserPortfolios, createPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
+
+// Define the actual API response structure
+interface ApiPortfolio {
+  _id: string;
+  user_id: string;
+  profile_id: string;
+  user: any;
+  profile: any;
+  career_summary: {
+    job_titles: string[];
+    years_of_experience: string;
+    default_summary: string;
+  };
+  skills: {
+    category: string;
+    skills: string[];
+  }[];
+  work_experience: {
+    job_title: string;
+    company: string;
+    location: string;
+    time: string;
+    responsibilities: string[];
+  }[];
+  education: {
+    degree_type: string;
+    degree: string;
+    university_name: string;
+    time: string;
+    location: string;
+    GPA: string;
+    transcript: string[];
+  }[];
+  projects: {
+    name: string;
+    bullet_points: string[];
+    date: string;
+  }[];
+  awards: {
+    name: string;
+    explanation: string;
+  }[];
+  publications: {
+    name: string;
+    publisher: string;
+    link: string;
+    time: string;
+  }[];
+  certifications: any[];
+  custom_sections: {
+    enabled: string[];
+    order: string[];
+  };
+  is_active: boolean;
+  version: string;
+  created_at: string;
+  updated_at: string;
+}
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -58,7 +127,7 @@ function a11yProps(index: number) {
 
 const PortfolioPage: React.FC = () => {
   const [tabValue, setTabValue] = useState(0);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [portfolio, setPortfolio] = useState<ApiPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,8 +139,15 @@ const PortfolioPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getUserPortfolio();
-      setPortfolio(data);
+      const portfolios = await getUserPortfolios();
+      if (portfolios && portfolios.length > 0) {
+        // Use the portfolio as is from the API response
+        setPortfolio(portfolios[0] as unknown as ApiPortfolio);
+      } else {
+        // If no portfolio exists, create one
+        const newPortfolio = await createPortfolio({});
+        setPortfolio(newPortfolio as unknown as ApiPortfolio);
+      }
     } catch (err: any) {
       console.error('Failed to fetch portfolio:', err);
       setError('Failed to load your portfolio. Please try again later.');
@@ -166,10 +242,39 @@ const PortfolioPage: React.FC = () => {
               Personal Information
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Personal information form components would go here */}
-            <Typography variant="body1">
-              This section will contain form fields for editing personal information.
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
+              <Box sx={{ flex: 1 }}>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Professional Titles</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {portfolio.career_summary.job_titles.map((title, idx) => (
+                      <Chip key={idx} label={title} color="primary" variant="outlined" />
+                    ))}
+                  </Box>
+                </Box>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Years of Experience</Typography>
+                  <Typography>{portfolio.career_summary.years_of_experience} years</Typography>
+                </Box>
+                <Box>
+                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Summary</Typography>
+                  <Typography>{portfolio.career_summary.default_summary}</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Card elevation={1} sx={{ mb: 2, height: '100%' }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>Career Profile</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      {portfolio.career_summary.job_titles[0]}
+                    </Typography>
+                    <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
+                      {portfolio.career_summary.years_of_experience} years of experience {portfolio.career_summary.default_summary}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Box>
+            </Box>
           </Box>
         </TabPanel>
 
@@ -180,10 +285,36 @@ const PortfolioPage: React.FC = () => {
               Skills
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Skills form components would go here */}
-            <Typography variant="body1">
-              Current Skills Categories: {portfolio.skills.length}
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+              {portfolio.skills && portfolio.skills.length > 0 ? (
+                portfolio.skills.map((skillCategory, index) => (
+                  <Box key={index} sx={{ width: { xs: '100%', md: 'calc(50% - 24px)' }, mb: 2 }}>
+                    <Card elevation={1} sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="subtitle1" gutterBottom fontWeight="bold">
+                          {skillCategory.category}
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                          {skillCategory.skills.map((skill, idx) => (
+                            <Chip 
+                              key={idx} 
+                              label={skill} 
+                              color="primary" 
+                              variant="outlined" 
+                              size="small"
+                            />
+                          ))}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No skills added yet. Add skills to showcase your expertise.
+                </Typography>
+              )}
+            </Box>
           </Box>
         </TabPanel>
 
@@ -194,10 +325,39 @@ const PortfolioPage: React.FC = () => {
               Work Experience
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Work experience form components would go here */}
-            <Typography variant="body1">
-              Current Positions: {portfolio.work_experience.length}
-            </Typography>
+            <Stack spacing={3}>
+              {portfolio.work_experience && portfolio.work_experience.length > 0 ? (
+                portfolio.work_experience.map((job, index) => (
+                  <Card elevation={1} key={index}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight="bold">{job.job_title}</Typography>
+                      <Typography variant="subtitle1" color="primary">{job.company}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {job.location} | {job.time}
+                      </Typography>
+                      
+                      {job.responsibilities && job.responsibilities.length > 0 && (
+                        <>
+                          <Typography variant="subtitle2" fontWeight="bold" sx={{ mt: 2 }}>Responsibilities:</Typography>
+                          <List dense>
+                            {job.responsibilities.map((responsibility, idx) => (
+                              <ListItem key={idx} sx={{ py: 0 }}>
+                                <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
+                                <ListItemText primary={responsibility} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No work experience added yet. Add your professional history.
+                </Typography>
+              )}
+            </Stack>
           </Box>
         </TabPanel>
 
@@ -208,10 +368,36 @@ const PortfolioPage: React.FC = () => {
               Education
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Education form components would go here */}
-            <Typography variant="body1">
-              Current Education Entries: {portfolio.education.length}
-            </Typography>
+            <Stack spacing={3}>
+              {portfolio.education && portfolio.education.length > 0 ? (
+                portfolio.education.map((edu, index) => (
+                  <Card elevation={1} key={index}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight="bold">{edu.degree}</Typography>
+                      <Typography variant="subtitle1" color="primary">{edu.university_name}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {edu.degree_type} | {edu.location} | {edu.time} | GPA: {edu.GPA}
+                      </Typography>
+                      
+                      {edu.transcript && edu.transcript.length > 0 && (
+                        <>
+                          <Typography variant="subtitle2" fontWeight="bold" sx={{ mt: 2 }}>Courses:</Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                            {edu.transcript.map((course, idx) => (
+                              <Chip key={idx} label={course} size="small" />
+                            ))}
+                          </Box>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No education history added yet. Add your academic background.
+                </Typography>
+              )}
+            </Stack>
           </Box>
         </TabPanel>
 
@@ -222,10 +408,37 @@ const PortfolioPage: React.FC = () => {
               Projects
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Projects form components would go here */}
-            <Typography variant="body1">
-              Current Projects: {portfolio.projects.length}
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+              {portfolio.projects && portfolio.projects.length > 0 ? (
+                portfolio.projects.map((project, index) => (
+                  <Box key={index} sx={{ width: { xs: '100%', md: 'calc(50% - 24px)' }, mb: 2 }}>
+                    <Card elevation={1} sx={{ height: '100%' }}>
+                      <CardContent>
+                        <Typography variant="h6" fontWeight="bold">{project.name}</Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                          {project.date}
+                        </Typography>
+                        
+                        {project.bullet_points && project.bullet_points.length > 0 && (
+                          <List dense>
+                            {project.bullet_points.map((point, idx) => (
+                              <ListItem key={idx} sx={{ py: 0 }}>
+                                <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
+                                <ListItemText primary={point} />
+                              </ListItem>
+                            ))}
+                          </List>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </Box>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No projects added yet. Showcase your work by adding projects.
+                </Typography>
+              )}
+            </Box>
           </Box>
         </TabPanel>
 
@@ -236,10 +449,23 @@ const PortfolioPage: React.FC = () => {
               Certifications
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Certifications form components would go here */}
-            <Typography variant="body1">
-              Current Certifications: {portfolio.certifications.length}
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {portfolio.certifications && portfolio.certifications.length > 0 ? (
+                portfolio.certifications.map((cert, index) => (
+                  <Chip 
+                    key={index} 
+                    label={typeof cert === 'string' ? cert : cert.name} 
+                    color="primary" 
+                    variant="outlined" 
+                    sx={{ mb: 1 }}
+                  />
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No certifications added yet. Add your professional certifications.
+                </Typography>
+              )}
+            </Box>
           </Box>
         </TabPanel>
 
@@ -250,10 +476,22 @@ const PortfolioPage: React.FC = () => {
               Awards
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Awards form components would go here */}
-            <Typography variant="body1">
-              Current Awards: {portfolio.awards.length}
-            </Typography>
+            <Stack spacing={2}>
+              {portfolio.awards && portfolio.awards.length > 0 ? (
+                portfolio.awards.map((award, index) => (
+                  <Card elevation={1} key={index}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight="bold">{award.name}</Typography>
+                      <Typography variant="body2" sx={{ mt: 1 }}>{award.explanation}</Typography>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No awards added yet. Add your achievements.
+                </Typography>
+              )}
+            </Stack>
           </Box>
         </TabPanel>
 
@@ -264,10 +502,38 @@ const PortfolioPage: React.FC = () => {
               Publications
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            {/* Publications form components would go here */}
-            <Typography variant="body1">
-              Current Publications: {portfolio.publications.length}
-            </Typography>
+            <Stack spacing={2}>
+              {portfolio.publications && portfolio.publications.length > 0 ? (
+                portfolio.publications.map((pub, index) => (
+                  <Card elevation={1} key={index}>
+                    <CardContent>
+                      <Typography variant="h6" fontWeight="bold">{pub.name}</Typography>
+                      <Typography variant="subtitle1" color="primary">{pub.publisher}</Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {pub.time}
+                      </Typography>
+                      
+                      {pub.link && (
+                        <Button 
+                          variant="outlined" 
+                          size="small" 
+                          href={pub.link} 
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          sx={{ mt: 1 }}
+                        >
+                          View Publication
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <Typography variant="body1">
+                  No publications added yet. Add your research or articles.
+                </Typography>
+              )}
+            </Stack>
           </Box>
         </TabPanel>
       </Paper>

@@ -360,10 +360,33 @@ Query parameters:
 
 ### Portfolio Endpoints
 
-#### Get User Portfolio
+#### Get User Portfolios
 
 ```
-GET /api/v1/portfolios/me
+GET /api/v1/portfolios/
+```
+
+**Response:** Array of Portfolio objects
+
+#### Create Portfolio
+
+```
+POST /api/v1/portfolios/
+```
+
+**Request Body:**
+```json
+{
+  "profile_id": "string (optional)"
+}
+```
+
+**Response:** Portfolio object
+
+#### Get Portfolio by ID
+
+```
+GET /api/v1/portfolios/{portfolio_id}
 ```
 
 **Response:** Portfolio object
@@ -377,6 +400,11 @@ PUT /api/v1/portfolios/{portfolio_id}
 **Request Body:**
 ```json
 {
+  "profile_id": "string (optional)",
+  "professional_title": "string (optional)",
+  "career_summary": {
+    // Career summary object
+  },
   "skills": [
     {
       "category": "string",
@@ -420,15 +448,6 @@ PUT /api/v1/portfolios/{portfolio_id}
       "achievements": ["string", "string", ...]
     }
   ],
-  "certifications": [
-    {
-      "name": "string",
-      "issuer": "string",
-      "date": "2023-01",
-      "url": "string",
-      "description": "string"
-    }
-  ],
   "awards": [
     {
       "title": "string",
@@ -446,11 +465,33 @@ PUT /api/v1/portfolios/{portfolio_id}
       "description": "string",
       "authors": ["string", "string", ...]
     }
-  ]
+  ],
+  "certifications": ["string", "string", ...],
+  "custom_sections": {
+    // Custom sections object
+  },
+  "is_active": true,
+  "version": "string"
 }
 ```
 
 **Response:** Updated Portfolio object
+
+#### Delete Portfolio
+
+```
+DELETE /api/v1/portfolios/{portfolio_id}
+```
+
+**Response:** HTTP 204 No Content
+
+#### Delete Portfolio Item
+
+```
+DELETE /api/v1/portfolios/{portfolio_id}/items/{item_id}
+```
+
+**Response:** HTTP 204 No Content
 
 ## Health Check
 
