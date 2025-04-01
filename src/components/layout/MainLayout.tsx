@@ -179,7 +179,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         sx={{
           width: '100%',
           ml: 0,
-          backgroundImage: 'linear-gradient(to right, #3F72AF, #5E60CE)',
+          backgroundImage: 'linear-gradient(to right,rgb(142, 92, 150),rgb(122, 172, 216))',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           boxShadow: 3,
         }}
@@ -195,8 +195,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit' }}>
-              YARBA
+            <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
+              <img src="/logo.svg" alt="YARBA" style={{ height: '50px', width: 'auto' }} />
             </RouterLink>
           </Typography>
           {user && (
