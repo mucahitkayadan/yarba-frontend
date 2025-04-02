@@ -172,13 +172,13 @@ const ResumesPage: React.FC = () => {
   };
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, resumeId: string) => {
+    console.log('Menu opened for resume ID:', resumeId);
     setAnchorEl(event.currentTarget);
     setSelectedResumeId(resumeId);
   };
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-    setSelectedResumeId(null);
   };
 
   const handleCreateResume = () => {
@@ -196,8 +196,8 @@ const ResumesPage: React.FC = () => {
   };
 
   const handleDeleteClick = () => {
+    console.log('Delete clicked, selectedResumeId:', selectedResumeId);
     setDeleteDialogOpen(true);
-    handleMenuClose();
   };
 
   const handleDeleteConfirm = async () => {
@@ -209,18 +209,31 @@ const ResumesPage: React.FC = () => {
       // Remove the deleted resume from the local state
       setResumes(resumes.filter(resume => resume.id !== selectedResumeId));
       setTotalResumes(prevTotal => prevTotal - 1);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete resume:', error);
+      // Display error message to the user
+      let errorMsg = 'Failed to delete resume';
+      if (error.response?.data) {
+        if (typeof error.response.data === 'string') {
+          errorMsg = error.response.data;
+        } else if (error.response.data.detail) {
+          errorMsg = error.response.data.detail;
+        }
+      } else if (error.message) {
+        errorMsg = error.message;
+      }
+      setErrorMessage(errorMsg);
+      setSnackbarOpen(true);
     } finally {
       setDeletingResume(false);
       setDeleteDialogOpen(false);
-      setSelectedResumeId(null);
+      handleMenuClose();
     }
   };
 
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
-    setSelectedResumeId(null);
+    handleMenuClose();
   };
 
   const handleDuplicateResume = (resumeId: string) => {
@@ -577,6 +590,21 @@ const ResumesPage: React.FC = () => {
                           </Button>
                         </Tooltip>
                         <Tooltip 
+                          title="Delete" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button 
+                            onClick={() => {
+                              setSelectedResumeId(resume.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                            color="error"
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </Button>
+                        </Tooltip>
+                        <Tooltip 
                           title="More options" 
                           placement="top"
                           TransitionProps={{ timeout: 0 }}
@@ -663,7 +691,10 @@ const ResumesPage: React.FC = () => {
           Attach Portfolio
         </MenuItem>
         <Divider />
-        <MenuItem onClick={handleDeleteClick} sx={{ color: 'error.main' }}>
+        <MenuItem 
+          onClick={handleDeleteClick}
+          sx={{ color: 'error.main' }}
+        >
           <DeleteIcon fontSize="small" sx={{ mr: 1 }} />
           Delete
         </MenuItem>

@@ -12,14 +12,20 @@ import {
   Alert,
   Breadcrumbs,
   Link,
-  Tooltip
+  Tooltip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle
 } from '@mui/material';
 import {
   Edit as EditIcon,
   ArrowBack as ArrowBackIcon,
-  PictureAsPdf as PdfIcon
+  PictureAsPdf as PdfIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
-import { getResumeById, getResumePdf } from '../services/resumeService';
+import { getResumeById, getResumePdf, deleteResume } from '../services/resumeService';
 import { Resume } from '../types/models';
 
 const ViewResumePage: React.FC = () => {
@@ -29,6 +35,8 @@ const ViewResumePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [generatingPdf, setGeneratingPdf] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [deletingResume, setDeletingResume] = useState(false);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -107,6 +115,41 @@ const ViewResumePage: React.FC = () => {
     } finally {
       setGeneratingPdf(false);
     }
+  };
+
+  const handleDeleteClick = () => {
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!id) return;
+    
+    setDeletingResume(true);
+    try {
+      await deleteResume(id);
+      navigate('/resumes');
+    } catch (err: any) {
+      console.error('Failed to delete resume:', err);
+      // Extract more detailed error message
+      let errorMsg = 'Failed to delete resume';
+      if (err.response?.data) {
+        if (typeof err.response.data === 'string') {
+          errorMsg = err.response.data;
+        } else if (err.response.data.detail) {
+          errorMsg = err.response.data.detail;
+        }
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
+    } finally {
+      setDeletingResume(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
   };
 
   // Format date for display
@@ -294,6 +337,15 @@ const ViewResumePage: React.FC = () => {
             Edit
           </Button>
           <Button 
+            variant="outlined"
+            color="error" 
+            startIcon={<DeleteIcon />} 
+            onClick={handleDeleteClick}
+            size="small"
+          >
+            Delete
+          </Button>
+          <Button 
             variant="contained" 
             startIcon={generatingPdf ? <CircularProgress size={16} /> : <PdfIcon />}
             onClick={handleDownloadPdf}
@@ -387,6 +439,32 @@ const ViewResumePage: React.FC = () => {
         {resume.content?.publications && 
           renderSection('Publications', resume.content.publications)}
       </Box>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+      >
+        <DialogTitle>Delete Resume</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete this resume? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} disabled={deletingResume}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            disabled={deletingResume}
+            startIcon={deletingResume ? <CircularProgress size={16} /> : <DeleteIcon />}
+          >
+            {deletingResume ? 'Deleting...' : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
