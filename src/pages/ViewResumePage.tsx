@@ -138,21 +138,21 @@ const ViewResumePage: React.FC = () => {
     const parsedContent = parseJsonContent(content);
     
     return (
-      <Paper elevation={0} sx={{ mb: 3, p: 2, backgroundColor: '#f9f9f9' }}>
-        <Typography variant="h6" gutterBottom color="primary">
+      <Paper elevation={0} sx={{ mb: 2, p: 2, backgroundColor: '#f9f9f9' }}>
+        <Typography variant="h6" gutterBottom color="primary" sx={{ fontSize: '1.1rem' }}>
           {title}
         </Typography>
-        <Divider sx={{ mb: 2 }} />
+        <Divider sx={{ mb: 1.5 }} />
 
         {typeof parsedContent === 'string' ? (
-          <Typography variant="body1" whiteSpace="pre-wrap">
+          <Typography variant="body2" whiteSpace="pre-wrap">
             {parsedContent}
           </Typography>
         ) : Array.isArray(parsedContent) ? (
           <ul style={{ paddingLeft: '20px', margin: 0 }}>
             {parsedContent.map((item, index) => (
               <li key={index}>
-                <Typography variant="body1">
+                <Typography variant="body2">
                   {typeof item === 'string' ? item : JSON.stringify(item)}
                 </Typography>
               </li>
@@ -161,16 +161,16 @@ const ViewResumePage: React.FC = () => {
         ) : typeof parsedContent === 'object' ? (
           <Box component="pre" sx={{ 
             overflow: 'auto', 
-            maxHeight: '300px',
+            maxHeight: '250px',
             backgroundColor: '#f5f5f5',
             p: 1,
             borderRadius: 1,
-            fontSize: '0.875rem'
+            fontSize: '0.8rem'
           }}>
             {JSON.stringify(parsedContent, null, 2)}
           </Box>
         ) : (
-          <Typography variant="body1">{String(parsedContent)}</Typography>
+          <Typography variant="body2">{String(parsedContent)}</Typography>
         )}
       </Paper>
     );
@@ -209,7 +209,11 @@ const ViewResumePage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ 
+      p: '16px 16px 16px 0',
+      maxWidth: '1000px',
+      margin: '0 auto'
+    }}>
       {/* Breadcrumbs Navigation */}
       <Breadcrumbs sx={{ mb: 2 }}>
         <Link 
@@ -227,16 +231,16 @@ const ViewResumePage: React.FC = () => {
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
-        alignItems: 'center', 
+        alignItems: 'flex-start', 
         mb: 3,
-        flexDirection: { xs: 'column', sm: 'row' },
+        flexDirection: { xs: 'column', md: 'row' },
         gap: 2
       }}>
-        <Box>
+        <Box sx={{ maxWidth: { xs: '100%', md: '60%' } }}>
           <Typography variant="h4" component="h1" gutterBottom>
             {resume.title}
           </Typography>
-          <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
+          <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
             {resume.job_title && (
               <Chip 
                 label={resume.job_title} 
@@ -263,11 +267,21 @@ const ViewResumePage: React.FC = () => {
           </Typography>
         </Box>
         
-        <Stack direction="row" spacing={1}>
+        <Stack 
+          direction={{ xs: 'row', sm: 'row' }} 
+          spacing={1} 
+          sx={{ 
+            flexWrap: 'wrap', 
+            gap: 1,
+            width: { xs: '100%', md: 'auto' },
+            justifyContent: { xs: 'flex-start', md: 'flex-end' }
+          }}
+        >
           <Button 
             variant="outlined" 
             startIcon={<ArrowBackIcon />} 
             onClick={handleBack}
+            size="small"
           >
             Back
           </Button>
@@ -275,14 +289,16 @@ const ViewResumePage: React.FC = () => {
             variant="outlined" 
             startIcon={<EditIcon />} 
             onClick={handleEdit}
+            size="small"
           >
             Edit
           </Button>
           <Button 
             variant="contained" 
-            startIcon={generatingPdf ? <CircularProgress size={18} /> : <PdfIcon />}
+            startIcon={generatingPdf ? <CircularProgress size={16} /> : <PdfIcon />}
             onClick={handleDownloadPdf}
             disabled={generatingPdf}
+            size="small"
           >
             {generatingPdf ? 'Generating...' : 'Download PDF'}
           </Button>
@@ -290,87 +306,86 @@ const ViewResumePage: React.FC = () => {
       </Box>
       
       {/* Main Content */}
-      <Box sx={{ 
-        display: 'flex', 
-        flexDirection: { xs: 'column', md: 'row' },
-        gap: 3
-      }}>
-        {/* Left Column - 60% */}
-        <Box sx={{ flex: { md: '0 0 60%' } }}>
-          {resume.content?.personal_information && 
-            renderSection('Personal Information', resume.content.personal_information)}
-            
-          {resume.content?.career_summary && 
-            renderSection('Career Summary', resume.content.career_summary)}
-            
-          {resume.content?.work_experience && 
-            renderSection('Work Experience', resume.content.work_experience)}
-            
-          {resume.content?.education && 
-            renderSection('Education', resume.content.education)}
-            
-          {resume.content?.projects && 
-            renderSection('Projects', resume.content.projects)}
-        </Box>
-        
-        {/* Right Column - 40% */}
-        <Box sx={{ flex: { md: '0 0 40%' } }}>
-          {/* Resume Details */}
-          <Paper elevation={0} sx={{ mb: 3, p: 2, backgroundColor: '#f9f9f9' }}>
-            <Typography variant="h6" gutterBottom color="primary">
-              Resume Details
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            
-            <Box sx={{ '& > *': { mb: 1.5 } }}>
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">Template</Typography>
-                <Typography variant="body2">{resume.template_id}</Typography>
-              </Box>
-              
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">Created</Typography>
-                <Typography variant="body2">{formatDate(resume.created_at)}</Typography>
-              </Box>
-              
-              {resume.job_description && (
-                <Box>
-                  <Typography variant="subtitle2" color="text.secondary">Job Description</Typography>
-                  <Typography variant="body2" sx={{ 
-                    maxHeight: '100px', 
-                    overflow: 'hidden', 
-                    textOverflow: 'ellipsis',
-                    position: 'relative',
-                    '&:after': {
-                      content: '""',
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      left: 0,
-                      height: '30px',
-                      background: 'linear-gradient(to bottom, rgba(249,249,249,0), rgba(249,249,249,1))'
-                    }
-                  }}>
-                    {resume.job_description}
-                  </Typography>
-                  <Button size="small" sx={{ mt: 0.5 }}>View full description</Button>
-                </Box>
-              )}
-            </Box>
-          </Paper>
+      <Box sx={{ width: '100%' }}>
+        {/* Resume Details */}
+        <Paper elevation={0} sx={{ mb: 3, p: 2, backgroundColor: '#f9f9f9' }}>
+          <Typography variant="h6" gutterBottom color="primary">
+            Resume Details
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
           
-          {resume.content?.skills && 
-            renderSection('Skills', resume.content.skills)}
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
+            gap: 2
+          }}>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">Template</Typography>
+              <Typography variant="body2">{resume.template_id}</Typography>
+            </Box>
             
-          {resume.content?.certifications && 
-            renderSection('Certifications', resume.content.certifications)}
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">Created</Typography>
+              <Typography variant="body2">{formatDate(resume.created_at)}</Typography>
+            </Box>
             
-          {resume.content?.awards && 
-            renderSection('Awards', resume.content.awards)}
-            
-          {resume.content?.publications && 
-            renderSection('Publications', resume.content.publications)}
-        </Box>
+            <Box>
+              <Typography variant="subtitle2" color="text.secondary">Updated</Typography>
+              <Typography variant="body2">{formatDate(resume.updated_at)}</Typography>
+            </Box>
+          </Box>
+              
+          {resume.job_description && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Job Description</Typography>
+              <Typography variant="body2" sx={{ 
+                maxHeight: '100px', 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis',
+                position: 'relative',
+                '&:after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  left: 0,
+                  height: '30px',
+                  background: 'linear-gradient(to bottom, rgba(249,249,249,0), rgba(249,249,249,1))'
+                }
+              }}>
+                {resume.job_description}
+              </Typography>
+              <Button size="small" sx={{ mt: 0.5 }}>View full description</Button>
+            </Box>
+          )}
+        </Paper>
+        
+        {resume.content?.personal_information && 
+          renderSection('Personal Information', resume.content.personal_information)}
+          
+        {resume.content?.career_summary && 
+          renderSection('Career Summary', resume.content.career_summary)}
+          
+        {resume.content?.skills && 
+          renderSection('Skills', resume.content.skills)}
+          
+        {resume.content?.work_experience && 
+          renderSection('Work Experience', resume.content.work_experience)}
+          
+        {resume.content?.education && 
+          renderSection('Education', resume.content.education)}
+          
+        {resume.content?.projects && 
+          renderSection('Projects', resume.content.projects)}
+          
+        {resume.content?.certifications && 
+          renderSection('Certifications', resume.content.certifications)}
+          
+        {resume.content?.awards && 
+          renderSection('Awards', resume.content.awards)}
+          
+        {resume.content?.publications && 
+          renderSection('Publications', resume.content.publications)}
       </Box>
     </Box>
   );

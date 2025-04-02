@@ -48,7 +48,7 @@ interface MainLayoutProps {
   children: ReactNode;
 }
 
-const drawerWidth = 240;
+const drawerWidth = 200;
 const miniDrawerWidth = 65;
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -244,6 +244,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             ...(isMobile && !drawerOpen && { display: 'none' }),
             borderRight: 'none',
             background: 'linear-gradient(180deg, rgba(63, 114, 175, 0.02) 0%, rgba(155, 89, 182, 0.05) 100%)',
+            boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.15)',
             zIndex: (theme) => theme.zIndex.drawer,
           },
         }}
@@ -261,7 +262,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           pt: 3, // Keep top padding larger
           width: '100%',
           marginTop: '64px', // Height of AppBar
-          marginLeft: '20px', // Fixed small margin regardless of drawer state
+          marginLeft: 0, // No left margin
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
