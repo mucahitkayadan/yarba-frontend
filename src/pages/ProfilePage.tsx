@@ -458,115 +458,125 @@ const ProfilePage: React.FC = () => {
         {editMode ? (
           <Box component="form" onSubmit={handleSubmit}>
             <TabPanel value={tabValue} index={0}>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
+            <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
+                  label="Full Name"
                     name="full_name"
                     value={personalInfoForm.full_name}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                    required
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    name="email"
+                  margin="normal"
+                  required
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
+                  label="Email"
+                  name="email"
                     value={personalInfoForm.email}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
+                  margin="normal"
                     required
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
-                    label="Phone"
-                    name="phone"
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
+                  label="Phone"
+                  name="phone"
                     value={personalInfoForm.phone}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
+                  margin="normal"
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
                     label="Address"
                     name="address"
                     value={personalInfoForm.address}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
+                  margin="normal"
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
                     label="LinkedIn"
                     name="linkedin"
                     value={personalInfoForm.linkedin}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
+                  margin="normal"
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
                     label="GitHub"
                     name="github"
                     value={personalInfoForm.github}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                  />
-                </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <TextField
-                    fullWidth
-                    label="Website"
-                    name="website"
+                  margin="normal"
+                />
+              </Box>
+              <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <TextField
+                  fullWidth
+                  label="Website"
+                  name="website"
                     value={personalInfoForm.website}
                     onChange={handlePersonalInfoChange}
-                    margin="normal"
-                  />
-                </Box>
+                  margin="normal"
+                />
+              </Box>
               </Stack>
             </TabPanel>
 
             <TabPanel value={tabValue} index={1}>
-              <TextField
-                fullWidth
+                <TextField
+                  fullWidth
                 label="Life Story"
                 name="life_story"
                 value={lifeStory}
                 onChange={handleLifeStoryChange}
-                margin="normal"
-                multiline
+                  margin="normal"
+                  multiline
                 rows={8}
               />
             </TabPanel>
 
             <TabPanel value={tabValue} index={2}>
               <Typography variant="h6" gutterBottom>LLM Preferences</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 4 }}>
-                <FormControl sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <InputLabel id="model-type-label">Model Type</InputLabel>
-                  <Select
-                    labelId="model-type-label"
-                    name="llm_model_type"
-                    value={preferencesForm.llm_model_type}
-                    label="Model Type"
-                    onChange={handleSelectChange}
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3,
+                mb: 4
+              }}>
+                <Box>
+                  <FormControl 
+                    fullWidth 
+                    margin="normal"
                   >
-                    <MenuItem value="Claude">Claude</MenuItem>
-                    <MenuItem value="GPT">GPT</MenuItem>
-                    <MenuItem value="Gemini">Gemini</MenuItem>
-                    <MenuItem value="Mistral">Mistral</MenuItem>
-                  </Select>
-                </FormControl>
+                    <InputLabel id="model-type-label">Model Type</InputLabel>
+                    <Select
+                      labelId="model-type-label"
+                      name="llm_model_type"
+                      value={preferencesForm.llm_model_type}
+                      label="Model Type"
+                      onChange={handleSelectChange}
+                    >
+                      <MenuItem value="Claude">Claude</MenuItem>
+                      <MenuItem value="GPT">GPT</MenuItem>
+                      <MenuItem value="Gemini">Gemini</MenuItem>
+                      <MenuItem value="Mistral">Mistral</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Box>
                 
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <Box>
                   <TextField
                     fullWidth
                     label="Model Name"
@@ -577,7 +587,7 @@ const ProfilePage: React.FC = () => {
                   />
                 </Box>
                 
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <Box>
                   <TextField
                     fullWidth
                     label="Temperature"
@@ -589,11 +599,16 @@ const ProfilePage: React.FC = () => {
                     margin="normal"
                   />
                 </Box>
-              </Stack>
+              </Box>
 
               <Typography variant="h6" gutterBottom>LaTeX Template Preferences</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3,
+                mb: 4
+              }}>
+                <Box>
                   <TextField
                     fullWidth
                     label="Resume Template"
@@ -603,7 +618,7 @@ const ProfilePage: React.FC = () => {
                     margin="normal"
                   />
                 </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
+                <Box>
                   <TextField
                     fullWidth
                     label="Cover Letter Template"
@@ -613,7 +628,7 @@ const ProfilePage: React.FC = () => {
                     margin="normal"
                   />
                 </Box>
-              </Stack>
+              </Box>
             </TabPanel>
 
             <TabPanel value={tabValue} index={3}>
@@ -635,16 +650,16 @@ const ProfilePage: React.FC = () => {
             </TabPanel>
 
             <Box sx={{ p: 3, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                startIcon={<SaveIcon />}
-                disabled={loading}
-              >
-                {loading ? 'Saving...' : 'Save Changes'}
-              </Button>
-            </Box>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<SaveIcon />}
+                  disabled={loading}
+                >
+                  {loading ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </Box>
           </Box>
         ) : (
           <>
@@ -679,10 +694,14 @@ const ProfilePage: React.FC = () => {
               <Divider sx={{ mb: 3 }} />
 
               <Typography variant="h6" gutterBottom>Contact & Social Links</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3
+              }}>
                 {profile.personal_information.linkedin && (
-                  <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                    <Typography variant="subtitle2">LinkedIn</Typography>
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>LinkedIn</Typography>
                     <Typography variant="body2" component="a" href={profile.personal_information.linkedin} target="_blank" sx={{ color: 'primary.main' }}>
                       {profile.personal_information.linkedin}
                     </Typography>
@@ -690,8 +709,8 @@ const ProfilePage: React.FC = () => {
                 )}
                 
                 {profile.personal_information.github && (
-                  <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                    <Typography variant="subtitle2">GitHub</Typography>
+                  <Box>
+                    <Typography variant="subtitle2" gutterBottom>GitHub</Typography>
                     <Typography variant="body2" component="a" href={profile.personal_information.github} target="_blank" sx={{ color: 'primary.main' }}>
                       {profile.personal_information.github}
                     </Typography>
@@ -699,97 +718,119 @@ const ProfilePage: React.FC = () => {
                 )}
                 
                 {profile.personal_information.website && (
-                  <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                    <Typography variant="subtitle2">Website</Typography>
+          <Box>
+                    <Typography variant="subtitle2" gutterBottom>Website</Typography>
                     <Typography variant="body2" component="a" href={profile.personal_information.website} target="_blank" sx={{ color: 'primary.main' }}>
                       {profile.personal_information.website}
                     </Typography>
                   </Box>
                 )}
-              </Stack>
+              </Box>
             </TabPanel>
 
             <TabPanel value={tabValue} index={1}>
               <Typography variant="h6" gutterBottom>Life Story</Typography>
-              <Typography variant="body1" paragraph>
+            <Typography variant="body1" paragraph>
                 {profile.life_story || 'No life story provided yet.'}
-              </Typography>
+            </Typography>
             </TabPanel>
 
             <TabPanel value={tabValue} index={2}>
               <Typography variant="h6" gutterBottom>LLM Preferences</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 4 }}>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <Typography variant="subtitle2">Model Type</Typography>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3,
+                mb: 4
+              }}>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Model Type</Typography>
                   <Typography variant="body2">{profile.preferences.llm_preferences.model_type}</Typography>
                 </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <Typography variant="subtitle2">Model Name</Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Model Name</Typography>
                   <Typography variant="body2">{profile.preferences.llm_preferences.model_name}</Typography>
                 </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <Typography variant="subtitle2">Temperature</Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Temperature</Typography>
                   <Typography variant="body2">{profile.preferences.llm_preferences.temperature}</Typography>
                 </Box>
-              </Stack>
+              </Box>
 
               <Typography variant="h6" gutterBottom>LaTeX Template Preferences</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 4 }}>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <Typography variant="subtitle2">Resume Template</Typography>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3,
+                mb: 4
+              }}>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Resume Template</Typography>
                   <Typography variant="body2">{profile.preferences.latex_template_preferences.resume_template}</Typography>
                 </Box>
-                <Box sx={{ width: { xs: '100%', sm: '48%' } }}>
-                  <Typography variant="subtitle2">Cover Letter Template</Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Cover Letter Template</Typography>
                   <Typography variant="body2">{profile.preferences.latex_template_preferences.cover_letter_template}</Typography>
                 </Box>
-              </Stack>
+              </Box>
 
               <Typography variant="h6" gutterBottom>Document Generation Settings</Typography>
-              <Stack direction="row" spacing={2} flexWrap="wrap">
-                <Box sx={{ width: { xs: '100%', sm: '48%' }, mb: 2 }}>
-                  <Typography variant="subtitle2">Projects</Typography>
-                  <Typography variant="body2">
-                    Max projects: {profile.preferences.project_details.max_projects}
-                  </Typography>
-                  <Typography variant="body2">
-                    Bullet points per project: {profile.preferences.project_details.bullet_points_per_project}
-                  </Typography>
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                gap: 3
+              }}>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Projects</Typography>
+                  <Box sx={{ ml: 2 }}>
+                    <Typography variant="body2">
+                      Max projects: {profile.preferences.project_details.max_projects}
+                    </Typography>
+                    <Typography variant="body2">
+                      Bullet points per project: {profile.preferences.project_details.bullet_points_per_project}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Box sx={{ width: { xs: '100%', sm: '48%' }, mb: 2 }}>
-                  <Typography variant="subtitle2">Work Experience</Typography>
-                  <Typography variant="body2">
-                    Max jobs: {profile.preferences.work_experience_details.max_jobs}
-                  </Typography>
-                  <Typography variant="body2">
-                    Bullet points per job: {profile.preferences.work_experience_details.bullet_points_per_job}
-                  </Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Work Experience</Typography>
+                  <Box sx={{ ml: 2 }}>
+                    <Typography variant="body2">
+                      Max jobs: {profile.preferences.work_experience_details.max_jobs}
+                    </Typography>
+                    <Typography variant="body2">
+                      Bullet points per job: {profile.preferences.work_experience_details.bullet_points_per_job}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Box sx={{ width: { xs: '100%', sm: '48%' }, mb: 2 }}>
-                  <Typography variant="subtitle2">Skills</Typography>
-                  <Typography variant="body2">
-                    Max categories: {profile.preferences.skills_details.max_categories}
-                  </Typography>
-                  <Typography variant="body2">
-                    Min skills per category: {profile.preferences.skills_details.min_skills_per_category}
-                  </Typography>
-                  <Typography variant="body2">
-                    Max skills per category: {profile.preferences.skills_details.max_skills_per_category}
-                  </Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Skills</Typography>
+                  <Box sx={{ ml: 2 }}>
+                    <Typography variant="body2">
+                      Max categories: {profile.preferences.skills_details.max_categories}
+                    </Typography>
+                    <Typography variant="body2">
+                      Min skills per category: {profile.preferences.skills_details.min_skills_per_category}
+                    </Typography>
+                    <Typography variant="body2">
+                      Max skills per category: {profile.preferences.skills_details.max_skills_per_category}
+                    </Typography>
+                  </Box>
                 </Box>
 
-                <Box sx={{ width: { xs: '100%', sm: '48%' }, mb: 2 }}>
-                  <Typography variant="subtitle2">Cover Letter</Typography>
-                  <Typography variant="body2">
-                    Paragraphs: {profile.preferences.cover_letter_details.paragraphs}
-                  </Typography>
-                  <Typography variant="body2">
-                    Target age: {profile.preferences.cover_letter_details.target_age}
-                  </Typography>
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom>Cover Letter</Typography>
+                  <Box sx={{ ml: 2 }}>
+                    <Typography variant="body2">
+                      Paragraphs: {profile.preferences.cover_letter_details.paragraphs}
+                    </Typography>
+                    <Typography variant="body2">
+                      Target age: {profile.preferences.cover_letter_details.target_age}
+                    </Typography>
+                  </Box>
                 </Box>
-              </Stack>
+              </Box>
             </TabPanel>
 
             <TabPanel value={tabValue} index={3}>
@@ -804,7 +845,7 @@ const ProfilePage: React.FC = () => {
                     sx={{ mr: 1, mb: 1 }}
                   />
                 ))}
-              </Box>
+          </Box>
               <Typography variant="body2" color="text.secondary">
                 API key management is only available via settings page
               </Typography>

@@ -405,7 +405,7 @@ const ResumesPage: React.FC = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         gap: 2
       }}>
-        <Typography variant="h5" component="h1">
+        <Typography variant="h4">
           Your Resumes
         </Typography>
         <Button
@@ -462,12 +462,33 @@ const ResumesPage: React.FC = () => {
           <TableContainer component={Paper} sx={{ mb: 3 }}>
             <Table sx={{ minWidth: 650 }} aria-label="resumes table">
               <TableHead>
-                <TableRow sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
-                  <TableCell>Resume Title</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Position & Company</TableCell>
-                  <TableCell>Last Updated</TableCell>
-                  <TableCell align="right">Actions</TableCell>
+                <TableRow>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Resume Title</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Name</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Position & Company</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Last Updated</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem',
+                    textAlign: 'center'
+                  }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -516,7 +537,7 @@ const ResumesPage: React.FC = () => {
                         {formatDate(resume.updated_at)}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right" onClick={(e) => e.stopPropagation()}>
+                    <TableCell sx={{ textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
                       <ButtonGroup size="small" variant="outlined">
                         <Tooltip 
                           title="View" 
