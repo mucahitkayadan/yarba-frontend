@@ -114,12 +114,22 @@ const ResumesPage: React.FC = () => {
       const skip = (page - 1) * pageSize;
       const limit = pageSize;
       const title = searchTerm ? searchTerm : undefined;
-      console.log(`Fetching resumes with skip=${skip}, limit=${limit}, title=${title}`);
       
-      const result = await getResumes(skip, limit, title);
+      console.log(`Fetching resumes with skip=${skip}, limit=${limit}, title=${title}, sort_by=updated_desc`);
+      
+      // Use the new sort_by parameter 
+      const result = await getResumes(skip, limit, title, undefined, 'updated_desc');
       console.log('API result:', result);
       
-      // Set the resumes from the items array
+      // Log timestamps to verify sorting
+      if (result.items.length > 0) {
+        console.log('First resume updated_at:', result.items[0].updated_at);
+        if (result.items.length > 1) {
+          console.log('Second resume updated_at:', result.items[1].updated_at);
+        }
+      }
+      
+      // API now returns data already sorted, no need for client-side sorting
       setResumes(result.items as unknown as APIResume[]);
       
       // Set the total count from the total property

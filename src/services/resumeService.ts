@@ -6,7 +6,8 @@ export const getResumes = async (
   skip: number = 0, 
   limit: number = 10,
   title?: string,
-  template_id?: string
+  template_id?: string,
+  sort_by: string = 'updated_desc'
 ): Promise<{ items: Resume[], total: number }> => {
   const params = new URLSearchParams();
   params.append('skip', skip.toString());
@@ -15,8 +16,14 @@ export const getResumes = async (
   if (title) params.append('title', title);
   if (template_id) params.append('template_id', template_id);
   
-  console.log(`API Call: GET /resumes?${params.toString()}`);
-  const response = await api.get(`/resumes?${params.toString()}`);
+  // Add sorting parameter
+  params.append('sort_by', sort_by);
+  console.log(`Adding sort_by=${sort_by}`);
+  
+  const requestUrl = `/resumes?${params.toString()}`;
+  console.log(`API Call: GET ${requestUrl}`);
+  console.log(`Full URL would be: ${process.env.REACT_APP_API_URL}${requestUrl}`);
+  const response = await api.get(requestUrl);
   
   // Backend now returns properly formatted paginated response
   if (response.data && response.data.items && typeof response.data.total === 'number') {
