@@ -206,9 +206,25 @@ const ResumesPage: React.FC = () => {
     setDeletingResume(true);
     try {
       await deleteResume(selectedResumeId);
+      
       // Remove the deleted resume from the local state
-      setResumes(resumes.filter(resume => resume.id !== selectedResumeId));
-      setTotalResumes(prevTotal => prevTotal - 1);
+      const updatedResumes = resumes.filter(resume => resume.id !== selectedResumeId);
+      setResumes(updatedResumes);
+      
+      const newTotalCount = totalResumes - 1;
+      setTotalResumes(newTotalCount);
+      
+      // Check if we need to adjust the page number
+      // This happens when we delete the last item on a page
+      const totalPages = Math.ceil(newTotalCount / pageSize);
+      if (page > totalPages && totalPages > 0) {
+        // Go to the last available page
+        setPage(totalPages);
+      } else if (updatedResumes.length === 0 && newTotalCount > 0) {
+        // If we deleted the last item on the page but there are more items, refresh
+        fetchResumes();
+      }
+      
     } catch (error: any) {
       console.error('Failed to delete resume:', error);
       // Display error message to the user
