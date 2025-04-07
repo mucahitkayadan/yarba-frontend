@@ -1,196 +1,264 @@
-import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { loginWithEmail, registerWithEmail, logout, loginWithGoogle, getCurrentUser } from '../services/authService';
-import { getToken, removeToken, storeToken } from '../utils/auth';
-import { User, LoginRequest, RegisterRequest } from '../types/models';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { User as FirebaseUser } from 'firebase/auth';
 import api from '../services/api';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../firebaseConfig';
-import { getFirebaseIdToken, exchangeFirebaseTokenForJWT } from '../services/firebaseAuthService';
+import { 
+  loginWithFirebase, 
+  registerWithFirebase, 
+  signInWithGoogleProvider, 
+  signOutFromFirebase,
+  exchangeFirebaseTokenForJWT,
+  getCurrentFirebaseUser
+} from '../services/firebaseAuthService';
+import { createDebugger } from '../utils/debug';
 
-// Extend User type with profile fields through UserProfile interface
-export interface UserProfile {
-  full_name?: string;
-  bio?: string;
-  job_title?: string;
-  company?: string;
-  location?: string;
-  phone?: string;
-  website?: string;
-  avatar_url?: string;
-}
+const debug = createDebugger('AuthContext');
 
-interface AuthContextType {
-  user: User | null;
+// Define the shape of our auth context state
+export interface AuthContextState {
+  user: any | null;
+  firebaseUser: FirebaseUser | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  loginWithFirebase: (email: string, password: string) => Promise<void>;
-  registerWithFirebase: (data: RegisterRequest) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, username: string, fullName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  logout: () => Promise<void>;
-  updateUserProfile: (profileData: UserProfile) => Promise<void>;
+  signOut: () => Promise<void>;
+  setError: (error: string | null) => void;
+  updateProfile: (userData: any) => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+// Create the context with a default value
+const AuthContext = createContext<AuthContextState>({
+  user: null,
+  firebaseUser: null,
+  isAuthenticated: false,
+  loading: false,
+  error: null,
+  login: async () => {},
+  register: async () => {},
+  signInWithGoogle: async () => {},
+  signOut: async () => {},
+  setError: () => {},
+  updateProfile: async () => {}
+});
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
+// Custom hook to use the auth context
+export const useAuth = () => useContext(AuthContext);
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+// Provider component that wraps app and provides auth context
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const fetchCurrentUser = useCallback(async (): Promise<void> => {
-    const token = getToken();
+  // Function to fetch current user data from backend
+  const fetchCurrentUser = async () => {
+    debug.log('Fetching current user data from backend');
+    const token = localStorage.getItem('auth_token');
+    
     if (!token) {
-      setIsLoading(false);
-      setUser(null); // Ensure user is null if no token
+      debug.warn('No auth token found in localStorage');
+      setLoading(false);
       return;
     }
-
-    setIsLoading(true); // Set loading before API call
+    
     try {
-      const userData = await getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      console.error('Failed to fetch user data:', error);
-      removeToken(); // Remove token if fetching user fails (e.g., token invalid)
-      setUser(null);
+      setLoading(true);
+      const response = await api.get('/users/me');
+      debug.log('User data successfully fetched', response.data);
+      setUser(response.data);
+      setIsAuthenticated(true);
+    } catch (err: any) {
+      debug.error('Error fetching user data:', err);
+      // Clear token if it's invalid
+      if (err.response && (err.response.status === 401 || err.response.status === 403)) {
+        debug.warn('Token is invalid, clearing authentication');
+        localStorage.removeItem('auth_token');
+        setIsAuthenticated(false);
+        setUser(null);
+      }
+      setError(err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
-  }, []);
+  };
+
+  // Handle Firebase token exchange and user data fetch
+  const handleTokenExchange = async (fbUser: FirebaseUser) => {
+    try {
+      debug.log('Starting token exchange for user:', fbUser.email);
+      const tokenResponse = await exchangeFirebaseTokenForJWT();
+      
+      if (tokenResponse) {
+        const { access_token } = tokenResponse;
+        localStorage.setItem('auth_token', access_token);
+        
+        // Set Authorization header for future requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
+        debug.log('Token exchange successful, token saved');
+        
+        // Fetch user data
+        await fetchCurrentUser();
+      } else {
+        debug.warn('Token exchange did not return a valid response');
+        setLoading(false);
+      }
+    } catch (err: any) {
+      debug.error('Token exchange error:', err);
+      setError(err.message || 'Error during authentication');
+      setLoading(false);
+    }
+  };
 
   // Listen for Firebase auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        // User is signed in, get the ID token
-        try {
-          // Check if we have a backend token
-          const token = getToken();
-          if (!token) {
-            // If no token, exchange Firebase token for backend JWT
-            const tokenResponse = await exchangeFirebaseTokenForJWT();
-            if (tokenResponse?.access_token) {
-              // Store new token and fetch user data
-              storeToken(tokenResponse.access_token);
-              await fetchCurrentUser();
-            }
-          } else {
-            // If we already have a token, just fetch user data
-            await fetchCurrentUser();
-          }
-        } catch (error) {
-          console.error('Error processing Firebase auth state change:', error);
-          setUser(null);
-          setIsLoading(false);
+    debug.log('Setting up Firebase auth state listener');
+    const checkCurrentUser = async () => {
+      try {
+        const fbUser = await getCurrentFirebaseUser();
+        setFirebaseUser(fbUser);
+        
+        if (fbUser) {
+          debug.log('Firebase user is logged in:', fbUser.email);
+          await handleTokenExchange(fbUser);
+        } else {
+          debug.log('No Firebase user found');
+          setLoading(false);
+          setIsAuthenticated(false);
         }
-      } else {
-        // User is signed out
-        removeToken();
-        setUser(null);
-        setIsLoading(false);
+      } catch (err: any) {
+        debug.error('Error checking current user:', err);
+        setError(err.message);
+        setLoading(false);
       }
-    });
+    };
+    
+    checkCurrentUser();
+  }, []);
 
-    // Cleanup subscription on unmount
-    return () => unsubscribe();
-  }, [fetchCurrentUser]);
-
-  useEffect(() => {
-    fetchCurrentUser();
-  }, [fetchCurrentUser]);
-
-  const loginWithFirebaseHandler = async (email: string, password: string): Promise<void> => {
-    setIsLoading(true);
+  // Login function
+  const login = async (email: string, password: string) => {
     try {
-      await loginWithEmail(email, password);
-      await fetchCurrentUser(); // Fetch user data after successful login
-    } catch (error) {
-      console.error('Firebase login failed:', error);
+      debug.log('Starting login process for:', email);
+      setLoading(true);
+      setError(null);
+      
+      const fbUser = await loginWithFirebase(email, password);
+      setFirebaseUser(fbUser);
+      debug.log('Firebase login successful');
+      
+      // Token exchange will be handled by the auth state listener
+    } catch (err: any) {
+      debug.error('Login error:', err);
+      setError(err.message);
+      setLoading(false);
+      throw err; // Re-throw for component-level handling
+    }
+  };
+
+  // Register function
+  const register = async (email: string, password: string, username: string, fullName: string) => {
+    try {
+      debug.log('Starting registration process for:', email);
+      setLoading(true);
+      setError(null);
+      
+      const fbUser = await registerWithFirebase(email, password);
+      setFirebaseUser(fbUser);
+      debug.log('Firebase registration successful');
+      
+      // Token exchange will be handled by the auth state listener
+    } catch (err: any) {
+      debug.error('Registration error:', err);
+      setError(err.message);
+      setLoading(false);
+      throw err; // Re-throw for component-level handling
+    }
+  };
+
+  // Google sign-in function
+  const signInWithGoogle = async () => {
+    try {
+      debug.log('Starting Google sign-in process');
+      setLoading(true);
+      setError(null);
+      
+      const fbUser = await signInWithGoogleProvider();
+      setFirebaseUser(fbUser);
+      debug.log('Google sign-in successful');
+      
+      // Token exchange will be handled by the auth state listener
+    } catch (err: any) {
+      debug.error('Google sign-in error:', err);
+      setError(err.message);
+      setLoading(false);
+      throw err; // Re-throw for component-level handling
+    }
+  };
+
+  // Sign out function
+  const signOut = async () => {
+    try {
+      debug.log('Starting sign-out process');
+      setLoading(true);
+      
+      await signOutFromFirebase();
+      
+      // Clear auth data
+      localStorage.removeItem('auth_token');
+      delete api.defaults.headers.common['Authorization'];
+      
+      // Reset state
       setUser(null);
-      removeToken();
-      throw error;
+      setFirebaseUser(null);
+      setIsAuthenticated(false);
+      setError(null);
+      
+      debug.log('Sign-out successful');
+    } catch (err: any) {
+      debug.error('Sign-out error:', err);
+      setError(err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const signInWithGoogleHandler = async (): Promise<void> => {
-    setIsLoading(true);
+  // Update profile function
+  const updateProfile = async (userData: any) => {
     try {
-      await loginWithGoogle();
-      await fetchCurrentUser(); // Fetch user data after successful login
-    } catch (error) {
-      console.error('Google sign-in failed:', error);
-      setUser(null);
-      removeToken();
-      throw error;
+      debug.log('Updating user profile');
+      setLoading(true);
+      
+      const response = await api.patch('/users/me', userData);
+      setUser(response.data);
+      
+      debug.log('Profile update successful');
+    } catch (err: any) {
+      debug.error('Profile update error:', err);
+      setError(err.message);
+      throw err;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const registerWithFirebaseHandler = async (data: RegisterRequest): Promise<void> => {
-    setIsLoading(true);
-    try {
-      await registerWithEmail(data);
-      await fetchCurrentUser(); // Fetch user data after successful registration
-    } catch (error) {
-      console.error('Firebase registration failed:', error);
-      setUser(null);
-      removeToken();
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const logoutHandler = async (): Promise<void> => {
-    try {
-      await logout();
-      setUser(null);
-    } catch (error) {
-      console.error('Logout failed:', error);
-      throw error;
-    }
-  };
-
-  const updateUserProfile = async (profileData: UserProfile): Promise<void> => {
-    setIsLoading(true);
-    try {
-      const response = await api.patch('/users/me', profileData);
-      // Update the user object with the new data
-      setUser(prev => prev ? { ...prev, ...response.data } : null);
-    } catch (error) {
-      console.error('Failed to update user profile:', error);
-      throw error; // Re-throw to be handled by the component
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // The context value that will be supplied to any descendants of this provider
   const value = {
     user,
-    isAuthenticated: !!user, // Derive isAuthenticated directly from user state
-    isLoading,
-    loginWithFirebase: loginWithFirebaseHandler,
-    registerWithFirebase: registerWithFirebaseHandler,
-    signInWithGoogle: signInWithGoogleHandler,
-    logout: logoutHandler,
-    updateUserProfile,
+    firebaseUser,
+    isAuthenticated,
+    loading,
+    error,
+    login,
+    register,
+    signInWithGoogle,
+    signOut,
+    setError,
+    updateProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
-
-export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
-
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-
-  return context;
 }; 

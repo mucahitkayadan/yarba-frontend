@@ -1,23 +1,40 @@
-// Auth utilities
+import { createDebugger } from './debug';
+
+const debug = createDebugger('AuthUtils');
+
+// Local storage key for auth token
 const TOKEN_KEY = 'auth_token';
 
-// Store token
+/**
+ * Store authentication token in localStorage
+ */
 export const storeToken = (token: string): void => {
+  debug.log('Storing auth token');
   localStorage.setItem(TOKEN_KEY, token);
 };
 
-// Retrieve token
+/**
+ * Retrieve authentication token from localStorage
+ */
 export const getToken = (): string | null => {
-  return localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(TOKEN_KEY);
+  debug.log(`Retrieved auth token: ${token ? 'present' : 'missing'}`);
+  return token;
 };
 
-// Remove token on logout
+/**
+ * Remove authentication token from localStorage
+ */
 export const removeToken = (): void => {
+  debug.log('Removing auth token');
   localStorage.removeItem(TOKEN_KEY);
 };
 
-// Check if user is authenticated
+/**
+ * Check if user is authenticated (has a token)
+ */
 export const isAuthenticated = (): boolean => {
-  const token = getToken();
-  return !!token; // Returns true if token exists
+  const hasToken = !!getToken();
+  debug.log(`Authentication check: ${hasToken ? 'Authenticated' : 'Not authenticated'}`);
+  return hasToken;
 }; 

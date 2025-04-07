@@ -36,6 +36,8 @@
   },
   "scripts": {
     "start": "react-app-rewired start",
+    "dev": "BROWSER=none REACT_APP_DEBUG=true react-app-rewired start",
+    "dev:win": "set BROWSER=none && set REACT_APP_DEBUG=true && react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
     "eject": "react-scripts eject"

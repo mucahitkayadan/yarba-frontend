@@ -1,247 +1,219 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  TextField, 
-  Button, 
-  Typography, 
-  Paper, 
-  Divider,
-  Alert,
-  CircularProgress,
-  Stack
+import React, { useState, useCallback } from 'react';
+import {
+  Box, Button, Divider, Grid, Link, Paper, TextField, Typography, CircularProgress, Alert
 } from '@mui/material';
+import GoogleIcon from '@mui/icons-material/Google';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { RegisterRequest } from '../../types/models';
-import { Google as GoogleIcon } from '@mui/icons-material';
+import { getFirebaseErrorMessage } from '../../utils/errorHandler';
+import { createDebugger } from '../../utils/debug';
+
+const debug = createDebugger('FirebaseAuth');
 
 type AuthMode = 'login' | 'register';
 
 const FirebaseAuth: React.FC = () => {
+  // State management
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [fullName, setFullName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { loginWithFirebase, registerWithFirebase, signInWithGoogle } = useAuth();
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const toggleMode = () => {
-    setMode(mode === 'login' ? 'register' : 'login');
+  // Auth context
+  const { login, register, signInWithGoogle, error: contextError, setError } = useAuth();
+
+  // Reset error when switching modes
+  const resetForm = useCallback(() => {
+    setEmail('');
+    setPassword('');
+    setUsername('');
+    setFullName('');
+    setLocalError(null);
     setError(null);
-  };
+  }, [setError]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Handle form submission for login or register
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLocalError(null);
     setError(null);
-    setLoading(true);
-
-    try {
-      await loginWithFirebase(email, password);
-      navigate('/dashboard');
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred during login';
-      // Extract Firebase error message
-      const firebaseError = errorMessage.includes('Firebase:') 
-        ? errorMessage.split('Firebase:')[1].trim() 
-        : errorMessage;
-      setError(firebaseError);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setLoading(true);
-
-    if (!username || !email || !password || !fullName) {
-      setError('All fields are required');
-      setLoading(false);
+    
+    if (!email || !password) {
+      setLocalError('Please fill in all required fields');
       return;
     }
 
+    if (mode === 'register' && (!username || !fullName)) {
+      setLocalError('Please fill in all required fields');
+      return;
+    }
+
+    debug.log(`Submitting ${mode} form for email: ${email}`);
+    setIsSubmitting(true);
+
     try {
-      const data: RegisterRequest = {
-        username,
-        email,
-        password,
-        full_name: fullName
-      };
-      await registerWithFirebase(data);
-      navigate('/dashboard');
-    } catch (err: any) {
-      const errorMessage = err.message || 'An error occurred during registration';
-      // Extract Firebase error message
-      const firebaseError = errorMessage.includes('Firebase:') 
-        ? errorMessage.split('Firebase:')[1].trim() 
-        : errorMessage;
-      setError(firebaseError);
+      if (mode === 'login') {
+        debug.log('Attempting to log in');
+        await login(email, password);
+        debug.log('Login successful');
+      } else {
+        debug.log('Attempting to register');
+        await register(email, password, username, fullName);
+        debug.log('Registration successful');
+      }
+    } catch (error: any) {
+      const errorMsg = getFirebaseErrorMessage(error);
+      debug.error(`${mode} error:`, error);
+      setLocalError(errorMsg);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  // Handle Google sign-in
   const handleGoogleSignIn = async () => {
+    debug.log('Attempting Google sign-in');
+    setLocalError(null);
     setError(null);
-    setLoading(true);
-    console.log('Starting Google sign-in process...');
+    setIsSubmitting(true);
     
     try {
-      console.log('Calling signInWithGoogle...');
       await signInWithGoogle();
-      console.log('Google sign-in successful!');
-      navigate('/dashboard');
-    } catch (err: any) {
-      console.error('Google sign-in error (detailed):', err);
-      
-      const errorMessage = err.message || 'An error occurred with Google sign-in';
-      const errorCode = err.code || 'unknown';
-      
-      console.error(`Error code: ${errorCode}, Message: ${errorMessage}`);
-      
-      // Create a more user-friendly error message
-      let userMessage = 'Failed to sign in with Google';
-      
-      if (errorCode === 'auth/popup-closed-by-user') {
-        userMessage = 'Sign-in was canceled because the popup was closed.';
-      } else if (errorCode === 'auth/popup-blocked') {
-        userMessage = 'Sign-in popup was blocked by your browser. Please enable popups for this site.';
-      } else if (errorCode === 'auth/cancelled-popup-request') {
-        userMessage = 'The popup request was cancelled.';
-      } else if (errorCode === 'auth/network-request-failed') {
-        userMessage = 'Network error occurred. Please check your internet connection.';
-      }
-      
-      setError(userMessage);
+      debug.log('Google sign-in successful');
+    } catch (error: any) {
+      const errorMsg = getFirebaseErrorMessage(error);
+      debug.error('Google sign-in error:', error);
+      setLocalError(errorMsg);
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
+  // Toggle between login and register modes
+  const toggleMode = () => {
+    resetForm();
+    setMode(prevMode => (prevMode === 'login' ? 'register' : 'login'));
+    debug.log(`Switched mode to: ${mode === 'login' ? 'register' : 'login'}`);
+  };
+
+  // Show error if exists
+  const errorMessage = localError || contextError;
+
   return (
-    <Paper elevation={3} sx={{ p: 4, maxWidth: 500, width: '100%', mx: 'auto', mt: 4 }}>
-      <Typography variant="h5" align="center" gutterBottom>
-        {mode === 'login' ? 'Sign In' : 'Create Account'}
+    <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 450, mx: 'auto' }}>
+      <Typography variant="h5" component="h1" align="center" gutterBottom>
+        {mode === 'login' ? 'Sign In' : 'Create an Account'}
       </Typography>
-      
-      {error && (
+
+      {errorMessage && (
         <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
+          {errorMessage}
         </Alert>
       )}
 
-      <Stack spacing={2}>
-        <Button
-          variant="contained"
-          color="primary"
+      <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+        <TextField
+          margin="normal"
+          required
           fullWidth
-          startIcon={<GoogleIcon />}
-          onClick={handleGoogleSignIn}
-          disabled={loading}
-          sx={{ py: 1.2 }}
-        >
-          {loading ? <CircularProgress size={24} /> : `${mode === 'login' ? 'Sign in' : 'Sign up'} with Google`}
-        </Button>
+          id="email"
+          label="Email Address"
+          name="email"
+          autoComplete="email"
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={isSubmitting}
+        />
 
-        <Divider sx={{ my: 2 }}>OR</Divider>
+        <TextField
+          margin="normal"
+          required
+          fullWidth
+          name="password"
+          label="Password"
+          type="password"
+          id="password"
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          disabled={isSubmitting}
+        />
 
-        {mode === 'login' ? (
-          <form onSubmit={handleLogin}>
+        {mode === 'register' && (
+          <>
             <TextField
-              label="Email"
-              type="email"
-              fullWidth
               margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
-            />
-            <TextField
-              label="Password"
-              type="password"
               fullWidth
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <Button
-              type="submit"
-              variant="outlined"
-              color="primary"
-              fullWidth
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Sign In with Email'}
-            </Button>
-          </form>
-        ) : (
-          <form onSubmit={handleRegister}>
-            <TextField
-              label="Full Name"
-              type="text"
-              fullWidth
-              margin="normal"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-            />
-            <TextField
+              id="username"
               label="Username"
-              type="text"
-              fullWidth
-              margin="normal"
+              name="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
+              disabled={isSubmitting}
             />
             <TextField
-              label="Email"
-              type="email"
-              fullWidth
               margin="normal"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               required
-            />
-            <TextField
-              label="Password"
-              type="password"
               fullWidth
-              margin="normal"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              id="fullName"
+              label="Full Name"
+              name="fullName"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              disabled={isSubmitting}
             />
-            <Button
-              type="submit"
-              variant="outlined"
-              color="primary"
-              fullWidth
-              sx={{ mt: 2 }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} /> : 'Register with Email'}
-            </Button>
-          </form>
+          </>
         )}
-      </Stack>
 
-      <Box sx={{ textAlign: 'center', mt: 3 }}>
         <Button
-          variant="text"
-          onClick={toggleMode}
-          sx={{ textTransform: 'none' }}
+          type="submit"
+          fullWidth
+          variant="contained"
+          sx={{ mt: 3, mb: 2 }}
+          disabled={isSubmitting}
         >
-          {mode === 'login'
-            ? "Don't have an account? Register"
-            : 'Already have an account? Sign In'}
+          {isSubmitting ? (
+            <CircularProgress size={24} />
+          ) : mode === 'login' ? (
+            'Sign In'
+          ) : (
+            'Sign Up'
+          )}
         </Button>
+
+        <Divider sx={{ my: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            OR
+          </Typography>
+        </Divider>
+
+        <Button
+          fullWidth
+          variant="outlined"
+          startIcon={<GoogleIcon />}
+          onClick={handleGoogleSignIn}
+          disabled={isSubmitting}
+          sx={{ mb: 2 }}
+        >
+          Continue with Google
+        </Button>
+
+        <Box sx={{ textAlign: 'right', mt: 1 }}>
+          <Link
+            component="button"
+            variant="body2"
+            onClick={toggleMode}
+            type="button"
+          >
+            {mode === 'login'
+              ? "Don't have an account? Sign Up"
+              : 'Already have an account? Sign In'}
+          </Link>
+        </Box>
       </Box>
     </Paper>
   );
