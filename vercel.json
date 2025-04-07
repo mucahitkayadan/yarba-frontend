@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm ci && npm run build:vercel",
+  "buildCommand": "npx react-app-rewired build",
   "installCommand": "npm ci",
   "outputDirectory": "build",
   "rewrites": [
