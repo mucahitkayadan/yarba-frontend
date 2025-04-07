@@ -6,6 +6,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFirebaseErrorMessage } from '../../utils/errorHandler';
 import { createDebugger } from '../../utils/debug';
+import { useLocation } from 'react-router-dom';
 
 const debug = createDebugger('FirebaseAuth');
 
@@ -22,7 +23,18 @@ const FirebaseAuth: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Auth context
-  const { login, register, signInWithGoogle, error: contextError, setError } = useAuth();
+  const { 
+    login, 
+    register, 
+    signInWithGoogle, 
+    error: contextError, 
+    setError,
+    isOfflineMode 
+  } = useAuth();
+
+  // Get offline state from location if passed
+  const location = useLocation();
+  const isOffline = isOfflineMode || (location.state && location.state.offline);
 
   // Reset error when switching modes
   const resetForm = useCallback(() => {
@@ -39,6 +51,12 @@ const FirebaseAuth: React.FC = () => {
     e.preventDefault();
     setLocalError(null);
     setError(null);
+    
+    // Check for offline mode first
+    if (isOffline) {
+      setLocalError('Cannot authenticate while offline. Please check your internet connection.');
+      return;
+    }
     
     if (!email || !password) {
       setLocalError('Please fill in all required fields');
@@ -74,6 +92,12 @@ const FirebaseAuth: React.FC = () => {
 
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {
+    // Check for offline mode first
+    if (isOffline) {
+      setLocalError('Cannot authenticate with Google while offline. Please check your internet connection.');
+      return;
+    }
+    
     debug.log('Attempting Google sign-in');
     setLocalError(null);
     setError(null);
@@ -100,6 +124,26 @@ const FirebaseAuth: React.FC = () => {
 
   // Show error if exists
   const errorMessage = localError || contextError;
+  
+  // Display offline mode message
+  if (isOffline) {
+    return (
+      <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 450, mx: 'auto' }}>
+        <Typography variant="h5" component="h1" align="center" gutterBottom>
+          {mode === 'login' ? 'Sign In' : 'Create an Account'}
+        </Typography>
+        
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          You appear to be offline. Authentication requires an internet connection.
+        </Alert>
+        
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Please check your internet connection and try again. If you believe this is an error, 
+          try refreshing the page once your connection is restored.
+        </Typography>
+      </Paper>
+    );
+  }
 
   return (
     <Paper elevation={3} sx={{ p: 4, width: '100%', maxWidth: 450, mx: 'auto' }}>

@@ -11,6 +11,7 @@ const debug = createDebugger('Firebase');
 const firebaseConfig = {
   apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
   authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  // Add a fallback value for projectId to prevent the "missing project ID" error
   projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
   storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
@@ -18,11 +19,15 @@ const firebaseConfig = {
   measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
-// Log Firebase configuration (without sensitive API keys)
+// Log full Firebase configuration for debugging (redacting sensitive values)
 debug.log('Firebase Configuration:', {
+  apiKey: firebaseConfig.apiKey ? "CONFIGURED" : "MISSING",
   authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
+  projectId: firebaseConfig.projectId || "MISSING",
   storageBucket: firebaseConfig.storageBucket,
+  messagingSenderId: firebaseConfig.messagingSenderId ? "CONFIGURED" : "MISSING",
+  appId: firebaseConfig.appId ? "CONFIGURED" : "MISSING",
+  measurementId: firebaseConfig.measurementId
 });
 
 // Initialize Firebase

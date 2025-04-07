@@ -20,6 +20,7 @@ export interface AuthContextState {
   isAuthenticated: boolean;
   loading: boolean;
   error: string | null;
+  isOfflineMode: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, username: string, fullName: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
@@ -35,6 +36,7 @@ const AuthContext = createContext<AuthContextState>({
   isAuthenticated: false,
   loading: false,
   error: null,
+  isOfflineMode: false,
   login: async () => {},
   register: async () => {},
   signInWithGoogle: async () => {},
@@ -53,6 +55,16 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  // Add a state to track network connectivity issues
+  const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+
+  // Function to detect if we're offline
+  const checkNetworkConnectivity = () => {
+    const isOffline = !navigator.onLine;
+    debug.log(`Network connectivity check: ${isOffline ? 'OFFLINE' : 'ONLINE'}`);
+    setIsOfflineMode(isOffline);
+    return isOffline;
+  };
 
   // Function to fetch current user data from backend
   const fetchCurrentUser = async () => {
@@ -67,6 +79,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     try {
       setLoading(true);
+      
+      // Check if we're offline before making API calls
+      if (checkNetworkConnectivity()) {
+        debug.warn('Device appears to be offline, skipping API call');
+        setLoading(false);
+        return;
+      }
+      
       const response = await api.get('/auth/me');
       debug.log('User data successfully fetched', response.data);
       setUser(response.data);
@@ -90,6 +110,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const handleTokenExchange = async (fbUser: FirebaseUser) => {
     try {
       debug.log('Starting token exchange for user:', fbUser.email);
+      
+      // Check if we're offline before making API calls
+      if (checkNetworkConnectivity()) {
+        debug.warn('Device appears to be offline, skipping token exchange');
+        setLoading(false);
+        return;
+      }
+      
       const tokenResponse = await exchangeFirebaseTokenForJWT();
       
       if (tokenResponse) {
@@ -116,8 +144,30 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Listen for Firebase auth state changes
   useEffect(() => {
     debug.log('Setting up Firebase auth state listener');
+    
+    // Set up online/offline event listeners
+    window.addEventListener('online', () => {
+      debug.log('Device is now ONLINE');
+      setIsOfflineMode(false);
+    });
+    
+    window.addEventListener('offline', () => {
+      debug.log('Device is now OFFLINE');
+      setIsOfflineMode(true);
+    });
+    
     const checkCurrentUser = async () => {
       try {
+        // Initial network check
+        const isOffline = checkNetworkConnectivity();
+        
+        // If offline, we can skip the Firebase auth check to prevent errors
+        if (isOffline) {
+          debug.warn('Device is offline, skipping Firebase auth check');
+          setLoading(false);
+          return;
+        }
+        
         const fbUser = await getCurrentFirebaseUser();
         setFirebaseUser(fbUser);
         
@@ -137,6 +187,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     
     checkCurrentUser();
+    
+    // Clean up event listeners
+    return () => {
+      window.removeEventListener('online', () => setIsOfflineMode(false));
+      window.removeEventListener('offline', () => setIsOfflineMode(true));
+    };
   }, []);
 
   // Login function
@@ -145,6 +201,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('Starting login process for:', email);
       setLoading(true);
       setError(null);
+      
+      // Check if we're offline first
+      if (checkNetworkConnectivity()) {
+        const errorMsg = 'Cannot log in while offline. Please check your internet connection.';
+        debug.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      }
       
       const fbUser = await loginWithFirebase(email, password);
       setFirebaseUser(fbUser);
@@ -252,6 +317,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isAuthenticated,
     loading,
     error,
+    isOfflineMode,
     login,
     register,
     signInWithGoogle,
