@@ -52,7 +52,7 @@ const drawerWidth = 200;
 const miniDrawerWidth = 65;
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -131,7 +131,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           TransitionProps={{ timeout: 0 }}
         >
           <ListItemButton 
-            onClick={logout}
+            onClick={signOut}
             className="nav-item"
             sx={{
               minHeight: 48,
