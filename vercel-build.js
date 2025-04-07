@@ -11,14 +11,19 @@ const { spawn, execSync } = require('child_process');
 console.log('Build Environment:');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- Current working directory:', process.cwd());
+console.log('- Files in directory:', execSync('ls -la').toString());
+console.log('- Files in node_modules:', execSync('ls -la node_modules || echo "No node_modules directory"').toString());
 
 // Make sure dependencies are installed
-console.log('Ensuring build dependencies are installed...');
+console.log('Installing build dependencies...');
 try {
-  // Install required packages if not already installed
-  execSync('npm list customize-cra || npm install customize-cra --no-save', { stdio: 'inherit' });
-  execSync('npm list react-app-rewired || npm install react-app-rewired --no-save', { stdio: 'inherit' });
-  console.log('Dependencies verified!');
+  // Directly install the required packages
+  execSync('npm install react-app-rewired customize-cra --no-save', { stdio: 'inherit' });
+  console.log('Dependencies installed!');
+  
+  // Verify installation
+  console.log('Verifying installation:');
+  console.log('- Files in node_modules/.bin:', execSync('ls -la node_modules/.bin || echo "Directory not found"').toString());
 } catch (error) {
   console.error('Error installing dependencies:', error);
   process.exit(1);
@@ -26,8 +31,8 @@ try {
 
 console.log('Starting build with react-app-rewired...');
 
-// Run the build command (using local node_modules)
-const buildProcess = spawn('./node_modules/.bin/react-app-rewired', ['build'], {
+// Run the build command (using npx to ensure it's found)
+const buildProcess = spawn('npx', ['react-app-rewired', 'build'], {
   stdio: 'inherit',
   shell: true,
   env: process.env

@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "node vercel-build.js",
+  "buildCommand": "npm install react-app-rewired customize-cra --no-save && npx react-app-rewired build",
   "installCommand": "npm ci",
   "outputDirectory": "build",
   "rewrites": [
