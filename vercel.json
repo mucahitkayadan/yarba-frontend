@@ -1,11 +1,15 @@
 {
   "version": 2,
-  "buildCommand": "npm install --legacy-peer-deps && npm install react-app-rewired --save-dev && npm run build",
+  "buildCommand": "npm ci && npm run build",
   "outputDirectory": "build",
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
   "github": {
     "silent": true
+  },
+  "env": {
+    "REACT_APP_API_URL": "https://yarba-api.vercel.app/api/v1",
+    "REACT_APP_DEBUG": "false"
   }
 } 
