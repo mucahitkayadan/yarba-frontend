@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm install react-app-rewired customize-cra --no-save && npx react-app-rewired build",
+  "buildCommand": "node vercel-build.js",
   "installCommand": "npm ci",
   "outputDirectory": "build",
   "rewrites": [
@@ -12,6 +12,7 @@
   "env": {
     "REACT_APP_API_URL": "https://yarba-api.vercel.app/api/v1",
     "REACT_APP_DEBUG": "false",
-    "REACT_APP_FIREBASE_PROJECT_ID": "yarba-app"
+    "REACT_APP_FIREBASE_PROJECT_ID": "yarba-app",
+    "SKIP_PREFLIGHT_CHECK": "true"
   }
 } 

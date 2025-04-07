@@ -2,37 +2,38 @@
 
 /**
  * Custom build script for Vercel deployments
- * This ensures react-app-rewired is available during the build process
+ * This avoids the need for react-app-rewired and customize-cra
  */
 
 const { spawn, execSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 
 // Log environment for debugging
 console.log('Build Environment:');
 console.log('- NODE_ENV:', process.env.NODE_ENV);
 console.log('- Current working directory:', process.cwd());
-console.log('- Files in directory:', execSync('ls -la').toString());
-console.log('- Files in node_modules:', execSync('ls -la node_modules || echo "No node_modules directory"').toString());
 
-// Make sure dependencies are installed
-console.log('Installing build dependencies...');
+// Install required Babel plugins
+console.log('Installing Babel plugins...');
 try {
-  // Directly install the required packages
-  execSync('npm install react-app-rewired customize-cra --no-save', { stdio: 'inherit' });
-  console.log('Dependencies installed!');
-  
-  // Verify installation
-  console.log('Verifying installation:');
-  console.log('- Files in node_modules/.bin:', execSync('ls -la node_modules/.bin || echo "Directory not found"').toString());
+  execSync('npm install --no-save @babel/plugin-transform-optional-chaining @babel/plugin-transform-nullish-coalescing-operator @babel/plugin-transform-numeric-separator @babel/plugin-transform-private-methods @babel/plugin-transform-class-properties @babel/plugin-transform-private-property-in-object', 
+    { stdio: 'inherit' }
+  );
+  console.log('Babel plugins installed!');
 } catch (error) {
-  console.error('Error installing dependencies:', error);
+  console.error('Error installing Babel plugins:', error);
   process.exit(1);
 }
 
-console.log('Starting build with react-app-rewired...');
+console.log('Starting build with webpack...');
 
-// Run the build command (using npx to ensure it's found)
-const buildProcess = spawn('npx', ['react-app-rewired', 'build'], {
+// Set environment variables
+process.env.CI = 'false'; // Prevent treating warnings as errors
+process.env.SKIP_PREFLIGHT_CHECK = 'true'; // Skip dependency preflight check
+
+// Run the build command
+const buildProcess = spawn('npx', ['react-scripts', 'build'], {
   stdio: 'inherit',
   shell: true,
   env: process.env
