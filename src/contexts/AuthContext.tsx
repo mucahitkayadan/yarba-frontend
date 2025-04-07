@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     
     try {
       setLoading(true);
-      const response = await api.get('/users/me');
+      const response = await api.get('/auth/me');
       debug.log('User data successfully fetched', response.data);
       setUser(response.data);
       setIsAuthenticated(true);
@@ -232,7 +232,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('Updating user profile');
       setLoading(true);
       
-      const response = await api.patch('/users/me', userData);
+      const response = await api.patch('/auth/me', userData);
       setUser(response.data);
       
       debug.log('Profile update successful');
