@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Box, Button, Divider, Grid, Link, Paper, TextField, Typography, CircularProgress, Alert
 } from '@mui/material';
@@ -6,7 +6,7 @@ import GoogleIcon from '@mui/icons-material/Google';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFirebaseErrorMessage } from '../../utils/errorHandler';
 import { createDebugger } from '../../utils/debug';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const debug = createDebugger('FirebaseAuth');
 
@@ -29,12 +29,28 @@ const FirebaseAuth: React.FC = () => {
     signInWithGoogle, 
     error: contextError, 
     setError,
-    isOfflineMode 
+    isOfflineMode,
+    isAuthenticated
   } = useAuth();
 
+  // Navigation
+  const navigate = useNavigate();
+  
   // Get offline state from location if passed
   const location = useLocation();
+  const from = location.state?.from?.pathname || '/dashboard';
   const isOffline = isOfflineMode || (location.state && location.state.offline);
+
+  // Effect to redirect when authentication state changes
+  useEffect(() => {
+    debug.log('Auth state check - isAuthenticated:', isAuthenticated);
+    debug.log('Auth state check - from location:', from);
+    
+    if (isAuthenticated) {
+      debug.log('User is authenticated, redirecting to:', from);
+      navigate(from, { replace: true });
+    }
+  }, [isAuthenticated, navigate, from]);
 
   // Reset error when switching modes
   const resetForm = useCallback(() => {
@@ -45,7 +61,7 @@ const FirebaseAuth: React.FC = () => {
     setLocalError(null);
     setError(null);
   }, [setError]);
-
+  
   // Handle form submission for login or register
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,10 +92,18 @@ const FirebaseAuth: React.FC = () => {
         debug.log('Attempting to log in');
         await login(email, password);
         debug.log('Login successful');
+        
+        // Force navigation - don't wait for isAuthenticated state change
+        debug.log('Force navigating to dashboard after login');
+        navigate('/dashboard', { replace: true });
       } else {
         debug.log('Attempting to register');
         await register(email, password, username, fullName);
         debug.log('Registration successful');
+        
+        // Force navigation - don't wait for isAuthenticated state change
+        debug.log('Force navigating to dashboard after registration');
+        navigate('/dashboard', { replace: true });
       }
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
@@ -106,6 +130,10 @@ const FirebaseAuth: React.FC = () => {
     try {
       await signInWithGoogle();
       debug.log('Google sign-in successful');
+      
+      // Force navigation - don't wait for isAuthenticated state change
+      debug.log('Force navigating to dashboard after Google sign-in');
+      navigate('/dashboard', { replace: true });
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
       debug.error('Google sign-in error:', error);

@@ -91,6 +91,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('User data successfully fetched', response.data);
       setUser(response.data);
       setIsAuthenticated(true);
+      setLoading(false);
     } catch (err: any) {
       debug.error('Error fetching user data:', err);
       // Clear token if it's invalid
@@ -101,7 +102,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser(null);
       }
       setError(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -127,6 +127,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Set Authorization header for future requests
         api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
         debug.log('Token exchange successful, token saved');
+        
+        // Set authenticated state immediately so redirects can happen
+        setIsAuthenticated(true);
         
         // Fetch user data
         await fetchCurrentUser();
@@ -215,7 +218,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setFirebaseUser(fbUser);
       debug.log('Firebase login successful');
       
-      // Token exchange will be handled by the auth state listener
+      // Force token exchange immediately - don't wait for auth state listener
+      if (fbUser) {
+        debug.log('Starting token exchange immediately after login');
+        await handleTokenExchange(fbUser);
+      }
     } catch (err: any) {
       debug.error('Login error:', err);
       setError(err.message);
@@ -235,7 +242,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setFirebaseUser(fbUser);
       debug.log('Firebase registration successful');
       
-      // Token exchange will be handled by the auth state listener
+      // Force token exchange immediately - don't wait for auth state listener
+      if (fbUser) {
+        debug.log('Starting token exchange immediately after registration');
+        await handleTokenExchange(fbUser);
+      }
     } catch (err: any) {
       debug.error('Registration error:', err);
       setError(err.message);
@@ -255,7 +266,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setFirebaseUser(fbUser);
       debug.log('Google sign-in successful');
       
-      // Token exchange will be handled by the auth state listener
+      // Force token exchange immediately - don't wait for auth state listener
+      if (fbUser) {
+        debug.log('Starting token exchange immediately after Google sign-in');
+        await handleTokenExchange(fbUser);
+      }
     } catch (err: any) {
       debug.error('Google sign-in error:', err);
       setError(err.message);
