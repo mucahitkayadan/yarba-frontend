@@ -1,43 +1,88 @@
-# Getting Started with Create React App
+# Yarba Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+This is the frontend application for Yarba, a platform for building and managing your resume and career materials.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v16 or newer)
+- npm (v7 or newer)
+
+### Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/mucahitkayadan/yarba-frontend.git
+   cd yarba-frontend
+   ```
+
+2. Run the setup script to install dependencies and create environment files:
+   ```
+   # Make the script executable (Unix-based systems)
+   chmod +x setup_deps.sh
+   
+   # Run the script
+   ./setup_deps.sh
+   ```
+   
+   Alternatively, you can manually install dependencies:
+   ```
+   npm install
+   ```
+
+3. Start the development server:
+   ```
+   npm start
+   ```
+
+## Environment Configuration
+
+The application uses environment variables for configuration. Create a `.env.local` file in the project root with the following variables:
+
+```
+REACT_APP_API_URL=http://localhost:8000/api/v1
+REACT_APP_FIREBASE_API_KEY=your-firebase-api-key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your-firebase-auth-domain
+REACT_APP_FIREBASE_PROJECT_ID=your-firebase-project-id
+REACT_APP_FIREBASE_STORAGE_BUCKET=your-firebase-storage-bucket
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your-firebase-messaging-sender-id
+REACT_APP_FIREBASE_APP_ID=your-firebase-app-id
+REACT_APP_FIREBASE_MEASUREMENT_ID=your-firebase-measurement-id
+```
+
+## Dependency Notes
+
+This project uses specific versions of packages to ensure compatibility:
+
+- React 18.x (not compatible with React 19)
+- Material UI 5.x (not compatible with MUI 7)
+- React Router 6.x
+- Firebase 10.x
+
+When updating dependencies, be cautious about breaking changes. If you encounter issues with ESLint or other dependencies, you can run:
+
+```
+npm install --legacy-peer-deps
+```
+
+## Testing the Firebase Authentication
+
+The application includes a Firebase test page at `/firebase-test` where you can:
+- Test direct Google sign-in
+- View your Firebase token
+- Manually exchange the Firebase token for a backend JWT
+- Check your authenticated user information
 
 ## Available Scripts
 
-In the project directory, you can run:
+- `npm start`: Runs the app in development mode
+- `npm test`: Launches the test runner
+- `npm run build`: Builds the app for production
 
-### `npm start`
+## Deployment
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+This application is configured for deployment on Vercel. Simply connect your GitHub repository to Vercel and it will automatically deploy when you push changes to your main branch.
 
 ## Learn More
 
