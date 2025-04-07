@@ -23,8 +23,9 @@
     "start": "react-app-rewired start",
     "dev": "cross-env BROWSER=none REACT_APP_DEBUG=true react-app-rewired start",
     "dev:win": "cross-env BROWSER=none REACT_APP_DEBUG=true react-app-rewired start",
-    "build": "react-app-rewired build",
-    "test": "react-app-rewired test",
+    "build": "npx react-app-rewired build",
+    "build:vercel": "node vercel-build.js",
+    "test": "npx react-app-rewired test",
     "eject": "react-scripts eject",
     "lint": "eslint src --ext .ts,.tsx",
     "postinstall": "echo 'Installation completed successfully'"
