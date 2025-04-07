@@ -11,7 +11,8 @@ import {
   PortfolioPage, 
   TemplatesPage,
   ProfilePage,
-  ViewResumePage
+  ViewResumePage,
+  FirebaseTestPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -25,6 +26,14 @@ import theme from './theme';
 // import SettingsPage from './pages/SettingsPage';
 
 const App: React.FC = () => {
+  // Log environment variables on app initialization
+  React.useEffect(() => {
+    console.log('Environment variables check:');
+    console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+    console.log('REACT_APP_FIREBASE_API_KEY:', process.env.REACT_APP_FIREBASE_API_KEY);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline /> {/* Normalize CSS */} 
@@ -42,6 +51,18 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <MainLayout>
                     <DashboardPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* Firebase Test Page */}
+            <Route 
+              path="/firebase-test"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <FirebaseTestPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

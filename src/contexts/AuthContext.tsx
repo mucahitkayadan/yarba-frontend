@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
-import { login as apiLogin, getCurrentUser } from '../services/authService';
-import { getToken, removeToken } from '../utils/auth';
-import { User, LoginRequest } from '../types/models';
+import { loginWithEmail, registerWithEmail, logout, loginWithGoogle, getCurrentUser } from '../services/authService';
+import { getToken, removeToken, storeToken } from '../utils/auth';
+import { User, LoginRequest, RegisterRequest } from '../types/models';
 import api from '../services/api';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../firebaseConfig';
+import { getFirebaseIdToken, exchangeFirebaseTokenForJWT } from '../services/firebaseAuthService';
 
 // Extend User type with profile fields through UserProfile interface
 export interface UserProfile {
@@ -20,8 +23,10 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
-  logout: () => void;
+  loginWithFirebase: (email: string, password: string) => Promise<void>;
+  registerWithFirebase: (data: RegisterRequest) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
   updateUserProfile: (profileData: UserProfile) => Promise<void>;
 }
 
@@ -56,30 +61,100 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, []);
 
+  // Listen for Firebase auth state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        // User is signed in, get the ID token
+        try {
+          // Check if we have a backend token
+          const token = getToken();
+          if (!token) {
+            // If no token, exchange Firebase token for backend JWT
+            const tokenResponse = await exchangeFirebaseTokenForJWT();
+            if (tokenResponse?.access_token) {
+              // Store new token and fetch user data
+              storeToken(tokenResponse.access_token);
+              await fetchCurrentUser();
+            }
+          } else {
+            // If we already have a token, just fetch user data
+            await fetchCurrentUser();
+          }
+        } catch (error) {
+          console.error('Error processing Firebase auth state change:', error);
+          setUser(null);
+          setIsLoading(false);
+        }
+      } else {
+        // User is signed out
+        removeToken();
+        setUser(null);
+        setIsLoading(false);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [fetchCurrentUser]);
+
   useEffect(() => {
     fetchCurrentUser();
   }, [fetchCurrentUser]);
 
-  const loginHandler = async (data: LoginRequest): Promise<void> => {
+  const loginWithFirebaseHandler = async (email: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
-      await apiLogin(data);
+      await loginWithEmail(email, password);
       await fetchCurrentUser(); // Fetch user data after successful login
     } catch (error) {
-      console.error('Login failed:', error);
-      setUser(null); // Ensure user is null on login failure
-      removeToken(); // Clear any potentially lingering invalid token
-      throw error; // Re-throw error to be handled by the component
+      console.error('Firebase login failed:', error);
+      setUser(null);
+      removeToken();
+      throw error;
     } finally {
       setIsLoading(false);
     }
   };
 
-  const logoutHandler = (): void => {
-    removeToken();
-    setUser(null);
-    // Optional: Redirect to login page or home page after logout
-    // window.location.href = '/login';
+  const signInWithGoogleHandler = async (): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await loginWithGoogle();
+      await fetchCurrentUser(); // Fetch user data after successful login
+    } catch (error) {
+      console.error('Google sign-in failed:', error);
+      setUser(null);
+      removeToken();
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const registerWithFirebaseHandler = async (data: RegisterRequest): Promise<void> => {
+    setIsLoading(true);
+    try {
+      await registerWithEmail(data);
+      await fetchCurrentUser(); // Fetch user data after successful registration
+    } catch (error) {
+      console.error('Firebase registration failed:', error);
+      setUser(null);
+      removeToken();
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const logoutHandler = async (): Promise<void> => {
+    try {
+      await logout();
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+      throw error;
+    }
   };
 
   const updateUserProfile = async (profileData: UserProfile): Promise<void> => {
@@ -100,7 +175,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isAuthenticated: !!user, // Derive isAuthenticated directly from user state
     isLoading,
-    login: loginHandler,
+    loginWithFirebase: loginWithFirebaseHandler,
+    registerWithFirebase: registerWithFirebaseHandler,
+    signInWithGoogle: signInWithGoogleHandler,
     logout: logoutHandler,
     updateUserProfile,
   };

@@ -6,4 +6,5 @@ export { default as ResumesPage } from './ResumesPage';
 export { default as ViewResumePage } from './ViewResumePage';
 export { default as PortfolioPage } from './PortfolioPage';
 export { default as TemplatesPage } from './TemplatesPage';
-export { default as ProfilePage } from './ProfilePage'; 
+export { default as ProfilePage } from './ProfilePage';
+export { default as FirebaseTestPage } from './FirebaseTestPage'; 
