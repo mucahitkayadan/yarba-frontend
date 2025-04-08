@@ -52,6 +52,8 @@ export const getFirebaseErrorMessage = (error: any): string => {
       return 'This domain is not authorized for Firebase authentication. Please contact support.';
     case 'auth/operation-not-allowed':
       return 'This login method is not enabled. Please contact support.';
+    case 'auth/invalid-tenant-id':
+      return 'Authentication configuration error. Please contact support or try again later.';
     default:
       // If we don't have a specific handler, return the error message
       return errorMessage;

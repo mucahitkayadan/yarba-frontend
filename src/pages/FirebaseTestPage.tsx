@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Paper, CircularProgress, Alert, Divider, Stack, TextField } from '@mui/material';
-import { verifyFirebaseToken, getFirebaseIdToken, signInWithGoogleProvider } from '../services/firebaseAuthService';
+import { verifyFirebaseToken, getFirebaseIdToken, signInWithGoogleProvider, loginWithFirebase } from '../services/firebaseAuthService';
 import { useAuth } from '../contexts/AuthContext';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import api from '../services/api';
@@ -14,6 +14,9 @@ const FirebaseTestPage: React.FC = () => {
   const [firebaseUser, setFirebaseUser] = useState<any>(null);
   const [paramName, setParamName] = useState('id_token');
   const apiUrl = process.env.REACT_APP_API_URL || 'Not configured';
+  const [testEmail, setTestEmail] = useState('');
+  const [testPassword, setTestPassword] = useState('');
+  const [tenantId, setTenantId] = useState<string | null>(null);
 
   // Get Firebase ID token on component mount
   useEffect(() => {
@@ -27,6 +30,14 @@ const FirebaseTestPage: React.FC = () => {
     };
     
     fetchToken();
+  }, []);
+
+  // Get tenant ID from auth configuration
+  useEffect(() => {
+    // Import the auth object at runtime to reflect latest changes
+    import('../firebaseConfig').then(({ auth }) => {
+      setTenantId(auth.tenantId);
+    });
   }, []);
 
   const handleTestVerification = async () => {
@@ -125,6 +136,37 @@ const FirebaseTestPage: React.FC = () => {
     }
   };
 
+  const handleTestEmailPasswordLogin = async () => {
+    if (!testEmail || !testPassword) {
+      setError('Please enter both email and password');
+      return;
+    }
+    
+    setLoading(true);
+    setError(null);
+    setFirebaseUser(null);
+    
+    try {
+      // This directly tests Firebase email/password auth 
+      const fbUser = await loginWithFirebase(testEmail, testPassword);
+      setFirebaseUser({
+        uid: fbUser.uid,
+        email: fbUser.email,
+        displayName: fbUser.displayName,
+        photoURL: fbUser.photoURL,
+      });
+      
+      // Get the Firebase token to display
+      const token = await fbUser.getIdToken();
+      setIdToken(token);
+    } catch (err: any) {
+      console.error('Email/password login error:', err);
+      setError(err.message || 'Failed to sign in with email/password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Container maxWidth="md">
       <Typography variant="h4" component="h1" gutterBottom>
@@ -137,7 +179,44 @@ const FirebaseTestPage: React.FC = () => {
         </Typography>
         <Box>
           <Typography><strong>API URL:</strong> {apiUrl}</Typography>
+          <Typography><strong>Tenant ID:</strong> {tenantId === null ? "null (correct)" : tenantId || "undefined"}</Typography>
         </Box>
+      </Paper>
+      
+      <Paper elevation={3} sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h6" gutterBottom>
+          Email/Password Login Test
+        </Typography>
+        
+        <Stack spacing={2} sx={{ mb: 2 }}>
+          <TextField
+            label="Test Email"
+            fullWidth
+            value={testEmail}
+            onChange={(e) => setTestEmail(e.target.value)}
+          />
+          <TextField
+            label="Test Password"
+            type="password"
+            fullWidth
+            value={testPassword}
+            onChange={(e) => setTestPassword(e.target.value)}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleTestEmailPasswordLogin}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Test Email/Password Login'}
+          </Button>
+        </Stack>
+        
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
       </Paper>
       
       <Paper elevation={3} sx={{ p: 3, mb: 3 }}>

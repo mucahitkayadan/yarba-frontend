@@ -56,8 +56,10 @@ isSupported().then(supported => {
   debug.error('Error checking Analytics support:', err);
 });
 
-// Initialize authentication with explicit project configuration
+// Initialize authentication with explicit project configuration and no tenant ID
 const auth = getAuth(app);
+// Explicitly set tenant ID to null to prevent tenant ID errors
+auth.tenantId = null;
 
 // Try to ensure the project ID is correctly passed to Firebase internally
 console.log('Setting up Firebase auth with project:', PROJECT_ID);
