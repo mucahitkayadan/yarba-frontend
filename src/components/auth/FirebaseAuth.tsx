@@ -1,8 +1,10 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import {
-  Box, Button, Divider, Grid, Link, Paper, TextField, Typography, CircularProgress, Alert
+  Box, Button, Divider, Grid, Link, Paper, TextField, Typography, CircularProgress, Alert, InputAdornment, IconButton
 } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFirebaseErrorMessage } from '../../utils/errorHandler';
 import { createDebugger } from '../../utils/debug';
@@ -17,10 +19,11 @@ const FirebaseAuth: React.FC = () => {
   const [mode, setMode] = useState<AuthMode>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   // Auth context
   const { 
@@ -56,7 +59,7 @@ const FirebaseAuth: React.FC = () => {
   const resetForm = useCallback(() => {
     setEmail('');
     setPassword('');
-    setUsername('');
+    setConfirmPassword('');
     setFullName('');
     setLocalError(null);
     setError(null);
@@ -79,9 +82,16 @@ const FirebaseAuth: React.FC = () => {
       return;
     }
 
-    if (mode === 'register' && (!username || !fullName)) {
-      setLocalError('Please fill in all required fields');
-      return;
+    if (mode === 'register') {
+      if (!fullName) {
+        setLocalError('Please fill in all required fields');
+        return;
+      }
+      
+      if (password !== confirmPassword) {
+        setLocalError('Passwords do not match');
+        return;
+      }
     }
 
     debug.log(`Submitting ${mode} form for email: ${email}`);
@@ -98,7 +108,7 @@ const FirebaseAuth: React.FC = () => {
         navigate('/dashboard', { replace: true });
       } else {
         debug.log('Attempting to register');
-        await register(email, password, username, fullName);
+        await register(email, password, "", fullName);
         debug.log('Registration successful');
         
         // Force navigation - don't wait for isAuthenticated state change
@@ -150,6 +160,11 @@ const FirebaseAuth: React.FC = () => {
     debug.log(`Switched mode to: ${mode === 'login' ? 'register' : 'login'}`);
   };
 
+  // Handle password visibility toggle
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword((prevShowPassword) => !prevShowPassword);
+  };
+
   // Show error if exists
   const errorMessage = localError || contextError;
   
@@ -186,76 +201,114 @@ const FirebaseAuth: React.FC = () => {
       )}
 
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          id="email"
-          label="Email Address"
-          name="email"
-          autoComplete="email"
-          autoFocus
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isSubmitting}
-        />
-
-        <TextField
-          margin="normal"
-          required
-          fullWidth
-          name="password"
-          label="Password"
-          type="password"
-          id="password"
-          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isSubmitting}
-        />
-
-        {mode === 'register' && (
-          <>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
             <TextField
-              margin="normal"
               required
               fullWidth
-              id="username"
-              label="Username"
-              name="username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               disabled={isSubmitting}
             />
+          </Grid>
+          
+          <Grid item xs={12}>
             <TextField
-              margin="normal"
               required
               fullWidth
-              id="fullName"
-              label="Full Name"
-              name="fullName"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              id="password"
+              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               disabled={isSubmitting}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="toggle password visibility"
+                      onClick={handleTogglePasswordVisibility}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
-          </>
-        )}
+          </Grid>
 
-        <Button
-          type="submit"
-          fullWidth
-          variant="contained"
-          sx={{ mt: 3, mb: 2 }}
-          disabled={isSubmitting}
-        >
-          {isSubmitting ? (
-            <CircularProgress size={24} />
-          ) : mode === 'login' ? (
-            'Sign In'
-          ) : (
-            'Sign Up'
+          {mode === 'register' && (
+            <>
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  name="confirmPassword"
+                  label="Re-enter Password"
+                  type={showPassword ? 'text' : 'password'}
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isSubmitting}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={handleTogglePasswordVisibility}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
+                  error={confirmPassword !== '' && password !== confirmPassword}
+                  helperText={confirmPassword !== '' && password !== confirmPassword ? 'Passwords do not match' : ''}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <TextField
+                  required
+                  fullWidth
+                  id="fullName"
+                  label="Full Name"
+                  name="fullName"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </Grid>
+            </>
           )}
-        </Button>
+          
+          <Grid item xs={12}>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              sx={{ mt: 1 }}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <CircularProgress size={24} />
+              ) : mode === 'login' ? (
+                'Sign In'
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
+          </Grid>
+        </Grid>
 
         <Divider sx={{ my: 2 }}>
           <Typography variant="body2" color="text.secondary">
