@@ -141,6 +141,13 @@ export const exchangeFirebaseTokenForJWT = async (): Promise<{ access_token: str
     debug.log('Sending Firebase token to backend...');
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
     debug.log('API URL:', apiUrl);
+    console.log('Using API URL for token exchange:', apiUrl);
+    console.log('NODE_ENV:', process.env.NODE_ENV);
+
+    // Check if we have the right API URL format
+    if (!apiUrl.startsWith('http')) {
+      console.error('API URL is malformed. Should start with http:// or https://', apiUrl);
+    }
     
     // Display the payload we're sending to the backend
     const payload = { id_token: idToken };
@@ -150,11 +157,13 @@ export const exchangeFirebaseTokenForJWT = async (): Promise<{ access_token: str
     });
     
     // Note: Route should NOT include /api/v1 since it's in the baseURL already
+    console.log('Making API call to:', `${apiUrl}/auth/firebase/login`);
     const response = await api.post('/auth/firebase/login', payload);
     debug.log('Backend response:', response.data);
     debug.groupEnd();
     
     // Reset error state on success
+    tokenExchangeInProgress = false;
     lastTokenExchangeError = null;
     return response.data;
   } catch (error: any) {

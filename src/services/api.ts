@@ -8,6 +8,8 @@ const debug = createDebugger('API');
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
 
 debug.log('API URL:', API_URL);
+console.log('Creating API service with URL:', API_URL);
+console.log('Environment:', process.env.NODE_ENV);
 
 const api: AxiosInstance = axios.create({
   baseURL: API_URL,
