@@ -63,7 +63,7 @@ const DashboardPage: React.FC = () => {
         Dashboard
       </Typography>
       <Typography variant="subtitle1" sx={{ mb: 4 }}>
-        Welcome, {user?.username || 'User'}!
+        Welcome, {user?.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}!
       </Typography>
 
       {/* Document Summary */}

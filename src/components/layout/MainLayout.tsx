@@ -190,7 +190,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             aria-label="open drawer"
             edge="start"
             onClick={toggleDrawer}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2, display: { sm: 'block', md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
@@ -201,7 +201,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Typography>
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ mr: 2, opacity: 0.9 }}>Welcome, {user.username}</Typography>
+              <Typography sx={{ mr: 2, opacity: 0.9 }}>
+                Welcome, {user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
+              </Typography>
               <Avatar 
                 sx={{ 
                   bgcolor: 'secondary.main',
@@ -227,25 +229,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         open={isMobile ? drawerOpen : true}
         onClose={isMobile ? toggleDrawer : undefined}
         sx={{
-          width: drawerOpen ? drawerWidth : miniDrawerWidth,
-          flexShrink: 0,
-          whiteSpace: 'nowrap',
-          boxSizing: 'border-box',
-          [`& .MuiDrawer-paper`]: { 
-            width: drawerOpen ? drawerWidth : miniDrawerWidth,
+          display: 'block',
+          '& .MuiDrawer-paper': {
+            position: 'fixed',
+            width: isMobile ? 240 : (drawerOpen ? drawerWidth : miniDrawerWidth),
             overflowX: 'hidden',
             transition: theme.transitions.create('width', {
               easing: theme.transitions.easing.sharp,
               duration: theme.transitions.duration.enteringScreen,
             }),
             boxSizing: 'border-box',
-            paddingTop: '56px', // Height of thinner AppBar
+            paddingTop: '64px',
             height: '100%',
-            ...(isMobile && !drawerOpen && { display: 'none' }),
-            borderRight: 'none',
-            background: 'linear-gradient(180deg, rgba(63, 114, 175, 0.02) 0%, rgba(155, 89, 182, 0.05) 100%)',
+            backgroundColor: '#ffffff',
+            backgroundImage: isMobile ? 'none' : 'linear-gradient(180deg, rgba(63, 114, 175, 0.1) 0%, rgba(155, 89, 182, 0.15) 100%)',
             boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.15)',
-            zIndex: (theme) => theme.zIndex.drawer,
+            zIndex: theme.zIndex.drawer,
           },
         }}
       >
@@ -258,41 +257,46 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className="fade-in"
         sx={{ 
           flexGrow: 1,
-          p: 2, // Smaller padding
-          pt: 3, // Keep top padding larger
+          p: 2,
+          pt: 3,
           width: '100%',
-          marginTop: '64px', // Height of AppBar
-          marginLeft: 0, // No left margin
+          marginTop: '64px',
+          marginLeft: {
+            xs: 0, // Mobile: no margin
+            md: drawerOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` // Desktop: margin based on drawer width
+          },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.easeOut,
             duration: theme.transitions.duration.enteringScreen,
           }),
-          opacity: 0, // Start with opacity 0 for the fade-in animation
+          opacity: 0,
           animation: 'fadeIn 0.5s ease-out forwards 0.2s',
         }}
       >
         {children}
       </Box>
 
-      {/* Floating toggle button */}
-      <Fab
-        size="small"
-        onClick={toggleDrawer}
-        sx={{
-          position: 'fixed',
-          left: drawerOpen ? drawerWidth - 20 : 20,
-          bottom: 20,
-          zIndex: 1300,
-          backgroundColor: '#3F72AF',
-          color: 'white',
-          transition: 'left 0.2s ease',
-          '&:hover': {
-            backgroundColor: '#2C5282',
-          }
-        }}
-      >
-        {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
-      </Fab>
+      {/* Floating toggle button - only visible on non-mobile */}
+      {!isMobile && (
+        <Fab
+          size="small"
+          onClick={toggleDrawer}
+          sx={{
+            position: 'fixed',
+            left: drawerOpen ? drawerWidth - 20 : miniDrawerWidth - 20,
+            bottom: 20,
+            zIndex: 1300,
+            backgroundColor: '#3F72AF',
+            color: 'white',
+            transition: 'left 0.2s ease',
+            '&:hover': {
+              backgroundColor: '#2C5282',
+            }
+          }}
+        >
+          {drawerOpen ? <ChevronLeftIcon /> : <ChevronRightIcon />}
+        </Fab>
+      )}
     </Box>
   );
 };
