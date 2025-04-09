@@ -14,9 +14,13 @@ const debug = createDebugger('FirebaseAuth');
 
 type AuthMode = 'login' | 'register';
 
-const FirebaseAuth: React.FC = () => {
+interface FirebaseAuthProps {
+  initialMode?: AuthMode;
+}
+
+const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) => {
   // State management
-  const [mode, setMode] = useState<AuthMode>('login');
+  const [mode, setMode] = useState<AuthMode>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -54,6 +58,11 @@ const FirebaseAuth: React.FC = () => {
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
+
+  // Effect to update mode when initialMode prop changes
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
 
   // Reset error when switching modes
   const resetForm = useCallback(() => {
@@ -156,8 +165,12 @@ const FirebaseAuth: React.FC = () => {
   // Toggle between login and register modes
   const toggleMode = () => {
     resetForm();
-    setMode(prevMode => (prevMode === 'login' ? 'register' : 'login'));
-    debug.log(`Switched mode to: ${mode === 'login' ? 'register' : 'login'}`);
+    if (mode === 'login') {
+      navigate('/register', { replace: true });
+    } else {
+      navigate('/login', { replace: true });
+    }
+    debug.log(`Navigating to: ${mode === 'login' ? '/register' : '/login'}`);
   };
 
   // Handle password visibility toggle

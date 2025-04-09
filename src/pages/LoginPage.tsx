@@ -2,7 +2,11 @@ import React from 'react';
 import { Container, Typography, Box } from '@mui/material';
 import FirebaseAuth from '../components/auth/FirebaseAuth';
 
-const LoginPage: React.FC = () => {
+interface LoginPageProps {
+  authMode?: 'login' | 'register';
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ authMode = 'login' }) => {
   return (
     <Container component="main" maxWidth="sm">
       <Box
@@ -20,7 +24,7 @@ const LoginPage: React.FC = () => {
           Your personal AI-powered resume and cover letter builder
         </Typography>
         
-        <FirebaseAuth />
+        <FirebaseAuth initialMode={authMode} />
       </Box>
     </Container>
   );
