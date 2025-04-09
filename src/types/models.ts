@@ -32,12 +32,62 @@ export interface Profile {
     github?: string;
     summary?: string;
   };
+  life_story?: string;
   preferences?: {
+    // Nested preference objects
+    project_details?: {
+      max_projects: number;
+      bullet_points_per_project: number;
+    };
+    work_experience_details?: {
+      max_jobs: number;
+      bullet_points_per_job: number;
+    };
+    skills_details?: {
+      max_categories: number;
+      min_skills_per_category: number;
+      max_skills_per_category: number;
+    };
+    career_summary_details?: {
+      min_words: number;
+      max_words: number;
+    };
+    education_details?: {
+      max_entries: number;
+      max_courses: number;
+    };
+    cover_letter_details?: {
+      paragraphs: number;
+      target_grade_level: number;
+    };
+    awards_details?: {
+      max_awards: number;
+    };
+    publications_details?: {
+      max_publications: number;
+    };
+    feature_preferences?: {
+      check_clearance: boolean;
+      auto_save: boolean;
+      dark_mode: boolean;
+    };
+    notifications?: Record<string, any>;
+    privacy?: Record<string, any>;
+    llm_preferences?: {
+      model_type: string;
+      model_name: string;
+      temperature: number;
+    };
     section_preferences?: Record<string, string>; // Maps section names to processing methods
+    latex_template_preferences?: {
+      resume_template: string;
+      cover_letter_template: string;
+    };
     default_latex_templates?: {
       default_resume_template_id: string;
       default_cover_letter_template_id: string;
     };
+    // Legacy flat preferences for backward compatibility
     career_summary_min_words?: number;
     career_summary_max_words?: number;
     work_experience_max_jobs?: number;

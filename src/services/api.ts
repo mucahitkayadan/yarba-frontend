@@ -76,6 +76,9 @@ api.interceptors.response.use(
         removeToken();
         // Redirect to login page
         window.location.href = '/login';
+      } else if (error.response.status === 404) {
+        // Let the component handle 404 errors (e.g., resource not found)
+        debug.warn('Resource not found (404):', error.config?.url);
       }
     } else if (error.request) {
       // The request was made but no response was received

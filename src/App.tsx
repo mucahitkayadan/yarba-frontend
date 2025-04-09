@@ -14,6 +14,10 @@ import {
   ViewResumePage,
   FirebaseTestPage
 } from './pages';
+import ProfileEditPage from './pages/profile/ProfileEditPage';
+import PortfolioCreatePage from './pages/portfolio/PortfolioCreatePage';
+import PortfolioEditPage from './pages/portfolio/PortfolioEditPage';
+import PortfolioViewPage from './pages/portfolio/PortfolioViewPage';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
@@ -158,7 +162,37 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <PortfolioPage />
+                    <PortfolioViewPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/portfolio/create"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <PortfolioCreatePage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/portfolio/:id"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <PortfolioViewPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/portfolio/:id/edit"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <PortfolioEditPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
@@ -181,6 +215,16 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <MainLayout>
                     <ProfilePage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/profile/edit"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <ProfileEditPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
