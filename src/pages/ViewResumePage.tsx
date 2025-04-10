@@ -23,7 +23,9 @@ import {
   Edit as EditIcon,
   ArrowBack as ArrowBackIcon,
   PictureAsPdf as PdfIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  KeyboardArrowDown as KeyboardArrowDownIcon,
+  KeyboardArrowUp as KeyboardArrowUpIcon
 } from '@mui/icons-material';
 import { getResumeById, getResumePdf, deleteResume } from '../services/resumeService';
 import { Resume } from '../types/models';
@@ -37,6 +39,7 @@ const ViewResumePage: React.FC = () => {
   const [generatingPdf, setGeneratingPdf] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingResume, setDeletingResume] = useState(false);
+  const [jobDescriptionExpanded, setJobDescriptionExpanded] = useState(false);
 
   useEffect(() => {
     const fetchResume = async () => {
@@ -150,6 +153,10 @@ const ViewResumePage: React.FC = () => {
 
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false);
+  };
+
+  const handleToggleJobDescription = () => {
+    setJobDescriptionExpanded(!jobDescriptionExpanded);
   };
 
   // Format date for display
@@ -391,23 +398,30 @@ const ViewResumePage: React.FC = () => {
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">Job Description</Typography>
               <Typography variant="body2" sx={{ 
-                maxHeight: '100px', 
-                overflow: 'hidden', 
-                textOverflow: 'ellipsis',
+                maxHeight: jobDescriptionExpanded ? 'none' : '100px', 
+                overflow: jobDescriptionExpanded ? 'visible' : 'hidden',
+                textOverflow: jobDescriptionExpanded ? 'unset' : 'ellipsis',
                 position: 'relative',
                 '&:after': {
                   content: '""',
-                  position: 'absolute',
+                  position: jobDescriptionExpanded ? 'static' : 'absolute',
                   bottom: 0,
                   right: 0,
                   left: 0,
-                  height: '30px',
-                  background: 'linear-gradient(to bottom, rgba(249,249,249,0), rgba(249,249,249,1))'
+                  height: jobDescriptionExpanded ? 0 : '30px',
+                  background: jobDescriptionExpanded ? 'none' : 'linear-gradient(to bottom, rgba(249,249,249,0), rgba(249,249,249,1))'
                 }
               }}>
                 {resume.job_description}
               </Typography>
-              <Button size="small" sx={{ mt: 0.5 }}>View full description</Button>
+              <Button 
+                size="small" 
+                sx={{ mt: 0.5 }} 
+                onClick={handleToggleJobDescription}
+                endIcon={jobDescriptionExpanded ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+              >
+                {jobDescriptionExpanded ? 'Show less' : 'View full description'}
+              </Button>
             </Box>
           )}
         </Paper>
