@@ -143,6 +143,7 @@ const ProfilePage: React.FC = () => {
           <Tabs value={tabValue} onChange={handleTabChange} aria-label="profile tabs">
             <Tab label="Personal Information" id="profile-tab-0" />
             <Tab label="Preferences" id="profile-tab-1" />
+            <Tab label="Life Story" id="profile-tab-2" />
           </Tabs>
         </Box>
 
@@ -231,20 +232,6 @@ const ProfilePage: React.FC = () => {
               <Chip label="Website" disabled variant="outlined" />
             )}
           </Box>
-          
-          <Divider sx={{ my: 3 }} />
-          <Typography variant="h6" gutterBottom>
-            Life Story
-          </Typography>
-          {profile.life_story ? (
-            <Typography variant="body1" paragraph>
-              {profile.life_story}
-            </Typography>
-          ) : (
-            <Typography variant="body2" color="text.secondary">
-              No life story provided. Add your career journey, motivations, and aspirations to help the AI better understand you.
-            </Typography>
-          )}
         </TabPanel>
         
         <TabPanel value={tabValue} index={1}>
@@ -375,6 +362,21 @@ const ProfilePage: React.FC = () => {
               </Typography>
             </Paper>
           </Box>
+        </TabPanel>
+        
+        <TabPanel value={tabValue} index={2}>
+          <Typography variant="h6" gutterBottom>
+            Life Story
+          </Typography>
+          {profile.life_story ? (
+            <Typography variant="body1" paragraph>
+              {profile.life_story}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No life story provided. Add your career journey, motivations, and aspirations to help the AI better understand you.
+            </Typography>
+          )}
         </TabPanel>
       </Paper>
     </Box>

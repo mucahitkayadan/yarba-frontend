@@ -275,9 +275,9 @@ export interface LoginResponse {
 
 export interface ResumeCreateRequest {
   title: string;
-  template_id: string;
+  template_id?: string;
   job_description?: string;
-  selected_sections: {
+  selected_sections?: {
     personal_information: "Hardcode" | "Process";
     career_summary: "Hardcode" | "Process";
     skills: "Hardcode" | "Process";
@@ -288,7 +288,7 @@ export interface ResumeCreateRequest {
     publications: "Hardcode" | "Process";
     certifications: "Hardcode" | "Process";
   };
-  llm_preferences: {
+  llm_preferences?: {
     model: string;
     temperature: number;
   };

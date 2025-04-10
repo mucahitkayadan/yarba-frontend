@@ -12,12 +12,13 @@ import {
   TemplatesPage,
   ProfilePage,
   ViewResumePage,
-  FirebaseTestPage
+  FirebaseTestPage,
+  CreateResumePage,
+  ProfileEditPage,
+  PortfolioCreatePage,
+  PortfolioEditPage,
+  PortfolioViewPage
 } from './pages';
-import ProfileEditPage from './pages/profile/ProfileEditPage';
-import PortfolioCreatePage from './pages/portfolio/PortfolioCreatePage';
-import PortfolioEditPage from './pages/portfolio/PortfolioEditPage';
-import PortfolioViewPage from './pages/portfolio/PortfolioViewPage';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
@@ -88,7 +89,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div>Create Resume Page Placeholder</div>
+                    <CreateResumePage />
                   </MainLayout>
                 </ProtectedRoute>
               }
