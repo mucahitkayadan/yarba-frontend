@@ -57,11 +57,20 @@ function TabPanel(props: TabPanelProps) {
   );
 }
 
+// Define the actual API response structure that PortfolioViewPage uses
+interface ViewPortfolio extends Portfolio {
+  career_summary?: {
+    job_titles: string[];
+    years_of_experience: string;
+    default_summary: string;
+  };
+}
+
 const PortfolioViewPage: React.FC = () => {
-  const { id } = useParams<{ id?: string }>();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tabValue, setTabValue] = useState(0);
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [portfolio, setPortfolio] = useState<ViewPortfolio | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -74,7 +83,7 @@ const PortfolioViewPage: React.FC = () => {
     setError(null);
     try {
       // If ID is provided, fetch specific portfolio, otherwise get user's portfolios
-      let portfolioData: Portfolio | null = null;
+      let portfolioData: ViewPortfolio | null = null;
       
       if (id) {
         const response = await getPortfolioById(id);
@@ -198,10 +207,11 @@ const PortfolioViewPage: React.FC = () => {
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle1" gutterBottom>Job Titles</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {portfolio.skills && portfolio.skills.map((skill, index) => (
-                <Chip key={index} label={skill.category} />
-              ))}
-              {(!portfolio.skills || portfolio.skills.length === 0) && (
+              {portfolio.career_summary && portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 ? (
+                portfolio.career_summary.job_titles.map((title: string, index: number) => (
+                  <Chip key={index} label={title} color="primary" />
+                ))
+              ) : (
                 <Typography variant="body2" color="text.secondary">No job titles specified</Typography>
               )}
             </Box>
@@ -210,8 +220,22 @@ const PortfolioViewPage: React.FC = () => {
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle1" gutterBottom>Professional Summary</Typography>
             <Typography variant="body1">
-              {/* Replace with actual career summary once API structure is finalized */}
-              A professional with experience in various roles, focused on delivering high-quality results and continuous improvement.
+              {portfolio.career_summary && portfolio.career_summary.default_summary ? (
+                portfolio.career_summary.default_summary
+              ) : (
+                "No professional summary provided yet."
+              )}
+            </Typography>
+          </Box>
+          
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle1" gutterBottom>Years of Experience</Typography>
+            <Typography variant="body1">
+              {portfolio.career_summary && portfolio.career_summary.years_of_experience ? (
+                `${portfolio.career_summary.years_of_experience} years`
+              ) : (
+                "Not specified"
+              )}
             </Typography>
           </Box>
         </TabPanel>

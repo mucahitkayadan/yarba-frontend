@@ -35,7 +35,8 @@ import {
   Code as ProjectsIcon,
   EmojiEvents as AwardsIcon,
   MenuBook as PublicationsIcon,
-  Badge as CertificationsIcon
+  Badge as CertificationsIcon,
+  VerifiedUser as Badge
 } from '@mui/icons-material';
 import { getUserPortfolios, createPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
@@ -148,7 +149,11 @@ const PortfolioPage: React.FC = () => {
       const portfolios = await getUserPortfolios();
       if (portfolios && portfolios.length > 0) {
         // Use the portfolio as is from the API response
-        setPortfolio(portfolios[0] as unknown as ApiPortfolio);
+        const portfolioData = portfolios[0] as unknown as ApiPortfolio;
+        console.log('Portfolio data:', portfolioData);
+        console.log('Career summary job titles:', portfolioData.career_summary?.job_titles);
+        console.log('Skills categories:', portfolioData.skills?.map(s => s.category));
+        setPortfolio(portfolioData);
       } else {
         // If no portfolio exists, create one
         const newPortfolio = await createPortfolio({});
@@ -244,41 +249,55 @@ const PortfolioPage: React.FC = () => {
         {/* Personal Information */}
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Personal Information
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
-              <Box sx={{ flex: 1 }}>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Professional Titles</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {portfolio.career_summary.job_titles.map((title, idx) => (
-                      <Chip key={idx} label={title} color="primary" variant="outlined" />
-                    ))}
-                  </Box>
+            <Divider sx={{ mb: 3 }} />
+            
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 4 }}>
+              <Box>
+                <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" gutterBottom>PROFESSIONAL TITLES</Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
+                  {portfolio.career_summary && portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 ? (
+                    portfolio.career_summary.job_titles.map((title, idx) => (
+                      <Chip key={idx} label={title} color="primary" />
+                    ))
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">No professional titles added yet</Typography>
+                  )}
                 </Box>
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Years of Experience</Typography>
-                  <Typography>{portfolio.career_summary.years_of_experience} years</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Summary</Typography>
-                  <Typography>{portfolio.career_summary.default_summary}</Typography>
-                </Box>
+                
+                <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" gutterBottom>YEARS OF EXPERIENCE</Typography>
+                <Typography variant="body1" sx={{ mb: 4 }}>
+                  {portfolio.career_summary && portfolio.career_summary.years_of_experience 
+                    ? `${portfolio.career_summary.years_of_experience} years` 
+                    : 'Not specified'}
+                </Typography>
+                
+                <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" gutterBottom>SUMMARY</Typography>
+                <Typography variant="body1">
+                  {portfolio.career_summary && portfolio.career_summary.default_summary 
+                    ? portfolio.career_summary.default_summary
+                    : 'No career summary provided yet'}
+                </Typography>
               </Box>
-              <Box sx={{ flex: 1 }}>
-                <Card elevation={1} sx={{ mb: 2, height: '100%' }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>Career Profile</Typography>
-                    <Typography variant="subtitle1" fontWeight="bold">
-                      {portfolio.career_summary.job_titles[0]}
-                    </Typography>
-                    <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
-                      {portfolio.career_summary.years_of_experience} years of experience {portfolio.career_summary.default_summary}
-                    </Typography>
-                  </CardContent>
-                </Card>
+              
+              <Box sx={{ bgcolor: 'primary.main', color: 'primary.contrastText', p: 3, borderRadius: 2 }}>
+                <Typography variant="h6" gutterBottom fontWeight="bold">CAREER PROFILE</Typography>
+                {portfolio.career_summary && portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 ? (
+                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>
+                    {portfolio.career_summary.job_titles.slice(0, 3).join(' / ')}
+                  </Typography>
+                ) : (
+                  <Typography variant="h5" fontWeight="bold" sx={{ mb: 2, opacity: 0.7 }}>
+                    Professional
+                  </Typography>
+                )}
+                <Typography variant="body1">
+                  {portfolio.career_summary 
+                    ? `${portfolio.career_summary.years_of_experience || ''} years of experience ${portfolio.career_summary.default_summary || ''}` 
+                    : 'Add your career summary to showcase your professional experience'}
+                </Typography>
               </Box>
             </Box>
           </Box>
@@ -287,45 +306,51 @@ const PortfolioPage: React.FC = () => {
         {/* Skills */}
         <TabPanel value={tabValue} index={1}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Skills
             </Typography>
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ mb: 3 }} />
             
             {portfolio.skills && portfolio.skills.length > 0 ? (
-              <TableContainer component={Paper} variant="outlined" sx={{ mb: 3 }}>
-                <Table>
-                  <TableHead>
-                    <TableRow sx={{ backgroundColor: 'rgba(0, 0, 0, 0.04)' }}>
-                      <TableCell width="30%"><Typography fontWeight="bold">Category</Typography></TableCell>
-                      <TableCell><Typography fontWeight="bold">Skills</Typography></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {portfolio.skills.map((skillCategory, index) => (
-                      <TableRow key={index} hover>
-                        <TableCell>
-                          <Typography fontWeight="medium">{skillCategory.category}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {skillCategory.skills.map((skill, idx) => (
-                              <Chip 
-                                key={idx} 
-                                label={skill} 
-                                color="primary" 
-                                variant="outlined" 
-                                size="small"
-                                sx={{ mb: 0.5 }}
-                              />
-                            ))}
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {portfolio.skills.map((skillCategory, index) => {
+                  // Create a deterministic color from the category name
+                  const colorIndex = index % 5; // 5 different colors
+                  const chipColors = ['primary', 'secondary', 'success', 'info', 'warning'];
+                  const chipColor = chipColors[colorIndex] as 'primary' | 'secondary' | 'success' | 'info' | 'warning';
+                  
+                  return (
+                    <Box key={index}>
+                      <Typography 
+                        variant="subtitle1" 
+                        fontWeight="bold" 
+                        color={`${chipColor}.main`} 
+                        sx={{ 
+                          mb: 1.5, 
+                          pb: 0.5, 
+                          borderBottom: 1, 
+                          borderColor: `${chipColor}.light`,
+                          display: 'inline-block'
+                        }}
+                      >
+                        {skillCategory.category.toUpperCase()}
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                        {skillCategory.skills.map((skill, idx) => (
+                          <Chip 
+                            key={idx} 
+                            label={skill} 
+                            color={chipColor}
+                            variant={idx % 3 === 0 ? "filled" : "outlined"}
+                            size="medium"
+                            sx={{ mb: 0.5, px: 1 }}
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </Box>
             ) : (
               <Alert severity="info">
                 No skills added yet. Add skills to showcase your expertise.
@@ -337,121 +362,251 @@ const PortfolioPage: React.FC = () => {
         {/* Work Experience */}
         <TabPanel value={tabValue} index={2}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Work Experience
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Stack spacing={3}>
-              {portfolio.work_experience && portfolio.work_experience.length > 0 ? (
-                portfolio.work_experience.map((job, index) => (
-                  <Card elevation={1} key={index}>
-                    <CardContent>
-                      <Typography variant="h6" fontWeight="bold">{job.job_title}</Typography>
-                      <Typography variant="subtitle1" color="primary">{job.company}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {job.location} | {job.time}
-                      </Typography>
+            <Divider sx={{ mb: 3 }} />
+            
+            {portfolio.work_experience && portfolio.work_experience.length > 0 ? (
+              <Box sx={{ position: 'relative' }}>
+                {/* Timeline line */}
+                <Box sx={{ 
+                  position: 'absolute', 
+                  left: 4, 
+                  top: 0, 
+                  bottom: 0, 
+                  width: 2, 
+                  bgcolor: 'grey.200',
+                  display: { xs: 'none', sm: 'block' }
+                }} />
+                
+                <Stack spacing={4}>
+                  {portfolio.work_experience.map((job, index) => (
+                    <Box key={index} sx={{ position: 'relative', pl: { xs: 0, sm: 4 }, ml: { xs: 0, sm: 2 } }}>
+                      {/* Timeline dot */}
+                      <Box sx={{ 
+                        position: 'absolute', 
+                        left: -6, 
+                        top: 8,
+                        width: 16, 
+                        height: 16, 
+                        borderRadius: '50%', 
+                        bgcolor: 'primary.main',
+                        display: { xs: 'none', sm: 'block' },
+                        zIndex: 1
+                      }} />
                       
-                      {job.responsibilities && job.responsibilities.length > 0 && (
-                        <>
-                          <Typography variant="subtitle2" fontWeight="bold" sx={{ mt: 2 }}>Responsibilities:</Typography>
-                          <List dense>
-                            {job.responsibilities.map((responsibility, idx) => (
-                              <ListItem key={idx} sx={{ py: 0 }}>
-                                <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
-                                <ListItemText primary={responsibility} />
-                              </ListItem>
-                            ))}
-                          </List>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No work experience added yet. Add your professional history.
-                </Typography>
-              )}
-            </Stack>
+                      <Box sx={{ 
+                        p: 3, 
+                        bgcolor: 'background.paper', 
+                        borderRadius: 2, 
+                        boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                        '&:hover': {
+                          boxShadow: 'rgba(17, 17, 26, 0.1) 0px 4px 16px, rgba(17, 17, 26, 0.05) 0px 8px 32px'
+                        }
+                      }}>
+                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
+                          <Box>
+                            <Typography variant="h6" fontWeight="bold" color="primary.main">{job.job_title}</Typography>
+                            <Typography variant="subtitle1" fontWeight="medium">{job.company}</Typography>
+                            <Typography variant="body2" color="text.secondary">{job.location}</Typography>
+                          </Box>
+                          <Chip 
+                            label={job.time} 
+                            size="small" 
+                            color="secondary" 
+                            sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
+                          />
+                        </Box>
+                        
+                        {job.responsibilities && job.responsibilities.length > 0 && (
+                          <>
+                            <Divider sx={{ my: 1.5 }} />
+                            <List dense disablePadding>
+                              {job.responsibilities.map((responsibility, idx) => (
+                                <ListItem key={idx} sx={{ py: 0.7, pl: 0 }}>
+                                  <ListItemIcon sx={{ minWidth: 24, color: 'primary.main' }}>•</ListItemIcon>
+                                  <ListItemText 
+                                    primary={responsibility} 
+                                    primaryTypographyProps={{ 
+                                      variant: 'body2',
+                                      sx: { lineHeight: 1.5 } 
+                                    }} 
+                                  />
+                                </ListItem>
+                              ))}
+                            </List>
+                          </>
+                        )}
+                      </Box>
+                    </Box>
+                  ))}
+                </Stack>
+              </Box>
+            ) : (
+              <Typography variant="body1">
+                No work experience added yet. Add your professional history.
+              </Typography>
+            )}
           </Box>
         </TabPanel>
 
         {/* Education */}
         <TabPanel value={tabValue} index={3}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Education
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Stack spacing={3}>
-              {portfolio.education && portfolio.education.length > 0 ? (
-                portfolio.education.map((edu, index) => (
-                  <Card elevation={1} key={index}>
-                    <CardContent>
-                      <Typography variant="h6" fontWeight="bold">{edu.degree}</Typography>
-                      <Typography variant="subtitle1" color="primary">{edu.university_name}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {edu.degree_type} | {edu.location} | {edu.time} | GPA: {edu.GPA}
-                      </Typography>
-                      
-                      {edu.transcript && edu.transcript.length > 0 && (
-                        <>
-                          <Typography variant="subtitle2" fontWeight="bold" sx={{ mt: 2 }}>Courses:</Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                            {edu.transcript.map((course, idx) => (
-                              <Chip key={idx} label={course} size="small" />
-                            ))}
-                          </Box>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No education history added yet. Add your academic background.
-                </Typography>
-              )}
-            </Stack>
+            <Divider sx={{ mb: 3 }} />
+            
+            {portfolio.education && portfolio.education.length > 0 ? (
+              <Stack spacing={3}>
+                {portfolio.education.map((edu, index) => (
+                  <Box key={index} sx={{ 
+                    p: 3, 
+                    bgcolor: 'background.paper', 
+                    borderRadius: 2,
+                    borderLeft: '4px solid',
+                    borderColor: 'primary.main',
+                    boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                  }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 1 }}>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold" color="primary.main">{edu.degree}</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{edu.university_name}</Typography>
+                      </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: { xs: 'flex-start', sm: 'flex-end' }, 
+                        mt: { xs: 1, sm: 0 }
+                      }}>
+                        <Chip 
+                          label={edu.time} 
+                          size="small" 
+                          color="secondary" 
+                          sx={{ mb: 1 }}
+                        />
+                        <Chip 
+                          label={`GPA: ${edu.GPA}`} 
+                          size="small" 
+                          color="info" 
+                        />
+                      </Box>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', gap: 1, mt: 1, mb: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                      <Typography variant="body2" color="text.secondary">{edu.degree_type}</Typography>
+                      <Typography variant="body2" color="text.secondary">•</Typography>
+                      <Typography variant="body2" color="text.secondary">{edu.location}</Typography>
+                    </Box>
+                    
+                    {edu.transcript && edu.transcript.length > 0 && (
+                      <>
+                        <Divider sx={{ my: 1.5 }} />
+                        <Typography variant="subtitle2" fontWeight="bold" color="text.secondary" sx={{ mb: 1, fontSize: '0.75rem' }}>
+                          COURSEWORK
+                        </Typography>
+                        <Box sx={{ 
+                          display: 'flex', 
+                          flexWrap: 'wrap', 
+                          gap: 1, 
+                          maxHeight: edu.transcript.length > 15 ? '150px' : 'auto',
+                          overflowY: edu.transcript.length > 15 ? 'auto' : 'visible',
+                          pr: 1
+                        }}>
+                          {edu.transcript.map((course, idx) => (
+                            <Chip 
+                              key={idx} 
+                              label={course} 
+                              size="small" 
+                              variant="outlined"
+                              color={idx % 3 === 0 ? "primary" : idx % 3 === 1 ? "secondary" : "default"}
+                            />
+                          ))}
+                        </Box>
+                      </>
+                    )}
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body1">
+                No education history added yet. Add your academic background.
+              </Typography>
+            )}
           </Box>
         </TabPanel>
 
         {/* Projects */}
         <TabPanel value={tabValue} index={4}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Projects
             </Typography>
-            <Divider sx={{ mb: 2 }} />
+            <Divider sx={{ mb: 3 }} />
             
             {portfolio.projects && portfolio.projects.length > 0 ? (
-              <Stack spacing={2}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
                 {portfolio.projects.map((project, index) => (
-                  <Paper key={index} variant="outlined" sx={{ p: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Typography variant="subtitle1" fontWeight="bold">{project.name}</Typography>
+                  <Box 
+                    key={index} 
+                    sx={{ 
+                      p: 3, 
+                      bgcolor: 'background.paper', 
+                      borderRadius: 2,
+                      boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      transition: 'transform 0.2s ease-in-out',
+                      '&:hover': {
+                        transform: 'translateY(-4px)',
+                        boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
+                      }
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                      <Typography variant="h6" fontWeight="bold" color="primary.main">{project.name}</Typography>
                       <Chip 
                         label={project.date} 
                         size="small" 
-                        variant="outlined"
                         color="secondary" 
+                        sx={{ ml: 1 }}
                       />
                     </Box>
                     
                     {project.bullet_points && project.bullet_points.length > 0 && (
-                      <List dense disablePadding sx={{ mt: 1 }}>
-                        {project.bullet_points.map((point, idx) => (
-                          <ListItem key={idx} sx={{ py: 0.5 }}>
-                            <ListItemIcon sx={{ minWidth: 30 }}>•</ListItemIcon>
-                            <ListItemText primary={point} />
+                      <List dense disablePadding sx={{ mt: 'auto' }}>
+                        {project.bullet_points.slice(0, 3).map((point, idx) => (
+                          <ListItem key={idx} sx={{ py: 0.7, pl: 0 }}>
+                            <ListItemIcon sx={{ minWidth: 24, color: 'primary.main' }}>•</ListItemIcon>
+                            <ListItemText 
+                              primary={point} 
+                              primaryTypographyProps={{ 
+                                variant: 'body2',
+                                sx: { lineHeight: 1.4 } 
+                              }} 
+                            />
                           </ListItem>
                         ))}
+                        {project.bullet_points.length > 3 && (
+                          <ListItem sx={{ pt: 1, pl: 0 }}>
+                            <Button 
+                              size="small" 
+                              color="primary" 
+                              variant="text" 
+                              sx={{ fontSize: '0.75rem' }}
+                            >
+                              +{project.bullet_points.length - 3} more details
+                            </Button>
+                          </ListItem>
+                        )}
                       </List>
                     )}
-                  </Paper>
+                  </Box>
                 ))}
-              </Stack>
+              </Box>
             ) : (
               <Alert severity="info">
                 No projects added yet. Showcase your work by adding projects.
@@ -463,95 +618,154 @@ const PortfolioPage: React.FC = () => {
         {/* Certifications */}
         <TabPanel value={tabValue} index={5}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Certifications
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {portfolio.certifications && portfolio.certifications.length > 0 ? (
-                portfolio.certifications.map((cert, index) => (
-                  <Chip 
-                    key={index} 
-                    label={typeof cert === 'string' ? cert : cert.name} 
-                    color="primary" 
-                    variant="outlined" 
-                    sx={{ mb: 1 }}
-                  />
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No certifications added yet. Add your professional certifications.
-                </Typography>
-              )}
-            </Box>
+            <Divider sx={{ mb: 3 }} />
+            
+            {portfolio.certifications && portfolio.certifications.length > 0 ? (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                {portfolio.certifications.map((cert, index) => (
+                  <Box 
+                    key={index}
+                    sx={{ 
+                      py: 2, 
+                      px: 3,
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
+                      borderRadius: 4,
+                      boxShadow: 'rgba(0, 0, 0, 0.04) 0px 3px 5px',
+                      display: 'inline-flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Badge 
+                      sx={{ 
+                        mr: 1.5, 
+                        color: 'primary.main',
+                        fontSize: '1.2rem'
+                      }} 
+                    /> 
+                    <Typography fontWeight="medium">
+                      {typeof cert === 'string' ? cert : cert.name}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body1">
+                No certifications added yet. Add your professional certifications.
+              </Typography>
+            )}
           </Box>
         </TabPanel>
 
         {/* Awards */}
         <TabPanel value={tabValue} index={6}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Awards
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Stack spacing={2}>
-              {portfolio.awards && portfolio.awards.length > 0 ? (
-                portfolio.awards.map((award, index) => (
-                  <Card elevation={1} key={index}>
-                    <CardContent>
-                      <Typography variant="h6" fontWeight="bold">{award.name}</Typography>
-                      <Typography variant="body2" sx={{ mt: 1 }}>{award.explanation}</Typography>
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No awards added yet. Add your achievements.
-                </Typography>
-              )}
-            </Stack>
+            <Divider sx={{ mb: 3 }} />
+            
+            {portfolio.awards && portfolio.awards.length > 0 ? (
+              <Stack spacing={3}>
+                {portfolio.awards.map((award, index) => (
+                  <Box 
+                    key={index}
+                    sx={{ 
+                      p: 3, 
+                      bgcolor: 'background.paper',
+                      borderRadius: 2,
+                      boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                      borderLeft: '4px solid gold',
+                      position: 'relative',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        right: 16,
+                        top: 16,
+                        width: 24,
+                        height: 24,
+                        backgroundImage: 'radial-gradient(circle, gold 0%, transparent 60%)',
+                        borderRadius: '50%',
+                        opacity: 0.6
+                      }
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ mb: 1 }}>
+                      {award.name}
+                    </Typography>
+                    <Typography variant="body2">
+                      {award.explanation}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            ) : (
+              <Typography variant="body1">
+                No awards added yet. Add your achievements.
+              </Typography>
+            )}
           </Box>
         </TabPanel>
 
         {/* Publications */}
         <TabPanel value={tabValue} index={7}>
           <Box sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
+            <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
               Publications
             </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Stack spacing={2}>
-              {portfolio.publications && portfolio.publications.length > 0 ? (
-                portfolio.publications.map((pub, index) => (
-                  <Card elevation={1} key={index}>
-                    <CardContent>
-                      <Typography variant="h6" fontWeight="bold">{pub.name}</Typography>
-                      <Typography variant="subtitle1" color="primary">{pub.publisher}</Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        {pub.time}
-                      </Typography>
-                      
+            <Divider sx={{ mb: 3 }} />
+            
+            {portfolio.publications && portfolio.publications.length > 0 ? (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+                {portfolio.publications.map((pub, index) => (
+                  <Box 
+                    key={index}
+                    sx={{ 
+                      p: 3, 
+                      bgcolor: 'background.paper',
+                      borderRadius: 2,
+                      boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column'
+                    }}
+                  >
+                    <Typography variant="h6" fontWeight="bold" color="primary.main" sx={{ mb: 1 }}>
+                      {pub.name}
+                    </Typography>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                      {pub.publisher} • {pub.time}
+                    </Typography>
+                    
+                    <Box sx={{ mt: 'auto', pt: 2 }}>
                       {pub.link && (
                         <Button 
-                          variant="outlined" 
+                          variant="text" 
                           size="small" 
                           href={pub.link} 
                           target="_blank"
                           rel="noopener noreferrer"
-                          sx={{ mt: 1 }}
+                          sx={{ 
+                            textTransform: 'none',
+                            fontWeight: 'medium'
+                          }}
                         >
-                          View Publication
+                          View Publication →
                         </Button>
                       )}
-                    </CardContent>
-                  </Card>
-                ))
-              ) : (
-                <Typography variant="body1">
-                  No publications added yet. Add your research or articles.
-                </Typography>
-              )}
-            </Stack>
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Typography variant="body1">
+                No publications added yet. Add your research or articles.
+              </Typography>
+            )}
           </Box>
         </TabPanel>
       </Paper>
