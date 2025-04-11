@@ -28,7 +28,7 @@ import {
   MenuBook as PublicationsIcon,
   Badge as CertificationsIcon
 } from '@mui/icons-material';
-import { getUserPortfolios, getPortfolioById } from '../../services/portfolioService';
+import { getUserPortfolio, getPortfolioById } from '../../services/portfolioService';
 import { Portfolio } from '../../types/models';
 
 interface TabPanelProps {
@@ -159,7 +159,7 @@ const PortfolioViewPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      // If ID is provided, fetch specific portfolio, otherwise get user's portfolios
+      // If ID is provided, fetch specific portfolio, otherwise get user's portfolio
       let portfolioData: ViewPortfolio | null = null;
       
       if (id) {
@@ -168,15 +168,10 @@ const PortfolioViewPage: React.FC = () => {
         console.log('API Response for getPortfolioById:', response);
         portfolioData = response;
       } else {
-        console.log('Fetching user portfolios');
-        const response = await getUserPortfolios();
-        console.log('API Response for getUserPortfolios:', response);
-        
-        // Since user and portfolio have a one-to-one relationship
-        // We can directly use the first portfolio in the response
-        if (response && Array.isArray(response) && response.length > 0) {
-          portfolioData = response[0];
-        }
+        console.log('Fetching user portfolio');
+        const response = await getUserPortfolio();
+        console.log('API Response for getUserPortfolio:', response);
+        portfolioData = response;
       }
       
       if (portfolioData) {

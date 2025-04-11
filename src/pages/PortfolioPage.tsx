@@ -38,7 +38,7 @@ import {
   Badge as CertificationsIcon,
   VerifiedUser as Badge
 } from '@mui/icons-material';
-import { getUserPortfolios, createPortfolio } from '../services/portfolioService';
+import { getUserPortfolio, createPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
 
 // Define the actual API response structure
@@ -146,18 +146,21 @@ const PortfolioPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const portfolios = await getUserPortfolios();
-      if (portfolios && portfolios.length > 0) {
-        // Use the portfolio as is from the API response
-        const portfolioData = portfolios[0] as unknown as ApiPortfolio;
+      try {
+        const portfolio = await getUserPortfolio();
+        const portfolioData = portfolio as unknown as ApiPortfolio;
         console.log('Portfolio data:', portfolioData);
         console.log('Career summary job titles:', portfolioData.career_summary?.job_titles);
         console.log('Skills categories:', portfolioData.skills?.map(s => s.category));
         setPortfolio(portfolioData);
-      } else {
-        // If no portfolio exists, create one
-        const newPortfolio = await createPortfolio({});
-        setPortfolio(newPortfolio as unknown as ApiPortfolio);
+      } catch (error: any) {
+        // If portfolio doesn't exist or other error, create one
+        if (error.response?.status === 404) {
+          const newPortfolio = await createPortfolio({});
+          setPortfolio(newPortfolio as unknown as ApiPortfolio);
+        } else {
+          throw error;
+        }
       }
     } catch (err: any) {
       console.error('Failed to fetch portfolio:', err);

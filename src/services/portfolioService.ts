@@ -1,23 +1,30 @@
 import api from './api';
 import { Portfolio } from '../types/models';
 
-// Get user's portfolios
-export const getUserPortfolios = async (): Promise<Portfolio[]> => {
-  const response = await api.get('/portfolios');
+// Get user's portfolio
+export const getUserPortfolio = async (): Promise<Portfolio> => {
+  const response = await api.get('/portfolios/');
   console.log('Portfolio API response:', response.data);
   return response.data;
 };
 
-// Get portfolio by _id
+// Get portfolio by ID
 export const getPortfolioById = async (portfolioId: string): Promise<Portfolio> => {
   const response = await api.get(`/portfolios/${portfolioId}`);
-  console.log('Portfolio by _id API response:', response.data);
+  console.log('Portfolio by ID API response:', response.data);
+  return response.data;
+};
+
+// Get portfolio by profile ID
+export const getPortfolioByProfileId = async (profileId: string): Promise<Portfolio> => {
+  const response = await api.get(`/portfolios/by-profile/${profileId}`);
+  console.log('Portfolio by profile ID API response:', response.data);
   return response.data;
 };
 
 // Create a new portfolio
 export const createPortfolio = async (data: { profile_id?: string }): Promise<Portfolio> => {
-  const response = await api.post('/portfolios', data);
+  const response = await api.post('/portfolios/', data);
   return response.data;
 };
 
@@ -26,6 +33,18 @@ export const updatePortfolio = async (portfolioId: string, data: Partial<Portfol
   console.log(`Updating portfolio ${portfolioId} with data:`, data);
   const response = await api.put(`/portfolios/${portfolioId}`, data);
   return response.data;
+};
+
+// Partial update portfolio
+export const patchPortfolio = async (portfolioId: string, data: Partial<Portfolio>): Promise<Portfolio> => {
+  console.log(`Patching portfolio ${portfolioId} with data:`, data);
+  const response = await api.patch(`/portfolios/${portfolioId}`, data);
+  return response.data;
+};
+
+// Delete portfolio
+export const deletePortfolio = async (portfolioId: string): Promise<void> => {
+  await api.delete(`/portfolios/${portfolioId}`);
 };
 
 // Section-specific PATCH endpoints
@@ -136,4 +155,13 @@ export const updatePublications = async (
 ): Promise<Portfolio> => {
   const response = await api.patch(`/portfolios/${portfolioId}/publications`, publications);
   return response.data;
+};
+
+// Delete portfolio item
+export const deletePortfolioItem = async (
+  portfolioId: string,
+  itemType: string,
+  itemIndex: number
+): Promise<void> => {
+  await api.delete(`/portfolios/${portfolioId}/items/${itemType}/${itemIndex}`);
 }; 

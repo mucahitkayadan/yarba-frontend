@@ -47,7 +47,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getResumes, deleteResume, getResumePdf, updateResume } from '../services/resumeService';
-import { getUserPortfolios } from '../services/portfolioService';
+import { getUserPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
 
 // Define the API Resume interface
@@ -264,15 +264,15 @@ const ResumesPage: React.FC = () => {
     setPortfolioDialogOpen(true);
     
     try {
-      const portfolios = await getUserPortfolios();
-      setAvailablePortfolios(portfolios);
+      const portfolio = await getUserPortfolio();
+      setAvailablePortfolios([portfolio]);
       
-      if (portfolios.length > 0) {
-        setSelectedPortfolioId(portfolios[0]._id);
+      if (portfolio) {
+        setSelectedPortfolioId(portfolio._id);
       }
     } catch (error) {
-      console.error('Failed to fetch portfolios:', error);
-      setErrorMessage('Failed to load available portfolios');
+      console.error('Failed to fetch portfolio:', error);
+      setErrorMessage('Failed to load available portfolio');
       setSnackbarOpen(true);
     } finally {
       setLoadingPortfolios(false);
