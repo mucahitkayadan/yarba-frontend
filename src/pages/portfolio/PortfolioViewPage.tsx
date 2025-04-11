@@ -303,10 +303,7 @@ const PortfolioViewPage: React.FC = () => {
         </Box>
 
         {/* Career Summary */}
-        <TabPanel value={tabValue} index={0}>
-          <Typography variant="h6" gutterBottom>Career Summary</Typography>
-          <Divider sx={{ mb: 3 }} />
-          
+        <TabPanel value={tabValue} index={0}>          
           <Box sx={{ mb: 3 }}>
             <Typography variant="subtitle1" gutterBottom>Job Titles</Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
@@ -344,10 +341,7 @@ const PortfolioViewPage: React.FC = () => {
         </TabPanel>
 
         {/* Skills Tab */}
-        <TabPanel value={tabValue} index={1}>
-          <Typography variant="h6" gutterBottom>Skills</Typography>
-          <Divider sx={{ mb: 3 }} />
-          
+        <TabPanel value={tabValue} index={1}>          
           {portfolio.skills && portfolio.skills.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
               {portfolio.skills.map((skillCategory, index) => {
@@ -415,8 +409,6 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Work Experience Tab */}
         <TabPanel value={tabValue} index={2}>
-          <Typography variant="h6" gutterBottom>Work Experience</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           {portfolio.work_experience && portfolio.work_experience.map((job, index) => (
             <Box key={index} sx={{ 
@@ -490,8 +482,6 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Education Tab */}
         <TabPanel value={tabValue} index={3}>
-          <Typography variant="h6" gutterBottom>Education</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           {portfolio.education && portfolio.education.map((edu, index) => (
             <Paper key={index} elevation={1} sx={{ p: 3, mb: 3 }}>
@@ -550,8 +540,6 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Projects Tab */}
         <TabPanel value={tabValue} index={4}>
-          <Typography variant="h6" gutterBottom>Projects</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           {portfolio.projects && portfolio.projects.map((project, index) => (
             <Box key={index} sx={{ 
@@ -641,8 +629,6 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Certifications Tab */}
         <TabPanel value={tabValue} index={5}>
-          <Typography variant="h6" gutterBottom>Certifications</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           <Grid container spacing={3}>
             {portfolio.certifications && portfolio.certifications.map((cert, index) => (
@@ -679,8 +665,6 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Awards Tab */}
         <TabPanel value={tabValue} index={6}>
-          <Typography variant="h6" gutterBottom>Awards & Honors</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           {portfolio.awards && portfolio.awards.length > 0 ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -770,11 +754,9 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Publications Tab */}
         <TabPanel value={tabValue} index={7}>
-          <Typography variant="h6" gutterBottom>Publications</Typography>
-          <Divider sx={{ mb: 3 }} />
           
           {portfolio.publications && portfolio.publications.length > 0 ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}> 
               {portfolio.publications.map((pub, index) => (
                 <Paper key={index} elevation={1} sx={{ p: 3, mb: 1 }}>
                   <Grid container spacing={2}>
@@ -853,16 +835,24 @@ const PortfolioViewPage: React.FC = () => {
                       return (
                         <Grid item xs={12}>
                           <Divider sx={{ my: 1 }} />
-                          <Box sx={{ mt: 2, textAlign: 'center' }}>
-                            <Button 
-                              variant="outlined" 
-                              size="medium"
-                              href={url}
+                          <Box sx={{ mt: 1 }}>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                              Link
+                            </Typography>
+                            <Typography 
+                              variant="body2" 
+                              component="a" 
+                              href={url} 
                               target="_blank"
                               rel="noopener noreferrer"
+                              sx={{ 
+                                wordBreak: 'break-all',
+                                color: 'primary.main',
+                                textDecoration: 'underline'
+                              }}
                             >
-                              View Publication
-                            </Button>
+                              {url}
+                            </Typography>
                           </Box>
                         </Grid>
                       );
