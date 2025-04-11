@@ -114,6 +114,11 @@ export interface Portfolio {
   _id: string;
   user_id: string;
   profile_id: string;
+  career_summary?: {
+    job_titles: string[];
+    years_of_experience: string;
+    default_summary: string;
+  };
   skills: {
     category: string;
     skills: string[];
