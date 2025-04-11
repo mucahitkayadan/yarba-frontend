@@ -267,7 +267,11 @@ const ResumesPage: React.FC = () => {
       const portfolios = await getUserPortfolios();
       setAvailablePortfolios(portfolios);
       
-      if (portfolios.length > 0) {
+      if (portfolios.length > 0 && portfolios[0]._id) {
+        // Use MongoDB _id if available
+        setSelectedPortfolioId(portfolios[0]._id);
+      } else if (portfolios.length > 0 && portfolios[0].id) {
+        // Fall back to regular id
         setSelectedPortfolioId(portfolios[0].id);
       }
     } catch (error) {
@@ -772,11 +776,16 @@ const ResumesPage: React.FC = () => {
                 onChange={handlePortfolioChange}
                 label="Portfolio"
               >
-                {availablePortfolios.map((portfolio) => (
-                  <MenuItem key={portfolio.id} value={portfolio.id}>
-                    Portfolio {portfolio.id.substring(0, 8)}...
-                  </MenuItem>
-                ))}
+                {availablePortfolios.map((portfolio) => {
+                  // Get the portfolio ID (either _id or id)
+                  const portfolioId = portfolio._id || portfolio.id || '';
+                  // Only render if we have a valid ID
+                  return portfolioId ? (
+                    <MenuItem key={portfolioId} value={portfolioId}>
+                      Portfolio {portfolioId.substring(0, 8)}...
+                    </MenuItem>
+                  ) : null;
+                })}
               </Select>
             </FormControl>
           )}

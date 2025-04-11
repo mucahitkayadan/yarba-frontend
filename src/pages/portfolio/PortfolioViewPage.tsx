@@ -59,7 +59,8 @@ function TabPanel(props: TabPanelProps) {
 
 // Define the actual API response structure that PortfolioViewPage uses
 interface ViewPortfolio {
-  id: string;
+  id?: string;
+  _id?: string;
   user_id: string;
   profile_id: string;
   career_summary?: {
@@ -212,8 +213,16 @@ const PortfolioViewPage: React.FC = () => {
   };
 
   const handleEditClick = () => {
-    if (portfolio) {
-      navigate(`/portfolio/${portfolio.id}/edit`);
+    // Use _id (MongoDB format) if available, otherwise fall back to id
+    const portfolioId = portfolio?._id || portfolio?.id;
+    
+    if (portfolioId) {
+      navigate(`/portfolio/${portfolioId}/edit`);
+    } else if (id) {
+      navigate(`/portfolio/${id}/edit`);
+    } else {
+      // If no id is available, navigate to the portfolio list page
+      navigate('/portfolio');
     }
   };
 

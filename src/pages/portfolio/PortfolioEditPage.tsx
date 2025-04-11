@@ -23,6 +23,13 @@ import {
 import { getPortfolioById, updatePortfolio } from '../../services/portfolioService';
 import { Portfolio } from '../../types/models';
 
+// Define interface for skill categories
+interface SkillCategory {
+  category: string;
+  items?: string[];
+  skills?: string[];
+}
+
 interface TabPanelProps {
   children?: React.ReactNode;
   index: number;
@@ -81,10 +88,14 @@ const PortfolioEditPage: React.FC = () => {
       
       // Initialize skills state from portfolio data
       if (portfolioData.skills && portfolioData.skills.length > 0) {
-        setSkills(portfolioData.skills.map(skill => ({
-          category: skill.category,
-          items: [...skill.items]
-        })));
+        setSkills(portfolioData.skills.map((skill: SkillCategory) => {
+          // Handle both skills and items properties (API differences)
+          const skillItems = skill.skills || skill.items || [];
+          return {
+            category: skill.category,
+            items: [...skillItems]
+          };
+        }));
       } else {
         setSkills([
           { category: 'Technical Skills', items: [] },
@@ -158,9 +169,33 @@ const PortfolioEditPage: React.FC = () => {
     try {
       // Save based on current tab
       if (tabValue === 0) { // Skills tab
+        // Determine if the original data used 'skills' or 'items' property
+        const useSkillsProperty = portfolio.skills && 
+          portfolio.skills.length > 0 && 
+          portfolio.skills[0].skills !== undefined;
+        
+        // Convert our internal items format to match the API's expected format
+        const formattedSkills = skills
+          .filter(category => category.items.length > 0)
+          .map(category => {
+            if (useSkillsProperty) {
+              // Use 'skills' property if that's what the API expects
+              return {
+                category: category.category,
+                skills: [...category.items]
+              };
+            } else {
+              // Default to 'items' property
+              return {
+                category: category.category,
+                items: [...category.items]
+              };
+            }
+          });
+        
         const updatedPortfolio = {
           ...portfolio,
-          skills: skills.filter(category => category.items.length > 0) // Only include categories with skills
+          skills: formattedSkills
         };
         
         await updatePortfolio(id, updatedPortfolio);
