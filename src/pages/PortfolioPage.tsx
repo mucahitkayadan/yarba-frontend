@@ -319,34 +319,52 @@ const PortfolioPage: React.FC = () => {
                   const chipColors = ['primary', 'secondary', 'success', 'info', 'warning'];
                   const chipColor = chipColors[colorIndex] as 'primary' | 'secondary' | 'success' | 'info' | 'warning';
                   
+                  // Get the actual skills array
+                  let skillsArray: string[] = [];
+                  
+                  if ('skills' in skillCategory && Array.isArray(skillCategory.skills)) {
+                    skillsArray = skillCategory.skills;
+                    console.log(`Category ${skillCategory.category} has skills:`, skillsArray);
+                  } else {
+                    console.log(`Category ${skillCategory.category} has NO skills array!`);
+                    console.log('Category structure:', JSON.stringify(skillCategory, null, 2));
+                  }
+                  
                   return (
                     <Box key={index}>
                       <Typography 
-                        variant="subtitle1" 
-                        fontWeight="bold" 
-                        color={`${chipColor}.main`} 
+                        variant="h6" 
                         sx={{ 
-                          mb: 1.5, 
-                          pb: 0.5, 
-                          borderBottom: 1, 
+                          mb: 2,
+                          color: `${chipColor}.main`,
+                          fontWeight: 'bold',
+                          pb: 0.5,
+                          borderBottom: 1,
                           borderColor: `${chipColor}.light`,
                           display: 'inline-block'
                         }}
                       >
-                        {skillCategory.category.toUpperCase()}
+                        {skillCategory.category}
                       </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                        {skillCategory.skills.map((skill, idx) => (
-                          <Chip 
-                            key={idx} 
-                            label={skill} 
-                            color={chipColor}
-                            variant={idx % 3 === 0 ? "filled" : "outlined"}
-                            size="medium"
-                            sx={{ mb: 0.5, px: 1 }}
-                          />
-                        ))}
-                      </Box>
+                      
+                      {skillsArray.length > 0 ? (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, ml: 1 }}>
+                          {skillsArray.map((skill, idx) => (
+                            <Chip 
+                              key={idx} 
+                              label={skill} 
+                              color={chipColor}
+                              variant="outlined"
+                              size="medium"
+                              sx={{ mb: 1 }}
+                            />
+                          ))}
+                        </Box>
+                      ) : (
+                        <Typography color="text.secondary" sx={{ ml: 1 }}>
+                          No skills found in this category
+                        </Typography>
+                      )}
                     </Box>
                   );
                 })}
@@ -368,80 +386,47 @@ const PortfolioPage: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
             
             {portfolio.work_experience && portfolio.work_experience.length > 0 ? (
-              <Box sx={{ position: 'relative' }}>
-                {/* Timeline line */}
-                <Box sx={{ 
-                  position: 'absolute', 
-                  left: 4, 
-                  top: 0, 
-                  bottom: 0, 
-                  width: 2, 
-                  bgcolor: 'grey.200',
-                  display: { xs: 'none', sm: 'block' }
-                }} />
-                
-                <Stack spacing={4}>
-                  {portfolio.work_experience.map((job, index) => (
-                    <Box key={index} sx={{ position: 'relative', pl: { xs: 0, sm: 4 }, ml: { xs: 0, sm: 2 } }}>
-                      {/* Timeline dot */}
-                      <Box sx={{ 
-                        position: 'absolute', 
-                        left: -6, 
-                        top: 8,
-                        width: 16, 
-                        height: 16, 
-                        borderRadius: '50%', 
-                        bgcolor: 'primary.main',
-                        display: { xs: 'none', sm: 'block' },
-                        zIndex: 1
-                      }} />
-                      
-                      <Box sx={{ 
-                        p: 3, 
-                        bgcolor: 'background.paper', 
-                        borderRadius: 2, 
-                        boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
-                        '&:hover': {
-                          boxShadow: 'rgba(17, 17, 26, 0.1) 0px 4px 16px, rgba(17, 17, 26, 0.05) 0px 8px 32px'
-                        }
-                      }}>
-                        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
-                          <Box>
-                            <Typography variant="h6" fontWeight="bold" color="primary.main">{job.job_title}</Typography>
-                            <Typography variant="subtitle1" fontWeight="medium">{job.company}</Typography>
-                            <Typography variant="body2" color="text.secondary">{job.location}</Typography>
-                          </Box>
-                          <Chip 
-                            label={job.time} 
-                            size="small" 
-                            color="secondary" 
-                            sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
-                          />
-                        </Box>
-                        
-                        {job.responsibilities && job.responsibilities.length > 0 && (
-                          <>
-                            <Divider sx={{ my: 1.5 }} />
-                            <List dense disablePadding>
-                              {job.responsibilities.map((responsibility, idx) => (
-                                <ListItem key={idx} sx={{ py: 0.7, pl: 0 }}>
-                                  <ListItemIcon sx={{ minWidth: 24, color: 'primary.main' }}>•</ListItemIcon>
-                                  <ListItemText 
-                                    primary={responsibility} 
-                                    primaryTypographyProps={{ 
-                                      variant: 'body2',
-                                      sx: { lineHeight: 1.5 } 
-                                    }} 
-                                  />
-                                </ListItem>
-                              ))}
-                            </List>
-                          </>
-                        )}
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {portfolio.work_experience.map((job, index) => (
+                  <Box key={index} sx={{ 
+                    p: 3, 
+                    bgcolor: 'background.paper', 
+                    borderRadius: 2, 
+                    boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
+                  }}>
+                    <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
+                      <Box>
+                        <Typography variant="h6" fontWeight="bold" color="primary.main">{job.job_title}</Typography>
+                        <Typography variant="subtitle1" fontWeight="medium">{job.company}</Typography>
+                        <Typography variant="body2" color="text.secondary">{job.location}</Typography>
                       </Box>
+                      <Chip 
+                        label={job.time} 
+                        size="small" 
+                        color="secondary" 
+                        sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
+                      />
                     </Box>
-                  ))}
-                </Stack>
+                    
+                    {job.responsibilities && job.responsibilities.length > 0 && (
+                      <>
+                        <Divider sx={{ my: 1.5 }} />
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>
+                          Key Responsibilities:
+                        </Typography>
+                        <Box component="ol" sx={{ m: 0, pl: 3 }}>
+                          {job.responsibilities.map((responsibility, idx) => (
+                            <Box component="li" key={idx} sx={{ mb: 1 }}>
+                              <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                                {responsibility}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </>
+                    )}
+                  </Box>
+                ))}
               </Box>
             ) : (
               <Typography variant="body1">
@@ -547,7 +532,7 @@ const PortfolioPage: React.FC = () => {
             <Divider sx={{ mb: 3 }} />
             
             {portfolio.projects && portfolio.projects.length > 0 ? (
-              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(2, 1fr)' }, gap: 3 }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 {portfolio.projects.map((project, index) => (
                   <Box 
                     key={index} 
@@ -556,14 +541,6 @@ const PortfolioPage: React.FC = () => {
                       bgcolor: 'background.paper', 
                       borderRadius: 2,
                       boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px',
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      transition: 'transform 0.2s ease-in-out',
-                      '&:hover': {
-                        transform: 'translateY(-4px)',
-                        boxShadow: 'rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px'
-                      }
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
@@ -577,32 +554,20 @@ const PortfolioPage: React.FC = () => {
                     </Box>
                     
                     {project.bullet_points && project.bullet_points.length > 0 && (
-                      <List dense disablePadding sx={{ mt: 'auto' }}>
-                        {project.bullet_points.slice(0, 3).map((point, idx) => (
-                          <ListItem key={idx} sx={{ py: 0.7, pl: 0 }}>
-                            <ListItemIcon sx={{ minWidth: 24, color: 'primary.main' }}>•</ListItemIcon>
-                            <ListItemText 
-                              primary={point} 
-                              primaryTypographyProps={{ 
-                                variant: 'body2',
-                                sx: { lineHeight: 1.4 } 
-                              }} 
-                            />
-                          </ListItem>
-                        ))}
-                        {project.bullet_points.length > 3 && (
-                          <ListItem sx={{ pt: 1, pl: 0 }}>
-                            <Button 
-                              size="small" 
-                              color="primary" 
-                              variant="text" 
-                              sx={{ fontSize: '0.75rem' }}
-                            >
-                              +{project.bullet_points.length - 3} more details
-                            </Button>
-                          </ListItem>
-                        )}
-                      </List>
+                      <>
+                        <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>
+                          Key Features:
+                        </Typography>
+                        <Box component="ol" sx={{ m: 0, pl: 3 }}>
+                          {project.bullet_points.map((point, idx) => (
+                            <Box component="li" key={idx} sx={{ mb: 1 }}>
+                              <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                                {point}
+                              </Typography>
+                            </Box>
+                          ))}
+                        </Box>
+                      </>
                     )}
                   </Box>
                 ))}

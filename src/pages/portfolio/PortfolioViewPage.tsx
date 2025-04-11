@@ -58,12 +58,77 @@ function TabPanel(props: TabPanelProps) {
 }
 
 // Define the actual API response structure that PortfolioViewPage uses
-interface ViewPortfolio extends Portfolio {
+interface ViewPortfolio {
+  id: string;
+  user_id: string;
+  profile_id: string;
   career_summary?: {
     job_titles: string[];
     years_of_experience: string;
     default_summary: string;
   };
+  skills?: Array<{
+    category: string;
+    items?: string[];
+    skills?: string[];
+  }>;
+  work_experience?: {
+    job_title?: string;
+    company: string;
+    position?: string;
+    location?: string;
+    time?: string;
+    start_date?: string;
+    end_date?: string;
+    current?: boolean;
+    description?: string;
+    responsibilities?: string[];
+    achievements?: string[];
+  }[];
+  education?: {
+    institution: string;
+    degree: string;
+    field_of_study: string;
+    location?: string;
+    start_date: string;
+    end_date?: string;
+    current: boolean;
+    description?: string;
+    courses?: string[];
+  }[];
+  projects?: {
+    name: string;
+    description: string;
+    url?: string;
+    start_date?: string;
+    end_date?: string;
+    current: boolean;
+    technologies: string[];
+    achievements: string[];
+  }[];
+  certifications?: {
+    name: string;
+    issuer: string;
+    date: string;
+    url?: string;
+    description?: string;
+  }[];
+  awards?: {
+    title: string;
+    issuer: string;
+    date: string;
+    description?: string;
+  }[];
+  publications?: {
+    title: string;
+    publisher: string;
+    date: string;
+    url?: string;
+    description?: string;
+    authors?: string[];
+  }[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 const PortfolioViewPage: React.FC = () => {
@@ -92,6 +157,32 @@ const PortfolioViewPage: React.FC = () => {
         const portfolios = await getUserPortfolios();
         if (portfolios && portfolios.length > 0) {
           portfolioData = portfolios[0];
+        }
+      }
+      
+      if (portfolioData) {
+        console.log('Portfolio data:', JSON.stringify(portfolioData, null, 2));
+        
+        // Debug skills structure
+        if (portfolioData.skills && portfolioData.skills.length > 0) {
+          console.log('Number of skill categories:', portfolioData.skills.length);
+          
+          portfolioData.skills.forEach((category, index) => {
+            console.log(`Skill category ${index + 1}:`, category.category);
+            
+            if ('skills' in category && Array.isArray(category.skills)) {
+              console.log(`  - Skills array found with ${category.skills.length} skills`);
+              console.log(`  - First few skills: ${category.skills.slice(0, 3).join(', ')}...`);
+            } else if ('items' in category && Array.isArray(category.items)) {
+              console.log(`  - Items array found with ${category.items.length} skills`);
+              console.log(`  - First few items: ${category.items.slice(0, 3).join(', ')}...`);
+            } else {
+              console.log('  - No skills or items array found in this category!');
+              console.log('  - Category structure:', JSON.stringify(category, null, 2));
+            }
+          });
+        } else {
+          console.log('No skills data found in portfolio');
         }
       }
       
@@ -245,25 +336,69 @@ const PortfolioViewPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>Skills</Typography>
           <Divider sx={{ mb: 3 }} />
           
-          <Grid container spacing={3}>
-            {portfolio.skills && portfolio.skills.map((skillCategory, index) => (
-              <Grid item xs={12} sm={6} md={4} key={index}>
-                <Paper elevation={1} sx={{ p: 2, height: '100%' }}>
-                  <Typography variant="subtitle1" gutterBottom>{skillCategory.category}</Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {skillCategory.items && skillCategory.items.map((skill, skillIndex) => (
-                      <Chip key={skillIndex} label={skill} size="small" />
-                    ))}
+          {portfolio.skills && portfolio.skills.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {portfolio.skills.map((skillCategory, index) => {
+                // Create a deterministic color based on index
+                const colorIndex = index % 5;
+                const colors = ['primary', 'secondary', 'success', 'info', 'warning'];
+                const color = colors[colorIndex] as 'primary' | 'secondary' | 'success' | 'info' | 'warning';
+                
+                // Determine where the skills are stored (could be in 'items' or 'skills' property)
+                let skillsArray: string[] = [];
+                
+                if ('skills' in skillCategory && Array.isArray(skillCategory.skills)) {
+                  skillsArray = skillCategory.skills;
+                  console.log(`Category ${skillCategory.category} has skills:`, skillsArray);
+                } else if ('items' in skillCategory && Array.isArray(skillCategory.items)) {
+                  skillsArray = skillCategory.items;
+                  console.log(`Category ${skillCategory.category} has items:`, skillsArray);
+                } else {
+                  console.log(`Category ${skillCategory.category} has no skills or items arrays!`);
+                }
+                
+                return (
+                  <Box key={index}>
+                    <Typography 
+                      variant="h6" 
+                      sx={{ 
+                        mb: 2, 
+                        color: `${color}.main`,
+                        fontWeight: 'bold',
+                        pb: 0.5,
+                        borderBottom: 1,
+                        borderColor: `${color}.light`,
+                        display: 'inline-block'
+                      }}
+                    >
+                      {skillCategory.category}
+                    </Typography>
+                    
+                    {skillsArray.length > 0 ? (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, ml: 1 }}>
+                        {skillsArray.map((skill, skillIndex) => (
+                          <Chip 
+                            key={skillIndex} 
+                            label={skill} 
+                            color={color}
+                            variant="outlined"
+                            size="medium"
+                            sx={{ mb: 1 }}
+                          />
+                        ))}
+                      </Box>
+                    ) : (
+                      <Typography color="text.secondary" sx={{ ml: 1 }}>
+                        No skills found in this category
+                      </Typography>
+                    )}
                   </Box>
-                </Paper>
-              </Grid>
-            ))}
-            {(!portfolio.skills || portfolio.skills.length === 0) && (
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">No skills added yet</Typography>
-              </Grid>
-            )}
-          </Grid>
+                );
+              })}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">No skills added yet</Typography>
+          )}
         </TabPanel>
 
         {/* Work Experience Tab */}
@@ -272,32 +407,69 @@ const PortfolioViewPage: React.FC = () => {
           <Divider sx={{ mb: 3 }} />
           
           {portfolio.work_experience && portfolio.work_experience.map((job, index) => (
-            <Paper key={index} elevation={1} sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6">{job.position}</Typography>
-              <Typography variant="subtitle1">{job.company}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {job.start_date} - {job.current ? 'Present' : job.end_date} | {job.location}
-              </Typography>
+            <Box key={index} sx={{ 
+              p: 3, 
+              mb: 3,
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' 
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
+                <Box>
+                  <Typography variant="h6" fontWeight="bold" color="primary.main">
+                    {job.job_title || job.position || 'Untitled Position'}
+                  </Typography>
+                  <Typography variant="subtitle1">{job.company}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {job.location}
+                  </Typography>
+                </Box>
+                <Chip 
+                  label={job.time || (job.start_date && `${job.start_date}${job.end_date ? ` - ${job.end_date}` : ''}${job.current ? ' - Present' : ''}`)}
+                  size="small" 
+                  color="secondary" 
+                  sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
+                />
+              </Box>
               
               {job.description && (
-                <Typography variant="body1" sx={{ mt: 2 }}>
+                <Typography variant="body1" sx={{ mt: 2, mb: 2 }}>
                   {job.description}
                 </Typography>
               )}
               
-              {job.achievements && job.achievements.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>Key Achievements:</Typography>
-                  <List dense disablePadding>
-                    {job.achievements.map((achievement, achievementIndex) => (
-                      <ListItem key={achievementIndex} sx={{ py: 0.5 }}>
-                        <ListItemText primary={achievement} />
-                      </ListItem>
+              {job.responsibilities && job.responsibilities.length > 0 && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Responsibilities:</Typography>
+                  <Box component="ol" sx={{ m: 0, pl: 3 }}>
+                    {job.responsibilities.map((responsibility, responsibilityIndex) => (
+                      <Box component="li" key={responsibilityIndex} sx={{ mb: 1 }}>
+                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                          {responsibility}
+                        </Typography>
+                      </Box>
                     ))}
-                  </List>
-                </Box>
+                  </Box>
+                </>
               )}
-            </Paper>
+
+              {job.achievements && job.achievements.length > 0 && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Achievements:</Typography>
+                  <Box component="ol" sx={{ m: 0, pl: 3 }}>
+                    {job.achievements.map((achievement, achievementIndex) => (
+                      <Box component="li" key={achievementIndex} sx={{ mb: 1 }}>
+                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                          {achievement}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </>
+              )}
+            </Box>
           ))}
           {(!portfolio.work_experience || portfolio.work_experience.length === 0) && (
             <Typography variant="body2" color="text.secondary">No work experience added yet</Typography>
@@ -347,40 +519,52 @@ const PortfolioViewPage: React.FC = () => {
           <Divider sx={{ mb: 3 }} />
           
           {portfolio.projects && portfolio.projects.map((project, index) => (
-            <Paper key={index} elevation={1} sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6">{project.name}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {project.start_date && `${project.start_date}`}
-                {project.end_date && ` - ${project.end_date}`}
-                {project.current && ' - Present'}
-              </Typography>
+            <Box key={index} sx={{ 
+              p: 3, 
+              mb: 3,
+              bgcolor: 'background.paper',
+              borderRadius: 2,
+              boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' 
+            }}>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6" fontWeight="bold" color="primary.main">{project.name}</Typography>
+                <Chip 
+                  label={`${project.start_date || ''}${project.end_date ? ` - ${project.end_date}` : ''}${project.current ? ' - Present' : ''}`}
+                  size="small" 
+                  color="secondary" 
+                  sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
+                />
+              </Box>
               
-              <Typography variant="body1" sx={{ mt: 2 }}>
+              <Typography variant="body1" sx={{ mt: 1, mb: 2 }}>
                 {project.description}
               </Typography>
               
               {project.technologies && project.technologies.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>Technologies:</Typography>
+                <Box sx={{ mt: 2, mb: 2 }}>
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Technologies:</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {project.technologies.map((tech, techIndex) => (
-                      <Chip key={techIndex} label={tech} size="small" />
+                      <Chip key={techIndex} label={tech} size="small" color="primary" variant="outlined" />
                     ))}
                   </Box>
                 </Box>
               )}
               
               {project.achievements && project.achievements.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>Key Achievements:</Typography>
-                  <List dense disablePadding>
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Achievements:</Typography>
+                  <Box component="ol" sx={{ m: 0, pl: 3 }}>
                     {project.achievements.map((achievement, achievementIndex) => (
-                      <ListItem key={achievementIndex} sx={{ py: 0.5 }}>
-                        <ListItemText primary={achievement} />
-                      </ListItem>
+                      <Box component="li" key={achievementIndex} sx={{ mb: 1 }}>
+                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                          {achievement}
+                        </Typography>
+                      </Box>
                     ))}
-                  </List>
-                </Box>
+                  </Box>
+                </>
               )}
               
               {project.url && (
@@ -395,7 +579,7 @@ const PortfolioViewPage: React.FC = () => {
                   View Project
                 </Button>
               )}
-            </Paper>
+            </Box>
           ))}
           {(!portfolio.projects || portfolio.projects.length === 0) && (
             <Typography variant="body2" color="text.secondary">No projects added yet</Typography>
