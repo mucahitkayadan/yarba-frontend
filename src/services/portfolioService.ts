@@ -1,15 +1,17 @@
 import api from './api';
 import { Portfolio } from '../types/models';
 
-// Get user's portfolios (returns array according to docs)
+// Get user's portfolios
 export const getUserPortfolios = async (): Promise<Portfolio[]> => {
   const response = await api.get('/portfolios');
+  console.log('Portfolio API response:', response.data);
   return response.data;
 };
 
-// Get portfolio by ID
+// Get portfolio by _id
 export const getPortfolioById = async (portfolioId: string): Promise<Portfolio> => {
   const response = await api.get(`/portfolios/${portfolioId}`);
+  console.log('Portfolio by _id API response:', response.data);
   return response.data;
 };
 
@@ -21,6 +23,7 @@ export const createPortfolio = async (data: { profile_id?: string }): Promise<Po
 
 // Update portfolio
 export const updatePortfolio = async (portfolioId: string, data: Partial<Portfolio>): Promise<Portfolio> => {
+  console.log(`Updating portfolio ${portfolioId} with data:`, data);
   const response = await api.put(`/portfolios/${portfolioId}`, data);
   return response.data;
 };

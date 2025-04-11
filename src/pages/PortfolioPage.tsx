@@ -43,7 +43,7 @@ import { Portfolio } from '../types/models';
 
 // Define the actual API response structure
 interface ApiPortfolio {
-  _id: string;
+  id: string;
   user_id: string;
   profile_id: string;
   user: any;

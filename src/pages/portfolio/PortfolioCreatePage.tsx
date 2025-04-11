@@ -31,9 +31,9 @@ const PortfolioCreatePage: React.FC = () => {
   
   // Basic form state
   const [portfolioName, setPortfolioName] = useState('');
-  const [skills, setSkills] = useState<Array<{ category: string; items: string[] }>>([
-    { category: 'Technical Skills', items: [] },
-    { category: 'Soft Skills', items: [] }
+  const [skills, setSkills] = useState<Array<{ category: string; skills: string[] }>>([
+    { category: 'Technical Skills', skills: [] },
+    { category: 'Soft Skills', skills: [] }
   ]);
   const [newSkill, setNewSkill] = useState('');
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
@@ -68,8 +68,8 @@ const PortfolioCreatePage: React.FC = () => {
     setSkills(prevSkills => {
       const updatedSkills = [...prevSkills];
       const category = updatedSkills[selectedCategoryIndex];
-      if (category && !category.items.includes(newSkill.trim())) {
-        category.items = [...category.items, newSkill.trim()];
+      if (category && !category.skills.includes(newSkill.trim())) {
+        category.skills = [...category.skills, newSkill.trim()];
       }
       return updatedSkills;
     });
@@ -82,7 +82,7 @@ const PortfolioCreatePage: React.FC = () => {
       const updatedSkills = [...prevSkills];
       const category = updatedSkills[categoryIndex];
       if (category) {
-        category.items = category.items.filter((_, index) => index !== skillIndex);
+        category.skills = category.skills.filter((_, index) => index !== skillIndex);
       }
       return updatedSkills;
     });
@@ -94,7 +94,7 @@ const PortfolioCreatePage: React.FC = () => {
   };
   
   const handleAddCategory = () => {
-    setSkills(prev => [...prev, { category: `Category ${prev.length + 1}`, items: [] }]);
+    setSkills(prev => [...prev, { category: `Category ${prev.length + 1}`, skills: [] }]);
   };
   
   const handleSubmit = async (e: React.FormEvent) => {
@@ -112,7 +112,12 @@ const PortfolioCreatePage: React.FC = () => {
       // Prepare portfolio data - start with minimal required data
       const portfolioData = {
         profile_id: profile.id,
-        skills: skills.filter(category => category.items.length > 0), // Only include categories with skills
+        skills: skills
+          .filter(category => category.skills.length > 0)
+          .map(category => ({
+            category: category.category,
+            skills: category.skills
+          })),
         work_experience: [],
         education: [],
         projects: [],
@@ -124,7 +129,7 @@ const PortfolioCreatePage: React.FC = () => {
       const response = await createPortfolio(portfolioData);
       
       // Redirect to portfolio view page
-      navigate(`/portfolio/${response.id}`);
+      navigate(`/portfolio/${response._id}`);
     } catch (err: any) {
       console.error('Failed to create portfolio:', err);
       setError(err.response?.data?.detail || 'Failed to create portfolio. Please try again.');
@@ -211,7 +216,7 @@ const PortfolioCreatePage: React.FC = () => {
                 </Typography>
                 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                  {category.items.map((skill, skillIndex) => (
+                  {category.skills.map((skill, skillIndex) => (
                     <Chip
                       key={skillIndex}
                       label={skill}
@@ -219,7 +224,7 @@ const PortfolioCreatePage: React.FC = () => {
                       deleteIcon={<CloseIcon />}
                     />
                   ))}
-                  {category.items.length === 0 && (
+                  {category.skills.length === 0 && (
                     <Typography variant="body2" color="text.secondary">
                       No skills added yet
                     </Typography>

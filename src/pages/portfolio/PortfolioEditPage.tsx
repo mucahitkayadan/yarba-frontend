@@ -26,8 +26,7 @@ import { Portfolio } from '../../types/models';
 // Define interface for skill categories
 interface SkillCategory {
   category: string;
-  items?: string[];
-  skills?: string[];
+  skills: string[];
 }
 
 interface TabPanelProps {
@@ -67,7 +66,7 @@ const PortfolioEditPage: React.FC = () => {
   const [success, setSuccess] = useState<string | null>(null);
   
   // Skills state
-  const [skills, setSkills] = useState<Array<{ category: string; items: string[] }>>([]);
+  const [skills, setSkills] = useState<Array<{ category: string; skills: string[] }>>([]);
   const [newSkill, setNewSkill] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
@@ -84,22 +83,22 @@ const PortfolioEditPage: React.FC = () => {
     setError(null);
     try {
       const portfolioData = await getPortfolioById(id);
+      
+      // Fixed assignment to match the updated interface
       setPortfolio(portfolioData);
       
       // Initialize skills state from portfolio data
       if (portfolioData.skills && portfolioData.skills.length > 0) {
         setSkills(portfolioData.skills.map((skill: SkillCategory) => {
-          // Handle both skills and items properties (API differences)
-          const skillItems = skill.skills || skill.items || [];
           return {
             category: skill.category,
-            items: [...skillItems]
+            skills: [...skill.skills]
           };
         }));
       } else {
         setSkills([
-          { category: 'Technical Skills', items: [] },
-          { category: 'Soft Skills', items: [] }
+          { category: 'Technical Skills', skills: [] },
+          { category: 'Soft Skills', skills: [] }
         ]);
       }
     } catch (err: any) {
@@ -120,8 +119,8 @@ const PortfolioEditPage: React.FC = () => {
     setSkills(prevSkills => {
       const updatedSkills = [...prevSkills];
       const category = updatedSkills[selectedCategoryIndex];
-      if (category && !category.items.includes(newSkill.trim())) {
-        category.items = [...category.items, newSkill.trim()];
+      if (category && !category.skills.includes(newSkill.trim())) {
+        category.skills = [...category.skills, newSkill.trim()];
       }
       return updatedSkills;
     });
@@ -134,7 +133,7 @@ const PortfolioEditPage: React.FC = () => {
       const updatedSkills = [...prevSkills];
       const category = updatedSkills[categoryIndex];
       if (category) {
-        category.items = category.items.filter((_, index) => index !== skillIndex);
+        category.skills = category.skills.filter((_, index) => index !== skillIndex);
       }
       return updatedSkills;
     });
@@ -148,7 +147,7 @@ const PortfolioEditPage: React.FC = () => {
   const handleAddCategory = () => {
     if (!newCategory.trim()) return;
     
-    setSkills(prev => [...prev, { category: newCategory.trim(), items: [] }]);
+    setSkills(prev => [...prev, { category: newCategory.trim(), skills: [] }]);
     setNewCategory('');
   };
   
@@ -169,36 +168,23 @@ const PortfolioEditPage: React.FC = () => {
     try {
       // Save based on current tab
       if (tabValue === 0) { // Skills tab
-        // Determine if the original data used 'skills' or 'items' property
-        const useSkillsProperty = portfolio.skills && 
-          portfolio.skills.length > 0 && 
-          portfolio.skills[0].skills !== undefined;
-        
-        // Convert our internal items format to match the API's expected format
+        // Convert our internal skills format to match the API's expected format
         const formattedSkills = skills
-          .filter(category => category.items.length > 0)
-          .map(category => {
-            if (useSkillsProperty) {
-              // Use 'skills' property if that's what the API expects
-              return {
-                category: category.category,
-                skills: [...category.items]
-              };
-            } else {
-              // Default to 'items' property
-              return {
-                category: category.category,
-                items: [...category.items]
-              };
-            }
-          });
+          .filter(category => category.skills.length > 0)
+          .map(category => ({
+            category: category.category,
+            skills: [...category.skills]
+          }));
+        
+        // Use the portfolio _id from params or the portfolio object
+        const portfolioId = portfolio._id || id;
         
         const updatedPortfolio = {
           ...portfolio,
           skills: formattedSkills
         };
         
-        await updatePortfolio(id, updatedPortfolio);
+        await updatePortfolio(portfolioId, updatedPortfolio);
         setSuccess('Skills updated successfully!');
         
         // Refresh portfolio data
@@ -215,7 +201,9 @@ const PortfolioEditPage: React.FC = () => {
   };
 
   const handleCancel = () => {
-    if (id) {
+    if (portfolio && portfolio._id) {
+      navigate(`/portfolio/${portfolio._id}`);
+    } else if (id) {
       navigate(`/portfolio/${id}`);
     } else {
       navigate('/portfolio');
@@ -336,7 +324,7 @@ const PortfolioEditPage: React.FC = () => {
                   </Box>
                   
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {category.items.map((skill, skillIndex) => (
+                    {category.skills.map((skill, skillIndex) => (
                       <Chip
                         key={skillIndex}
                         label={skill}
@@ -345,7 +333,7 @@ const PortfolioEditPage: React.FC = () => {
                         sx={{ m: 0.5 }}
                       />
                     ))}
-                    {category.items.length === 0 && (
+                    {category.skills.length === 0 && (
                       <Typography variant="body2" color="text.secondary">
                         No skills added yet in this category
                       </Typography>

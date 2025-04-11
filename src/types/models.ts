@@ -111,14 +111,12 @@ export interface Profile {
 
 // Portfolio Interface
 export interface Portfolio {
-  id?: string;
-  _id?: string;
+  _id: string;
   user_id: string;
   profile_id: string;
   skills: {
     category: string;
-    items?: string[];
-    skills?: string[];
+    skills: string[];
   }[];
   work_experience: {
     company: string;

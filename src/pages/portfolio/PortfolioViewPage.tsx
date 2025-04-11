@@ -59,8 +59,7 @@ function TabPanel(props: TabPanelProps) {
 
 // Define the actual API response structure that PortfolioViewPage uses
 interface ViewPortfolio {
-  id?: string;
-  _id?: string;
+  _id: string;
   user_id: string;
   profile_id: string;
   career_summary?: {
@@ -164,44 +163,35 @@ const PortfolioViewPage: React.FC = () => {
       let portfolioData: ViewPortfolio | null = null;
       
       if (id) {
+        console.log(`Fetching portfolio with ID: ${id}`);
         const response = await getPortfolioById(id);
+        console.log('API Response for getPortfolioById:', response);
         portfolioData = response;
       } else {
-        const portfolios = await getUserPortfolios();
-        if (portfolios && portfolios.length > 0) {
-          portfolioData = portfolios[0];
+        console.log('Fetching user portfolios');
+        const response = await getUserPortfolios();
+        console.log('API Response for getUserPortfolios:', response);
+        
+        // Since user and portfolio have a one-to-one relationship
+        // We can directly use the first portfolio in the response
+        if (response && Array.isArray(response) && response.length > 0) {
+          portfolioData = response[0];
         }
       }
       
       if (portfolioData) {
-        console.log('Portfolio data:', JSON.stringify(portfolioData, null, 2));
-        
-        // Debug skills structure
-        if (portfolioData.skills && portfolioData.skills.length > 0) {
-          console.log('Number of skill categories:', portfolioData.skills.length);
-          
-          portfolioData.skills.forEach((category, index) => {
-            console.log(`Skill category ${index + 1}:`, category.category);
-            
-            if ('skills' in category && Array.isArray(category.skills)) {
-              console.log(`  - Skills array found with ${category.skills.length} skills`);
-              console.log(`  - First few skills: ${category.skills.slice(0, 3).join(', ')}...`);
-            } else if ('items' in category && Array.isArray(category.items)) {
-              console.log(`  - Items array found with ${category.items.length} skills`);
-              console.log(`  - First few items: ${category.items.slice(0, 3).join(', ')}...`);
-            } else {
-              console.log('  - No skills or items array found in this category!');
-              console.log('  - Category structure:', JSON.stringify(category, null, 2));
-            }
-          });
-        } else {
-          console.log('No skills data found in portfolio');
-        }
+        console.log('Portfolio data to use:', portfolioData);
+        console.log('Portfolio ID:', portfolioData._id);
+      } else {
+        console.log('No portfolio data found');
       }
       
       setPortfolio(portfolioData);
     } catch (err: any) {
       console.error('Failed to fetch portfolio:', err);
+      if (err.response) {
+        console.error('Error response:', err.response.status, err.response.data);
+      }
       setError('Failed to load portfolio. Please try again later.');
     } finally {
       setLoading(false);
@@ -213,11 +203,8 @@ const PortfolioViewPage: React.FC = () => {
   };
 
   const handleEditClick = () => {
-    // Use _id (MongoDB format) if available, otherwise fall back to id
-    const portfolioId = portfolio?._id || portfolio?.id;
-    
-    if (portfolioId) {
-      navigate(`/portfolio/${portfolioId}/edit`);
+    if (portfolio && portfolio._id) {
+      navigate(`/portfolio/${portfolio._id}/edit`);
     } else if (id) {
       navigate(`/portfolio/${id}/edit`);
     } else {
@@ -359,18 +346,8 @@ const PortfolioViewPage: React.FC = () => {
                 const colors = ['primary', 'secondary', 'success', 'info', 'warning'];
                 const color = colors[colorIndex] as 'primary' | 'secondary' | 'success' | 'info' | 'warning';
                 
-                // Determine where the skills are stored (could be in 'items' or 'skills' property)
-                let skillsArray: string[] = [];
-                
-                if ('skills' in skillCategory && Array.isArray(skillCategory.skills)) {
-                  skillsArray = skillCategory.skills;
-                  console.log(`Category ${skillCategory.category} has skills:`, skillsArray);
-                } else if ('items' in skillCategory && Array.isArray(skillCategory.items)) {
-                  skillsArray = skillCategory.items;
-                  console.log(`Category ${skillCategory.category} has items:`, skillsArray);
-                } else {
-                  console.log(`Category ${skillCategory.category} has no skills or items arrays!`);
-                }
+                // Get skills directly from the skills property since that's what the API returns
+                const skillsArray: string[] = skillCategory.skills || [];
                 
                 return (
                   <Box key={index}>
