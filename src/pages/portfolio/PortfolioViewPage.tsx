@@ -86,25 +86,32 @@ interface ViewPortfolio {
     achievements?: string[];
   }[];
   education?: {
-    institution: string;
+    institution?: string;
+    university_name?: string;
     degree: string;
-    field_of_study: string;
+    degree_type?: string;
+    field_of_study?: string;
     location?: string;
-    start_date: string;
+    time?: string;
+    start_date?: string;
     end_date?: string;
-    current: boolean;
+    current?: boolean;
     description?: string;
     courses?: string[];
+    GPA?: string;
+    transcript?: string[];
   }[];
   projects?: {
     name: string;
-    description: string;
+    description?: string;
+    bullet_points?: string[];
+    date?: string;
     url?: string;
     start_date?: string;
     end_date?: string;
-    current: boolean;
-    technologies: string[];
-    achievements: string[];
+    current?: boolean;
+    technologies?: string[];
+    achievements?: string[];
   }[];
   certifications?: {
     name: string;
@@ -114,16 +121,21 @@ interface ViewPortfolio {
     description?: string;
   }[];
   awards?: {
-    title: string;
-    issuer: string;
-    date: string;
+    title?: string;
+    name?: string;
+    issuer?: string;
+    date?: string;
     description?: string;
+    explanation?: string;
   }[];
   publications?: {
-    title: string;
-    publisher: string;
-    date: string;
+    title?: string;
+    name?: string;
+    publisher?: string;
+    date?: string;
+    time?: string;
     url?: string;
+    link?: string;
     description?: string;
     authors?: string[];
   }[];
@@ -483,12 +495,24 @@ const PortfolioViewPage: React.FC = () => {
           
           {portfolio.education && portfolio.education.map((edu, index) => (
             <Paper key={index} elevation={1} sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6">{edu.degree}</Typography>
-              <Typography variant="subtitle1">{edu.institution}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                {edu.start_date} - {edu.current ? 'Present' : edu.end_date} | {edu.field_of_study}
-                {edu.location && ` | ${edu.location}`}
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 1 }}>
+                <Box>
+                  <Typography variant="h6">{edu.degree_type || ''} {edu.degree}</Typography>
+                  <Typography variant="subtitle1">{edu.institution || edu.university_name}</Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    {edu.time || (edu.start_date && `${edu.start_date}${edu.end_date ? ` - ${edu.end_date}` : ''}${edu.current ? ' - Present' : ''}`)} | {edu.field_of_study || ''}
+                    {edu.location && ` | ${edu.location}`}
+                  </Typography>
+                </Box>
+                {edu.GPA && (
+                  <Chip 
+                    label={`GPA: ${edu.GPA}`}
+                    size="small" 
+                    color="primary" 
+                    sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
+                  />
+                )}
+              </Box>
               
               {edu.description && (
                 <Typography variant="body1" sx={{ mt: 2 }}>
@@ -496,9 +520,20 @@ const PortfolioViewPage: React.FC = () => {
                 </Typography>
               )}
               
-              {edu.courses && edu.courses.length > 0 && (
+              {(edu.transcript && edu.transcript.length > 0) && (
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom>Relevant Courses:</Typography>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Transcript/Courses:</Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    {edu.transcript.map((course, courseIndex) => (
+                      <Chip key={courseIndex} label={course} size="small" />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+              
+              {(!edu.transcript && edu.courses && edu.courses.length > 0) && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>Relevant Courses:</Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                     {edu.courses.map((course, courseIndex) => (
                       <Chip key={courseIndex} label={course} size="small" />
@@ -529,16 +564,18 @@ const PortfolioViewPage: React.FC = () => {
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
                 <Typography variant="h6" fontWeight="bold" color="primary.main">{project.name}</Typography>
                 <Chip 
-                  label={`${project.start_date || ''}${project.end_date ? ` - ${project.end_date}` : ''}${project.current ? ' - Present' : ''}`}
+                  label={project.date || `${project.start_date || ''}${project.end_date ? ` - ${project.end_date}` : ''}${project.current ? ' - Present' : ''}`}
                   size="small" 
                   color="secondary" 
                   sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
                 />
               </Box>
               
-              <Typography variant="body1" sx={{ mt: 1, mb: 2 }}>
-                {project.description}
-              </Typography>
+              {project.description && (
+                <Typography variant="body1" sx={{ mt: 1, mb: 2 }}>
+                  {project.description}
+                </Typography>
+              )}
               
               {project.technologies && project.technologies.length > 0 && (
                 <Box sx={{ mt: 2, mb: 2 }}>
@@ -551,7 +588,23 @@ const PortfolioViewPage: React.FC = () => {
                 </Box>
               )}
               
-              {project.achievements && project.achievements.length > 0 && (
+              {project.bullet_points && project.bullet_points.length > 0 && (
+                <>
+                  <Divider sx={{ my: 1.5 }} />
+                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Points:</Typography>
+                  <Box component="ul" sx={{ m: 0, pl: 3 }}>
+                    {project.bullet_points.map((point, pointIndex) => (
+                      <Box component="li" key={pointIndex} sx={{ mb: 1 }}>
+                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
+                          {point}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                </>
+              )}
+              
+              {!project.bullet_points && project.achievements && project.achievements.length > 0 && (
                 <>
                   <Divider sx={{ my: 1.5 }} />
                   <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Achievements:</Typography>
@@ -629,25 +682,90 @@ const PortfolioViewPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>Awards & Honors</Typography>
           <Divider sx={{ mb: 3 }} />
           
-          <Grid container spacing={3}>
-            {portfolio.awards && portfolio.awards.map((award, index) => (
-              <Grid item xs={12} sm={6} key={index}>
-                <Paper elevation={1} sx={{ p: 2, height: '100%' }}>
-                  <Typography variant="subtitle1" gutterBottom>{award.title}</Typography>
-                  <Typography variant="body2">Issuer: {award.issuer}</Typography>
-                  <Typography variant="body2" color="text.secondary">Date: {award.date}</Typography>
-                  {award.description && (
-                    <Typography variant="body2" sx={{ mt: 1 }}>{award.description}</Typography>
-                  )}
+          {portfolio.awards && portfolio.awards.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {portfolio.awards.map((award, index) => (
+                <Paper key={index} elevation={1} sx={{ p: 3, mb: 1 }}>
+                  <Grid container spacing={2}>
+                    {/* Award Name/Title */}
+                    <Grid item xs={12}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Award Name
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {award.name || award.title || 'Untitled Award'}
+                        </Typography>
+                      </Box>
+                      <Divider />
+                    </Grid>
+                    
+                    {/* Explanation (if available) */}
+                    {award.explanation && (
+                      <Grid item xs={12}>
+                        <Box sx={{ my: 1 }}>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            Details
+                          </Typography>
+                          <Typography variant="body1">
+                            {award.explanation}
+                          </Typography>
+                        </Box>
+                        <Divider />
+                      </Grid>
+                    )}
+                    
+                    {/* Legacy fields if explanation is not available */}
+                    {!award.explanation && (
+                      <>
+                        {award.issuer && (
+                          <Grid item xs={12} sm={6}>
+                            <Box sx={{ my: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Issuer
+                              </Typography>
+                              <Typography variant="body1">
+                                {award.issuer}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        )}
+                        
+                        {award.date && (
+                          <Grid item xs={12} sm={6}>
+                            <Box sx={{ my: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Date
+                              </Typography>
+                              <Typography variant="body1">
+                                {award.date}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        )}
+                        
+                        {award.description && (
+                          <Grid item xs={12}>
+                            <Divider sx={{ my: 1 }} />
+                            <Box sx={{ mt: 1 }}>
+                              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                                Description
+                              </Typography>
+                              <Typography variant="body1">
+                                {award.description}
+                              </Typography>
+                            </Box>
+                          </Grid>
+                        )}
+                      </>
+                    )}
+                  </Grid>
                 </Paper>
-              </Grid>
-            ))}
-            {(!portfolio.awards || portfolio.awards.length === 0) && (
-              <Grid item xs={12}>
-                <Typography variant="body2" color="text.secondary">No awards added yet</Typography>
-              </Grid>
-            )}
-          </Grid>
+              ))}
+            </Box>
+          ) : (
+            <Typography variant="body2" color="text.secondary">No awards added yet</Typography>
+          )}
         </TabPanel>
 
         {/* Publications Tab */}
@@ -655,43 +773,105 @@ const PortfolioViewPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>Publications</Typography>
           <Divider sx={{ mb: 3 }} />
           
-          {portfolio.publications && portfolio.publications.map((pub, index) => (
-            <Paper key={index} elevation={1} sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h6">{pub.title}</Typography>
-              <Typography variant="subtitle1">{pub.publisher}</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Date: {pub.date}
-              </Typography>
-              
-              {pub.authors && pub.authors.length > 0 && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="body2">
-                    Authors: {pub.authors.join(', ')}
-                  </Typography>
-                </Box>
-              )}
-              
-              {pub.description && (
-                <Typography variant="body1" sx={{ mt: 2 }}>
-                  {pub.description}
-                </Typography>
-              )}
-              
-              {pub.url && (
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  sx={{ mt: 2 }}
-                  href={pub.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Publication
-                </Button>
-              )}
-            </Paper>
-          ))}
-          {(!portfolio.publications || portfolio.publications.length === 0) && (
+          {portfolio.publications && portfolio.publications.length > 0 ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              {portfolio.publications.map((pub, index) => (
+                <Paper key={index} elevation={1} sx={{ p: 3, mb: 1 }}>
+                  <Grid container spacing={2}>
+                    {/* Publication Title/Name */}
+                    <Grid item xs={12}>
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Title
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {pub.name || pub.title || 'Untitled Publication'}
+                        </Typography>
+                      </Box>
+                      <Divider />
+                    </Grid>
+                    
+                    {/* Publisher */}
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ my: 1 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Publisher
+                        </Typography>
+                        <Typography variant="body1">
+                          {pub.publisher || 'Not specified'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    
+                    {/* Date/Time */}
+                    <Grid item xs={12} sm={6}>
+                      <Box sx={{ my: 1 }}>
+                        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                          Published Date
+                        </Typography>
+                        <Typography variant="body1">
+                          {pub.time || pub.date || 'Not specified'}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                    
+                    {/* Authors if available */}
+                    {pub.authors && pub.authors.length > 0 && (
+                      <Grid item xs={12}>
+                        <Divider sx={{ my: 1 }} />
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            Authors
+                          </Typography>
+                          <Typography variant="body1">
+                            {pub.authors.join(', ')}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                    
+                    {/* Description if available */}
+                    {pub.description && (
+                      <Grid item xs={12}>
+                        <Divider sx={{ my: 1 }} />
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                            Description
+                          </Typography>
+                          <Typography variant="body1">
+                            {pub.description}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    )}
+                    
+                    {/* Link/URL if available */}
+                    {(pub.link || pub.url) && (() => {
+                      const url = pub.link || pub.url;
+                      if (!url) return null;
+                      
+                      return (
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }} />
+                          <Box sx={{ mt: 2, textAlign: 'center' }}>
+                            <Button 
+                              variant="outlined" 
+                              size="medium"
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              View Publication
+                            </Button>
+                          </Box>
+                        </Grid>
+                      );
+                    })()}
+                  </Grid>
+                </Paper>
+              ))}
+            </Box>
+          ) : (
             <Typography variant="body2" color="text.secondary">No publications added yet</Typography>
           )}
         </TabPanel>
