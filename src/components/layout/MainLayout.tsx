@@ -33,7 +33,8 @@ import {
   Settings as SettingsIcon,
   ExitToApp as LogoutIcon,
   AccountCircle as AccountIcon,
-  Key as KeyIcon
+  Key as KeyIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -68,6 +69,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [imageVersion, setImageVersion] = useState<number>(Date.now());
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     // Fetch user profile to get profile picture if user is authenticated
@@ -76,10 +78,27 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
   }, [user]);
 
+  // Add a timer to refresh the image version periodically to catch updates
+  useEffect(() => {
+    // Update image version to force refresh
+    setImageVersion(Date.now());
+    
+    // Set up periodic refresh
+    const refreshInterval = setInterval(() => {
+      setImageVersion(Date.now());
+    }, 60000); // Refresh every minute
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+
   const fetchProfile = async () => {
     try {
       const profileData = await getUserProfile();
       setProfile(profileData);
+      // Reset image error state to try loading the image again
+      setImageError(false);
+      // Force image refresh when profile is loaded
+      setImageVersion(Date.now());
     } catch (error) {
       console.error('Failed to fetch profile:', error);
     }
@@ -129,6 +148,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 minHeight: 48,
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 px: 2.5,
+                py: 1,
                 '&.Mui-selected': {
                   backgroundColor: 'rgba(255, 255, 255, 0.15)',
                   '&:hover': {
@@ -150,6 +170,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   justifyContent: 'center',
                   color: location.pathname === item.path ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
                   transition: 'none',
+                  fontSize: '1.5rem',
+                  '& .MuiSvgIcon-root': {
+                    fontSize: '1.5rem',
+                  }
                 }}
               >
                 {item.icon}
@@ -157,10 +181,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               {drawerOpen && (
                 <ListItemText 
                   primary={item.text} 
+                  primaryTypographyProps={{
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    letterSpacing: '0.02em',
+                    fontFamily: "'Dreaming Outloud Pro', cursive"
+                  }}
                   sx={{
                     opacity: 1,
                     display: 'block',
                     color: '#ffffff',
+                    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
                     '& span': {
                       transition: 'none !important',
                     }
@@ -205,6 +236,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 justifyContent: 'center',
                 color: 'rgba(255, 255, 255, 0.8)',
                 transition: 'none',
+                fontSize: '1.5rem',
+                '& .MuiSvgIcon-root': {
+                  fontSize: '1.5rem',
+                }
               }}
             >
               <LogoutIcon />
@@ -212,8 +247,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             {drawerOpen && (
               <ListItemText 
                 primary="Logout"
+                primaryTypographyProps={{
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  letterSpacing: '0.02em',
+                  fontFamily: "'Dreaming Outloud Pro', cursive"
+                }}
                 sx={{
                   color: '#ffffff',
+                  textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
                   '& span': {
                     transition: 'none !important',
                   }
@@ -259,7 +301,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 sx={{ 
                   mr: 2, 
                   opacity: 0.9,
-                  display: { xs: 'none', sm: 'none', md: 'block' } 
+                  display: { xs: 'none', sm: 'none', md: 'block' },
+                  fontFamily: "'Dreaming Outloud Pro', cursive",
+                  fontSize: '1.1rem'
                 }}
               >
                 Welcome, {user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
@@ -284,7 +328,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   transition: 'transform 0.2s ease-in-out',
                 }}
               >
-                {profile?.profile_picture_key ? (
+                {profile?.profile_picture_key && !imageError ? (
                   <img 
                     src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture_key}?v=${imageVersion}`}
                     alt={profile?.personal_information?.full_name || "User profile"}
@@ -295,7 +339,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       objectPosition: 'center',
                     }}
                     loading="eager"
-                    crossOrigin="anonymous"
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      console.warn('Profile image failed to load, using avatar fallback');
+                      setImageError(true);
+                    }}
                   />
                 ) : (
                   <Avatar 
@@ -306,7 +354,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                       fontSize: 18,
                     }}
                   >
-                    {user.username?.charAt(0).toUpperCase() || 'U'}
+                    {profile?.personal_information?.full_name?.charAt(0).toUpperCase() || 
+                     user?.username?.charAt(0).toUpperCase() || 'U'}
                   </Avatar>
                 )}
               </Box>
@@ -354,6 +403,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </Typography>
                 </Box>
                 <Divider />
+                <MenuItem onClick={() => {
+                  fetchProfile();
+                  handleClose();
+                }}>
+                  <ListItemIcon sx={{ minWidth: '25px' }}>
+                    <RefreshIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Refresh Profile</ListItemText>
+                </MenuItem>
                 <MenuItem onClick={handleProfileNavigate} component={RouterLink} to="/user">
                   <ListItemIcon sx={{ minWidth: '25px' }}>
                     <SettingsIcon fontSize="small" />
