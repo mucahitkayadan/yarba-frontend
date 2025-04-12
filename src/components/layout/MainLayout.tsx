@@ -118,6 +118,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <ListItemButton
               component={RouterLink}
               to={item.path}
+              onClick={() => {
+                if (isMobile) {
+                  setDrawerOpen(false);
+                }
+              }}
               selected={location.pathname === item.path}
               className="slide-up nav-item"
               sx={{
@@ -125,14 +130,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 px: 2.5,
                 '&.Mui-selected': {
-                  backgroundColor: 'rgba(63, 114, 175, 0.1)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.15)',
                   '&:hover': {
-                    backgroundColor: 'rgba(63, 114, 175, 0.15)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.25)',
                   },
                 },
                 animation: `slideUp 0.3s ease-out forwards ${index * 0.05 + 0.2}s`,
                 opacity: 0,
                 transition: 'background-color 0.2s ease-in-out',
+                '&:hover': {
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                },
               }}
             >
               <ListItemIcon
@@ -140,7 +148,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   minWidth: 0,
                   mr: drawerOpen ? 3 : 'auto',
                   justifyContent: 'center',
-                  color: location.pathname === item.path ? 'primary.main' : 'inherit',
+                  color: location.pathname === item.path ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
                   transition: 'none',
                 }}
               >
@@ -152,6 +160,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   sx={{
                     opacity: 1,
                     display: 'block',
+                    color: '#ffffff',
                     '& span': {
                       transition: 'none !important',
                     }
@@ -162,7 +171,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Tooltip>
         ))}
       </List>
-      <Divider />
+      <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }} />
       <List>
         <Tooltip 
           title={!drawerOpen ? "Logout" : ""} 
@@ -170,7 +179,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           TransitionProps={{ timeout: 0 }}
         >
           <ListItemButton 
-            onClick={signOut}
+            onClick={() => {
+              if (isMobile) {
+                setDrawerOpen(false);
+              }
+              signOut();
+            }}
             className="nav-item"
             sx={{
               minHeight: 48,
@@ -179,7 +193,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               margin: '4px 8px',
               borderRadius: 2,
               '&:hover': {
-                backgroundColor: 'rgba(63, 114, 175, 0.08)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
               },
               transition: 'background-color 0.2s ease-in-out',
             }}
@@ -189,7 +203,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 minWidth: 0,
                 mr: drawerOpen ? 3 : 'auto',
                 justifyContent: 'center',
-                color: 'error.main',
+                color: 'rgba(255, 255, 255, 0.8)',
                 transition: 'none',
               }}
             >
@@ -199,6 +213,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <ListItemText 
                 primary="Logout"
                 sx={{
+                  color: '#ffffff',
                   '& span': {
                     transition: 'none !important',
                   }
@@ -363,6 +378,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         variant={isMobile ? "temporary" : "permanent"}
         open={isMobile ? drawerOpen : true}
         onClose={isMobile ? toggleDrawer : undefined}
+        keepMounted={false}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        disableRestoreFocus={true}
+        ModalProps={{
+          keepMounted: false,
+          disableAutoFocus: true,
+          disableEnforceFocus: true,
+          disableRestoreFocus: true,
+        }}
         sx={{
           display: 'block',
           '& .MuiDrawer-paper': {
@@ -377,7 +402,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             paddingTop: '64px',
             height: '100%',
             backgroundColor: '#ffffff',
-            backgroundImage: isMobile ? 'none' : 'linear-gradient(180deg, rgba(63, 114, 175, 0.1) 0%, rgba(155, 89, 182, 0.15) 100%)',
+            backgroundImage: 'linear-gradient(to bottom right, rgb(142, 92, 150), rgb(122, 172, 216))',
             boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.15)',
             zIndex: theme.zIndex.drawer,
           },
