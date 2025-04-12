@@ -17,7 +17,8 @@ import {
   ProfileEditPage,
   PortfolioCreatePage,
   PortfolioEditPage,
-  PortfolioViewPage
+  PortfolioViewPage,
+  UserPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -226,6 +227,16 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <MainLayout>
                     <ProfileEditPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/user"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <UserPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

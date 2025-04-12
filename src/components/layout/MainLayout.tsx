@@ -1,4 +1,4 @@
-import React, { ReactNode, useState } from 'react';
+import React, { ReactNode, useState, useEffect } from 'react';
 import { 
   AppBar, 
   Toolbar, 
@@ -15,7 +15,10 @@ import {
   ListItemButton,
   Tooltip,
   Avatar,
-  Fab
+  Fab,
+  Menu,
+  MenuItem,
+  Button
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -28,10 +31,14 @@ import {
   Work as PortfolioIcon,
   Palette as TemplatesIcon,
   Settings as SettingsIcon,
-  ExitToApp as LogoutIcon
+  ExitToApp as LogoutIcon,
+  AccountCircle as AccountIcon,
+  Key as KeyIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
+import { getUserProfile } from '../../services/profileService';
+import { Profile } from '../../types/models';
 
 // Define navigation items
 const navItems = [
@@ -40,7 +47,7 @@ const navItems = [
   { text: 'Cover Letters', icon: <CoverLetterIcon />, path: '/cover-letters' },
   { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
   { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
-  // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },  
+  // { text: 'User Settings', icon: <SettingsIcon />, path: '/user' },
   // { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
 ];
 
@@ -57,6 +64,26 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [imageVersion, setImageVersion] = useState<number>(Date.now());
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const open = Boolean(anchorEl);
+
+  useEffect(() => {
+    // Fetch user profile to get profile picture if user is authenticated
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    try {
+      const profileData = await getUserProfile();
+      setProfile(profileData);
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+    }
+  };
 
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
@@ -64,6 +91,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
   const handleDrawerClose = () => {
     setDrawerOpen(false);
+  };
+
+  const handleProfileClick = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleProfileNavigate = () => {
+    handleClose();
   };
 
   const drawer = (
@@ -201,23 +240,119 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Typography>
           {user && (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography sx={{ mr: 2, opacity: 0.9 }}>
+              <Typography 
+                sx={{ 
+                  mr: 2, 
+                  opacity: 0.9,
+                  display: { xs: 'none', sm: 'none', md: 'block' } 
+                }}
+              >
                 Welcome, {user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
               </Typography>
-              <Avatar 
-                sx={{ 
-                  bgcolor: 'secondary.main',
-                  width: 36,
-                  height: 36,
-                  boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.15)',
+              {/* Avatar/Image that opens dropdown */}
+              <Box
+                onClick={handleProfileClick}
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.2)',
+                  border: '2px solid rgba(255, 255, 255, 0.85)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   '&:hover': {
                     transform: 'scale(1.05)',
+                    cursor: 'pointer',
                   },
                   transition: 'transform 0.2s ease-in-out',
                 }}
               >
-                {user.username?.charAt(0).toUpperCase() || 'U'}
-              </Avatar>
+                {profile?.profile_picture_key ? (
+                  <img 
+                    src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture_key}?v=${imageVersion}`}
+                    alt={profile?.personal_information?.full_name || "User profile"}
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      objectPosition: 'center',
+                    }}
+                    loading="eager"
+                    crossOrigin="anonymous"
+                  />
+                ) : (
+                  <Avatar 
+                    sx={{ 
+                      bgcolor: 'secondary.main',
+                      width: '100%',
+                      height: '100%',
+                      fontSize: 18,
+                    }}
+                  >
+                    {user.username?.charAt(0).toUpperCase() || 'U'}
+                  </Avatar>
+                )}
+              </Box>
+              
+              {/* Profile dropdown menu */}
+              <Menu
+                id="profile-menu"
+                anchorEl={anchorEl}
+                open={open}
+                onClose={handleClose}
+                MenuListProps={{
+                  'aria-labelledby': 'profile-button',
+                }}
+                PaperProps={{
+                  elevation: 3,
+                  sx: {
+                    mt: 1.5,
+                    minWidth: 220,
+                    borderRadius: 2,
+                    overflow: 'visible',
+                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.2))',
+                    '&:before': {
+                      content: '""',
+                      display: 'block',
+                      position: 'absolute',
+                      top: 0,
+                      right: 14,
+                      width: 10,
+                      height: 10,
+                      bgcolor: 'background.paper',
+                      transform: 'translateY(-50%) rotate(45deg)',
+                      zIndex: 0,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <Box sx={{ px: 2, pt: 2, pb: 1.5 }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                    {profile?.personal_information?.full_name || user.username}
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', wordBreak: 'break-all' }}>
+                    {user.email || profile?.personal_information?.email || ''}
+                  </Typography>
+                </Box>
+                <Divider />
+                <MenuItem onClick={handleProfileNavigate} component={RouterLink} to="/user">
+                  <ListItemIcon sx={{ minWidth: '25px' }}>
+                    <SettingsIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Manage Your Account</ListItemText>
+                </MenuItem>
+                <Divider />
+                <MenuItem onClick={signOut}>
+                  <ListItemIcon sx={{ minWidth: '25px' }}>
+                    <LogoutIcon fontSize="small" />
+                  </ListItemIcon>
+                  <ListItemText>Logout</ListItemText>
+                </MenuItem>
+              </Menu>
             </Box>
           )}
         </Toolbar>

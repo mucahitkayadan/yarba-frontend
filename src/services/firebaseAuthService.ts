@@ -5,7 +5,10 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
-  User as FirebaseUser
+  User as FirebaseUser,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
 } from 'firebase/auth';
 import { auth } from '../firebaseConfig';
 import api from './api';
@@ -245,5 +248,37 @@ export const verifyFirebaseToken = async (): Promise<any> => {
   } catch (error) {
     debug.error('Error verifying Firebase token:', error);
     throw error;
+  }
+};
+
+// Change Firebase password
+export const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+  const user = auth.currentUser;
+  if (!user || !user.email) {
+    debug.error('No current Firebase user found when changing password');
+    throw new Error('You must be logged in to change your password');
+  }
+
+  try {
+    debug.log('Reauthenticating user before password change');
+    // First, reauthenticate the user
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    
+    // Then change the password
+    debug.log('Updating password');
+    await updatePassword(user, newPassword);
+    debug.log('Password update successful');
+  } catch (error: any) {
+    debug.error('Error changing password:', error);
+    
+    // Provide more specific error messages
+    if (error.code === 'auth/wrong-password') {
+      throw new Error('Current password is incorrect');
+    } else if (error.code === 'auth/weak-password') {
+      throw new Error('New password is too weak. It should be at least 6 characters');
+    } else {
+      throw error;
+    }
   }
 }; 
