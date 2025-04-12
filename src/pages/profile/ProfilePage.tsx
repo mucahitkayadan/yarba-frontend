@@ -207,7 +207,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <Box sx={{ width: '100%', p: 3, pl: 2, pt: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'right', alignItems: 'center', mb: 3 }}>
         
         <Button
           variant="contained"

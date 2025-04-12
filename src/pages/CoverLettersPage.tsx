@@ -288,17 +288,13 @@ const CoverLettersPage: React.FC = () => {
       <Box 
         sx={{ 
           display: 'flex', 
-          justifyContent: 'space-between', 
+          justifyContent: 'right', 
           alignItems: 'center',
           flexWrap: 'wrap',
           mb: 4,
           gap: 2
         }}
       >
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 600, color: '#2C3E50' }}>
-          Cover Letters
-        </Typography>
-        
         <Button 
           variant="contained"
           color="primary"

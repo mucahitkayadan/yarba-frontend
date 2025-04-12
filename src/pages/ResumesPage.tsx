@@ -438,7 +438,7 @@ const ResumesPage: React.FC = () => {
     <Box sx={{ width: '100%', p: 3, pl: 2, pt: 2 }}>
       <Box sx={{ 
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: 'right',
         alignItems: 'center',
         mb: 3,
         flexDirection: { xs: 'column', sm: 'row' },
