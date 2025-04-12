@@ -23,7 +23,8 @@ import { useNavigate } from 'react-router-dom';
 import { getResumes } from '../services/resumeService';
 import { getCoverLetters } from '../services/coverLetterService';
 import { getUserPortfolio } from '../services/portfolioService';
-import { Resume, CoverLetter, Portfolio } from '../types/models';
+import { getUserProfile } from '../services/profileService';
+import { Resume, CoverLetter, Portfolio, Profile } from '../types/models';
 
 // Define a unified type for recent items
 interface RecentItem {
@@ -44,6 +45,7 @@ const DashboardPage: React.FC = () => {
   const [coverLetterCount, setCoverLetterCount] = useState(0);
   const [portfolioComplete, setPortfolioComplete] = useState(false);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   // Fetch data on component mount
   useEffect(() => {
@@ -53,11 +55,15 @@ const DashboardPage: React.FC = () => {
       
       try {
         // Fetch resumes, cover letters, and portfolio data in parallel
-        const [resumesResponse, coverLettersResponse, portfolioResponse] = await Promise.all([
+        const [resumesResponse, coverLettersResponse, portfolioResponse, profileResponse] = await Promise.all([
           getResumes(0, 10),
           getCoverLetters(0, 10),
           getUserPortfolio().catch(err => {
             console.warn('Portfolio not found or error:', err);
+            return null;
+          }),
+          getUserProfile().catch(err => {
+            console.warn('Profile not found or error:', err);
             return null;
           })
         ]);
@@ -65,6 +71,11 @@ const DashboardPage: React.FC = () => {
         // Update counts
         setResumeCount(resumesResponse.total);
         setCoverLetterCount(coverLettersResponse.total);
+        
+        // Set profile
+        if (profileResponse) {
+          setProfile(profileResponse);
+        }
         
         // Check if portfolio is complete
         if (portfolioResponse) {
@@ -134,9 +145,33 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Box sx={{ p: 3, pl: 2, pt: 2 }}>
-      <Typography variant="subtitle1" sx={{ mb: 4 }}>
-        Welcome, {user?.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}!
-      </Typography>
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        mb: 5,
+        mt: 2 
+      }}>
+        <Typography 
+          variant="h4" 
+          sx={{ 
+            textAlign: 'center',
+            fontWeight: 'normal'
+          }}
+        >
+          <Box component="span" sx={{ color: 'primary.main' }}>Welcome,</Box>
+          <Box 
+            component="span" 
+            sx={{ 
+              color: '#E05B49', 
+              ml: 1, 
+              fontWeight: 'bold' 
+            }}
+          >
+            {profile?.personal_information?.full_name || user?.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}!
+          </Box>
+        </Typography>
+      </Box>
 
       {error && (
         <Alert severity="error" sx={{ mb: 4 }}>

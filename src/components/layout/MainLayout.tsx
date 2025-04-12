@@ -168,7 +168,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   minWidth: 0,
                   mr: drawerOpen ? 3 : 'auto',
                   justifyContent: 'center',
-                  color: location.pathname === item.path ? '#ffffff' : 'rgba(255, 255, 255, 0.8)',
+                  color: location.pathname === item.path ? '#E05B49' : 'rgba(255, 255, 255, 0.8)',
                   transition: 'none',
                   fontSize: '1.5rem',
                   '& .MuiSvgIcon-root': {
@@ -234,7 +234,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 minWidth: 0,
                 mr: drawerOpen ? 3 : 'auto',
                 justifyContent: 'center',
-                color: 'rgba(255, 255, 255, 0.8)',
+                color: '#E05B49',
                 transition: 'none',
                 fontSize: '1.5rem',
                 '& .MuiSvgIcon-root': {
