@@ -19,17 +19,29 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material';
 import {
   Save as SaveIcon,
   Edit as EditIcon,
   PhotoCamera as PhotoCameraIcon,
   Add as AddIcon,
+  Delete as DeleteIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { getUserProfile } from '../services/profileService';
+import { 
+  getUserProfile, 
+  uploadProfilePicture, 
+  deleteProfilePicture,
+  uploadSignature,
+  deleteSignature
+} from '../services/profileService';
 import { Profile } from '../types/models';
 
 interface TabPanelProps {
@@ -65,6 +77,10 @@ const ProfilePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [uploadType, setUploadType] = useState<'profile' | 'signature' | null>(null);
+  const [openDialog, setOpenDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   
   useEffect(() => {
     fetchProfile();
@@ -74,6 +90,9 @@ const ProfilePage: React.FC = () => {
     try {
       setLoading(true);
       const response = await getUserProfile();
+      console.log('Fetched profile:', response);
+      console.log('Profile picture from API:', response.profile_picture);
+      console.log('Signature from API:', response.signature);
       setProfile(response);
     } catch (err: any) {
       console.error('Failed to fetch profile:', err);
@@ -89,6 +108,82 @@ const ProfilePage: React.FC = () => {
 
   const handleEditClick = () => {
     navigate('/profile/edit');
+  };
+
+  const handleOpenUploadDialog = (type: 'profile' | 'signature') => {
+    setUploadType(type);
+    setOpenDialog(true);
+  };
+
+  const handleCloseUploadDialog = () => {
+    setOpenDialog(false);
+    setSelectedFile(null);
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files[0]) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!selectedFile || !uploadType) return;
+    
+    try {
+      setUploading(true);
+      if (uploadType === 'profile') {
+        const result = await uploadProfilePicture(selectedFile);
+        console.log('Profile picture upload result:', result);
+        // Update profile state directly if needed
+        if (result && result.profile_picture) {
+          setProfile(prev => prev ? { ...prev, profile_picture: result.profile_picture } : prev);
+        } else {
+          // Fallback to refetching the profile
+          await fetchProfile();
+        }
+      } else {
+        const result = await uploadSignature(selectedFile);
+        console.log('Signature upload result:', result);
+        // Update profile state directly if needed
+        if (result && result.signature) {
+          setProfile(prev => prev ? { ...prev, signature: result.signature } : prev);
+        } else {
+          // Fallback to refetching the profile
+          await fetchProfile();
+        }
+      }
+      
+      handleCloseUploadDialog();
+    } catch (err) {
+      console.error(`Failed to upload ${uploadType === 'profile' ? 'profile picture' : 'signature'}:`, err);
+      setError(`Failed to upload ${uploadType === 'profile' ? 'profile picture' : 'signature'}. Please try again.`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleDeleteProfilePicture = async () => {
+    try {
+      const result = await deleteProfilePicture();
+      console.log('Delete profile picture result:', result);
+      // Update profile state directly
+      setProfile(prev => prev ? { ...prev, profile_picture: undefined } : prev);
+    } catch (err) {
+      console.error('Failed to delete profile picture:', err);
+      setError('Failed to delete profile picture. Please try again.');
+    }
+  };
+
+  const handleDeleteSignature = async () => {
+    try {
+      const result = await deleteSignature();
+      console.log('Delete signature result:', result);
+      // Update profile state directly
+      setProfile(prev => prev ? { ...prev, signature: undefined } : prev);
+    } catch (err) {
+      console.error('Failed to delete signature:', err);
+      setError('Failed to delete signature. Please try again.');
+    }
   };
 
   if (loading) {
@@ -144,23 +239,38 @@ const ProfilePage: React.FC = () => {
             <Tab label="Personal Information" id="profile-tab-0" />
             <Tab label="Preferences" id="profile-tab-1" />
             <Tab label="Life Story" id="profile-tab-2" />
+            <Tab label="Profile Picture & Signature" id="profile-tab-3" />
           </Tabs>
         </Box>
 
         <TabPanel value={tabValue} index={0}>
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mb: 3 }}>
             <Box sx={{ mr: { md: 4 }, mb: { xs: 3, md: 0 }, textAlign: 'center' }}>
-              <Avatar 
-                sx={{ 
-                  width: 100, 
-                  height: 100, 
-                  fontSize: 40,
-                  bgcolor: 'primary.main',
-                  mx: 'auto'
-                }}
-              >
-                {profile.personal_information?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
-              </Avatar>
+              {/* User avatar in personal tab */}
+              {profile.profile_picture ? (
+                <img 
+                  src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture}?t=${new Date().getTime()}`}
+                  alt={profile.personal_information?.full_name || "User profile picture"}
+                  style={{ 
+                    width: 100, 
+                    height: 100, 
+                    borderRadius: '50%',
+                    objectFit: 'cover'
+                  }}
+                />
+              ) : (
+                <Avatar 
+                  sx={{ 
+                    width: 100, 
+                    height: 100, 
+                    fontSize: 40,
+                    bgcolor: 'primary.main',
+                    mx: 'auto'
+                  }}
+                >
+                  {profile.personal_information?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
+                </Avatar>
+              )}
             </Box>
             
             <Box sx={{ flexGrow: 1 }}>
@@ -378,7 +488,150 @@ const ProfilePage: React.FC = () => {
             </Typography>
           )}
         </TabPanel>
+        
+        <TabPanel value={tabValue} index={3}>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 4 }}>
+            {/* Profile Picture Section */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default', flex: 1 }}>
+              <Typography variant="h6" gutterBottom>
+                Profile Picture
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+                {/* Debug profile picture URL */}
+                {profile?.profile_picture ? (
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <img
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture}?t=${new Date().getTime()}`}
+                      alt="Profile Picture"
+                      style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: '50%' }}
+                    />
+                    <IconButton
+                      color="error"
+                      sx={{ position: 'absolute', top: -10, right: -10 }}
+                      onClick={handleDeleteProfilePicture}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Avatar
+                    sx={{ width: 150, height: 150, fontSize: 60, mb: 2 }}
+                  >
+                    {profile?.personal_information?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
+                  </Avatar>
+                )}
+                
+                <Button
+                  variant="contained"
+                  startIcon={<PhotoCameraIcon />}
+                  onClick={() => handleOpenUploadDialog('profile')}
+                >
+                  {profile?.profile_picture ? 'Change Picture' : 'Upload Picture'}
+                </Button>
+              </Box>
+            </Paper>
+            
+            {/* Signature Section */}
+            <Paper elevation={0} sx={{ p: 3, bgcolor: 'background.default', flex: 1 }}>
+              <Typography variant="h6" gutterBottom>
+                Signature
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
+                {profile?.signature ? (
+                  <Box sx={{ position: 'relative', mb: 2 }}>
+                    <img
+                      src={`data:image/jpeg;base64,${profile.signature}`}
+                      alt="Signature"
+                      style={{ maxWidth: '100%', maxHeight: 150 }}
+                    />
+                    <IconButton
+                      color="error"
+                      sx={{ position: 'absolute', top: -10, right: -10 }}
+                      onClick={handleDeleteSignature}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+                ) : (
+                  <Box
+                    sx={{
+                      width: '100%',
+                      height: 150,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      border: '1px dashed',
+                      borderColor: 'divider',
+                      borderRadius: 1,
+                      mb: 2,
+                    }}
+                  >
+                    <Typography variant="body2" color="text.secondary">
+                      No signature uploaded
+                    </Typography>
+                  </Box>
+                )}
+                
+                <Button
+                  variant="contained"
+                  startIcon={<PhotoCameraIcon />}
+                  onClick={() => handleOpenUploadDialog('signature')}
+                >
+                  {profile?.signature ? 'Change Signature' : 'Upload Signature'}
+                </Button>
+              </Box>
+            </Paper>
+          </Box>
+        </TabPanel>
       </Paper>
+      
+      {/* Upload Dialog */}
+      <Dialog open={openDialog} onClose={handleCloseUploadDialog}>
+        <DialogTitle>
+          {uploadType === 'profile' ? 'Upload Profile Picture' : 'Upload Signature'}
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseUploadDialog}
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <input
+              accept="image/*"
+              style={{ display: 'none' }}
+              id="file-upload"
+              type="file"
+              onChange={handleFileChange}
+            />
+            <label htmlFor="file-upload">
+              <Button variant="outlined" component="span">
+                Choose File
+              </Button>
+            </label>
+            {selectedFile && (
+              <Typography variant="body2" sx={{ ml: 2, display: 'inline' }}>
+                {selectedFile.name}
+              </Typography>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseUploadDialog}>Cancel</Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!selectedFile || uploading}
+            variant="contained"
+            startIcon={uploading ? <CircularProgress size={20} /> : null}
+          >
+            {uploading ? 'Uploading...' : 'Upload'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

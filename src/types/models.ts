@@ -32,6 +32,10 @@ export interface Profile {
     github?: string;
     summary?: string;
   };
+  profile_picture?: string;
+  signature?: string;
+  profile_picture_url?: string;
+  signature_url?: string;
   life_story?: string;
   preferences?: {
     // Nested preference objects

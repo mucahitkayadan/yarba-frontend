@@ -39,9 +39,9 @@ const navItems = [
   { text: 'Resumes', icon: <ResumeIcon />, path: '/resumes' },
   { text: 'Cover Letters', icon: <CoverLetterIcon />, path: '/cover-letters' },
   { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
-  { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
   { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },
+  // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' },  
+  // { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
 ];
 
 interface MainLayoutProps {

@@ -35,4 +35,50 @@ export const updatePreferences = async (preferences: Partial<NonNullable<Profile
 export const updateLifeStory = async (lifeStory: string): Promise<Profile> => {
   const response = await api.patch('/profiles/me/life-story', { life_story: lifeStory });
   return response.data;
+};
+
+// Profile Picture Operations
+export const uploadProfilePicture = async (file: File): Promise<{ profile_picture: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post('/profiles/me/profile-picture', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const getProfilePictureUrl = async (): Promise<{ profile_picture: string }> => {
+  const response = await api.get('/profiles/me/profile-picture');
+  return response.data;
+};
+
+export const deleteProfilePicture = async (): Promise<{ profile_picture: null }> => {
+  const response = await api.delete('/profiles/me/profile-picture');
+  return response.data;
+};
+
+// Signature Operations
+export const uploadSignature = async (file: File): Promise<{ signature: string }> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await api.post('/profiles/me/signature', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+  return response.data;
+};
+
+export const getSignatureUrl = async (): Promise<{ signature: string }> => {
+  const response = await api.get('/profiles/me/signature');
+  return response.data;
+};
+
+export const deleteSignature = async (): Promise<{ signature: null }> => {
+  const response = await api.delete('/profiles/me/signature');
+  return response.data;
 }; 
