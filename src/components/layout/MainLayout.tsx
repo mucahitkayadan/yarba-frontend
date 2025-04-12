@@ -306,7 +306,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   fontSize: '1.1rem'
                 }}
               >
-                Welcome, {user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
+                Welcome, {profile?.personal_information?.full_name || user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
               </Typography>
               {/* Avatar/Image that opens dropdown */}
               <Box
@@ -403,15 +403,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   </Typography>
                 </Box>
                 <Divider />
-                <MenuItem onClick={() => {
-                  fetchProfile();
-                  handleClose();
-                }}>
-                  <ListItemIcon sx={{ minWidth: '25px' }}>
-                    <RefreshIcon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText>Refresh Profile</ListItemText>
-                </MenuItem>
                 <MenuItem onClick={handleProfileNavigate} component={RouterLink} to="/user">
                   <ListItemIcon sx={{ minWidth: '25px' }}>
                     <SettingsIcon fontSize="small" />
