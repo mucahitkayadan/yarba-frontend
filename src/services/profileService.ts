@@ -38,7 +38,7 @@ export const updateLifeStory = async (lifeStory: string): Promise<Profile> => {
 };
 
 // Profile Picture Operations
-export const uploadProfilePicture = async (file: File): Promise<{ profile_picture: string }> => {
+export const uploadProfilePicture = async (file: File): Promise<{ profile_picture_key: string }> => {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -50,18 +50,18 @@ export const uploadProfilePicture = async (file: File): Promise<{ profile_pictur
   return response.data;
 };
 
-export const getProfilePictureUrl = async (): Promise<{ profile_picture: string }> => {
+export const getProfilePictureUrl = async (): Promise<{ profile_picture_key: string }> => {
   const response = await api.get('/profiles/me/profile-picture');
   return response.data;
 };
 
-export const deleteProfilePicture = async (): Promise<{ profile_picture: null }> => {
+export const deleteProfilePicture = async (): Promise<{ profile_picture_key: null }> => {
   const response = await api.delete('/profiles/me/profile-picture');
   return response.data;
 };
 
 // Signature Operations
-export const uploadSignature = async (file: File): Promise<{ signature: string }> => {
+export const uploadSignature = async (file: File): Promise<{ signature_key: string }> => {
   const formData = new FormData();
   formData.append('file', file);
 
@@ -73,12 +73,12 @@ export const uploadSignature = async (file: File): Promise<{ signature: string }
   return response.data;
 };
 
-export const getSignatureUrl = async (): Promise<{ signature: string }> => {
+export const getSignatureUrl = async (): Promise<{ signature_key: string }> => {
   const response = await api.get('/profiles/me/signature');
   return response.data;
 };
 
-export const deleteSignature = async (): Promise<{ signature: null }> => {
+export const deleteSignature = async (): Promise<{ signature_key: null }> => {
   const response = await api.delete('/profiles/me/signature');
   return response.data;
 }; 

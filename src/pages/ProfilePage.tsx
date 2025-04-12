@@ -81,6 +81,7 @@ const ProfilePage: React.FC = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [imageVersion, setImageVersion] = useState<number>(Date.now());
   
   useEffect(() => {
     fetchProfile();
@@ -91,8 +92,8 @@ const ProfilePage: React.FC = () => {
       setLoading(true);
       const response = await getUserProfile();
       console.log('Fetched profile:', response);
-      console.log('Profile picture from API:', response.profile_picture);
-      console.log('Signature from API:', response.signature);
+      console.log('Profile picture key from API:', response.profile_picture_key);
+      console.log('Signature key from API:', response.signature_key);
       setProfile(response);
     } catch (err: any) {
       console.error('Failed to fetch profile:', err);
@@ -135,8 +136,9 @@ const ProfilePage: React.FC = () => {
         const result = await uploadProfilePicture(selectedFile);
         console.log('Profile picture upload result:', result);
         // Update profile state directly if needed
-        if (result && result.profile_picture) {
-          setProfile(prev => prev ? { ...prev, profile_picture: result.profile_picture } : prev);
+        if (result && result.profile_picture_key) {
+          setProfile(prev => prev ? { ...prev, profile_picture_key: result.profile_picture_key } : prev);
+          setImageVersion(Date.now());
         } else {
           // Fallback to refetching the profile
           await fetchProfile();
@@ -145,8 +147,9 @@ const ProfilePage: React.FC = () => {
         const result = await uploadSignature(selectedFile);
         console.log('Signature upload result:', result);
         // Update profile state directly if needed
-        if (result && result.signature) {
-          setProfile(prev => prev ? { ...prev, signature: result.signature } : prev);
+        if (result && result.signature_key) {
+          setProfile(prev => prev ? { ...prev, signature_key: result.signature_key } : prev);
+          setImageVersion(Date.now());
         } else {
           // Fallback to refetching the profile
           await fetchProfile();
@@ -167,7 +170,8 @@ const ProfilePage: React.FC = () => {
       const result = await deleteProfilePicture();
       console.log('Delete profile picture result:', result);
       // Update profile state directly
-      setProfile(prev => prev ? { ...prev, profile_picture: undefined } : prev);
+      setProfile(prev => prev ? { ...prev, profile_picture_key: undefined } : prev);
+      setImageVersion(Date.now());
     } catch (err) {
       console.error('Failed to delete profile picture:', err);
       setError('Failed to delete profile picture. Please try again.');
@@ -179,7 +183,8 @@ const ProfilePage: React.FC = () => {
       const result = await deleteSignature();
       console.log('Delete signature result:', result);
       // Update profile state directly
-      setProfile(prev => prev ? { ...prev, signature: undefined } : prev);
+      setProfile(prev => prev ? { ...prev, signature_key: undefined } : prev);
+      setImageVersion(Date.now());
     } catch (err) {
       console.error('Failed to delete signature:', err);
       setError('Failed to delete signature. Please try again.');
@@ -247,9 +252,9 @@ const ProfilePage: React.FC = () => {
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, mb: 3 }}>
             <Box sx={{ mr: { md: 4 }, mb: { xs: 3, md: 0 }, textAlign: 'center' }}>
               {/* User avatar in personal tab */}
-              {profile.profile_picture ? (
+              {profile.profile_picture_key ? (
                 <img 
-                  src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture}?t=${new Date().getTime()}`}
+                  src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture_key}?v=${imageVersion}`}
                   alt={profile.personal_information?.full_name || "User profile picture"}
                   style={{ 
                     width: 100, 
@@ -498,21 +503,13 @@ const ProfilePage: React.FC = () => {
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
-                {/* Debug profile picture URL */}
-                {profile?.profile_picture ? (
+                {profile?.profile_picture_key ? (
                   <Box sx={{ position: 'relative', mb: 2 }}>
                     <img
-                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture}?t=${new Date().getTime()}`}
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture_key}?v=${imageVersion}`}
                       alt="Profile Picture"
                       style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: '50%' }}
                     />
-                    <IconButton
-                      color="error"
-                      sx={{ position: 'absolute', top: -10, right: -10 }}
-                      onClick={handleDeleteProfilePicture}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
                   </Box>
                 ) : (
                   <Avatar
@@ -522,13 +519,26 @@ const ProfilePage: React.FC = () => {
                   </Avatar>
                 )}
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PhotoCameraIcon />}
-                  onClick={() => handleOpenUploadDialog('profile')}
-                >
-                  {profile?.profile_picture ? 'Change Picture' : 'Upload Picture'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<PhotoCameraIcon />}
+                    onClick={() => handleOpenUploadDialog('profile')}
+                  >
+                    {profile?.profile_picture_key ? 'Change Picture' : 'Upload Picture'}
+                  </Button>
+                  
+                  {profile?.profile_picture_key && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeleteProfilePicture}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </Box>
               </Box>
             </Paper>
             
@@ -539,20 +549,13 @@ const ProfilePage: React.FC = () => {
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 2 }}>
-                {profile?.signature ? (
+                {profile?.signature_key ? (
                   <Box sx={{ position: 'relative', mb: 2 }}>
                     <img
-                      src={`data:image/jpeg;base64,${profile.signature}`}
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.signature_key}?v=${imageVersion}`}
                       alt="Signature"
                       style={{ maxWidth: '100%', maxHeight: 150 }}
                     />
-                    <IconButton
-                      color="error"
-                      sx={{ position: 'absolute', top: -10, right: -10 }}
-                      onClick={handleDeleteSignature}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
                   </Box>
                 ) : (
                   <Box
@@ -574,13 +577,26 @@ const ProfilePage: React.FC = () => {
                   </Box>
                 )}
                 
-                <Button
-                  variant="contained"
-                  startIcon={<PhotoCameraIcon />}
-                  onClick={() => handleOpenUploadDialog('signature')}
-                >
-                  {profile?.signature ? 'Change Signature' : 'Upload Signature'}
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<PhotoCameraIcon />}
+                    onClick={() => handleOpenUploadDialog('signature')}
+                  >
+                    {profile?.signature_key ? 'Change Signature' : 'Upload Signature'}
+                  </Button>
+                  
+                  {profile?.signature_key && (
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={handleDeleteSignature}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </Box>
               </Box>
             </Paper>
           </Box>

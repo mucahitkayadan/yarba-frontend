@@ -32,8 +32,8 @@ export interface Profile {
     github?: string;
     summary?: string;
   };
-  profile_picture?: string;
-  signature?: string;
+  profile_picture_key?: string;
+  signature_key?: string;
   profile_picture_url?: string;
   signature_url?: string;
   life_story?: string;
