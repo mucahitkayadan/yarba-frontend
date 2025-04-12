@@ -48,15 +48,22 @@ const navItems = [
   { text: 'Cover Letters', icon: <CoverLetterIcon />, path: '/cover-letters' },
   { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
   { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
-  // { text: 'User Settings', icon: <SettingsIcon />, path: '/user' },
-  // { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
+  // To add nested navigation in the future, we could use this structure:
+  // { 
+  //   text: 'Settings', 
+  //   icon: <SettingsIcon />, 
+  //   children: [
+  //     { text: 'User Settings', icon: <AccountIcon />, path: '/user' },
+  //     { text: 'Templates', icon: <TemplatesIcon />, path: '/templates' },
+  //   ] 
+  // },
 ];
 
 interface MainLayoutProps {
   children: ReactNode;
 }
 
-const drawerWidth = 200;
+const drawerWidth = 210;
 const miniDrawerWidth = 65;
 
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
@@ -149,6 +156,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 justifyContent: drawerOpen ? 'initial' : 'center',
                 px: 2.5,
                 py: 1,
+                ml: 1, // 8dp from left edge (16dp keyline)
+                mr: 1, // 8dp from right edge
                 '&.Mui-selected': {
                   backgroundColor: 'rgba(255, 255, 255, 0.15)',
                   '&:hover': {
@@ -166,7 +175,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <ListItemIcon
                 sx={{
                   minWidth: 0,
-                  mr: drawerOpen ? 3 : 'auto',
+                  mr: drawerOpen ? 2 : 'auto',
+                  ml: drawerOpen ? 0 : 0, // Proper alignment when collapsed
                   justifyContent: 'center',
                   color: location.pathname === item.path ? '#E05B49' : 'rgba(255, 255, 255, 0.8)',
                   transition: 'none',
@@ -183,9 +193,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   primary={item.text} 
                   primaryTypographyProps={{
                     fontWeight: 600,
-                    fontSize: '1rem',
-                    letterSpacing: '0.02em',
-                    fontFamily: "'Dreaming Outloud Pro', cursive"
+                    fontSize: item.text.length > 10 ? '0.85rem' : '1rem',
+                    letterSpacing: item.text.length > 10 ? '0' : '0.02em',
+                    fontFamily: "'Dreaming Outloud Pro', cursive",
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
                   }}
                   sx={{
                     opacity: 1,
@@ -194,7 +207,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                     textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
                     '& span': {
                       transition: 'none !important',
-                    }
+                    },
+                    maxWidth: '100%'
                   }}
                 />
               )}
@@ -202,7 +216,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           </Tooltip>
         ))}
       </List>
-      <Divider sx={{ backgroundColor: 'rgba(255, 255, 255, 0.3)' }} />
+      <Divider sx={{ 
+        backgroundColor: 'rgba(255, 255, 255, 0.3)',
+        my: 1, // 8dp padding above and below divider (1 = 8px in the default MUI theme)
+      }} />
       <List>
         <Tooltip 
           title={!drawerOpen ? "Logout" : ""} 
@@ -222,6 +239,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               justifyContent: drawerOpen ? 'initial' : 'center',
               px: 2.5,
               margin: '4px 8px',
+              ml: 1, // 8dp from left edge (16dp keyline)
+              mr: 1, // 8dp from right edge
               borderRadius: 2,
               '&:hover': {
                 backgroundColor: 'rgba(255, 255, 255, 0.1)',
@@ -232,7 +251,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             <ListItemIcon
               sx={{
                 minWidth: 0,
-                mr: drawerOpen ? 3 : 'auto',
+                mr: drawerOpen ? 2 : 'auto',
+                ml: drawerOpen ? 0 : 0, // Proper alignment when collapsed
                 justifyContent: 'center',
                 color: '#E05B49',
                 transition: 'none',
@@ -251,14 +271,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   fontWeight: 600,
                   fontSize: '1rem',
                   letterSpacing: '0.02em',
-                  fontFamily: "'Dreaming Outloud Pro', cursive"
+                  fontFamily: "'Dreaming Outloud Pro', cursive",
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}
                 sx={{
                   color: '#ffffff',
                   textShadow: '0px 1px 2px rgba(0, 0, 0, 0.2)',
                   '& span': {
                     transition: 'none !important',
-                  }
+                  },
+                  maxWidth: '100%'
                 }}
               />
             )}
@@ -436,6 +460,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           disableAutoFocus: true,
           disableEnforceFocus: true,
           disableRestoreFocus: true,
+          BackdropProps: {
+            sx: {
+              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Proper scrim opacity
+            }
+          }
         }}
         sx={{
           display: 'block',
@@ -448,11 +477,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               duration: theme.transitions.duration.enteringScreen,
             }),
             boxSizing: 'border-box',
-            paddingTop: '64px',
+            paddingTop: isMobile ? 0 : '64px', // Remove top padding on mobile to span full height
             height: '100%',
             backgroundColor: '#ffffff',
             backgroundImage: 'linear-gradient(to bottom right, rgb(142, 92, 150), rgb(122, 172, 216))',
-            boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0px 8px 10px -5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12)', // 16dp elevation
             zIndex: theme.zIndex.drawer,
           },
         }}
