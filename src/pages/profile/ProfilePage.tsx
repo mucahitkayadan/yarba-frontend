@@ -8,7 +8,6 @@ import {
   Divider,
   CircularProgress,
   Alert,
-  Stack,
   IconButton,
   Tabs,
   Tab,
@@ -19,15 +18,12 @@ import {
   DialogTitle,
 } from '@mui/material';
 import {
-  Save as SaveIcon,
   Edit as EditIcon,
   PhotoCamera as PhotoCameraIcon,
-  Add as AddIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   getUserProfile, 
