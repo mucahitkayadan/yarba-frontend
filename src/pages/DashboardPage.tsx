@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Paper, 
   Typography, 
@@ -9,7 +9,8 @@ import {
   CardActions,
   CircularProgress,
   Divider,
-  Stack
+  Stack,
+  Alert
 } from '@mui/material';
 import { 
   Description as ResumeIcon, 
@@ -19,22 +20,96 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { getResumes } from '../services/resumeService';
+import { getCoverLetters } from '../services/coverLetterService';
+import { getUserPortfolio } from '../services/portfolioService';
+import { Resume, CoverLetter, Portfolio } from '../types/models';
 
-// Mock data - replace with actual API calls later
-const mockRecentItems = [
-  { id: '1', title: 'Software Developer Resume', type: 'resume', date: '2023-04-01T10:00:00Z' },
-  { id: '2', title: 'Application for Google', type: 'cover-letter', date: '2023-03-28T14:30:00Z' },
-];
+// Define a unified type for recent items
+interface RecentItem {
+  id: string;
+  title: string;
+  type: 'resume' | 'cover-letter';
+  date: string;
+}
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // State for data
+  const [resumeCount, setResumeCount] = useState(0);
+  const [coverLetterCount, setCoverLetterCount] = useState(0);
+  const [portfolioComplete, setPortfolioComplete] = useState(false);
+  const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
 
-  // Eventually you'll replace these with real counts from API
-  const resumeCount = 3;
-  const coverLetterCount = 2;
-  const completedProfile = true;
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Fetch resumes, cover letters, and portfolio data in parallel
+        const [resumesResponse, coverLettersResponse, portfolioResponse] = await Promise.all([
+          getResumes(0, 10),
+          getCoverLetters(0, 10),
+          getUserPortfolio().catch(err => {
+            console.warn('Portfolio not found or error:', err);
+            return null;
+          })
+        ]);
+        
+        // Update counts
+        setResumeCount(resumesResponse.total);
+        setCoverLetterCount(coverLettersResponse.total);
+        
+        // Check if portfolio is complete
+        if (portfolioResponse) {
+          // Simple check - portfolio is complete if it has career summary and at least some skills
+          const hasCareerSummary = Boolean(
+            portfolioResponse.career_summary?.default_summary
+          );
+          const hasSkills = portfolioResponse.skills && portfolioResponse.skills.length > 0;
+          setPortfolioComplete(hasCareerSummary && hasSkills);
+        } else {
+          setPortfolioComplete(false);
+        }
+        
+        // Combine recent items, sort by date, and take the 5 most recent
+        const combinedItems: RecentItem[] = [
+          ...resumesResponse.items.map((resume: Resume) => ({
+            id: resume.id,
+            title: resume.title,
+            type: 'resume' as const,
+            date: resume.updated_at || resume.created_at
+          })),
+          ...coverLettersResponse.items.map((coverLetter: CoverLetter) => ({
+            id: coverLetter.id,
+            title: coverLetter.title,
+            type: 'cover-letter' as const,
+            date: coverLetter.updated_at || coverLetter.created_at
+          }))
+        ];
+        
+        // Sort by date (newest first) and take the most recent 3
+        const sortedItems = combinedItems.sort((a, b) => 
+          new Date(b.date).getTime() - new Date(a.date).getTime()
+        ).slice(0, 3);
+        
+        setRecentItems(sortedItems);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -66,6 +141,12 @@ const DashboardPage: React.FC = () => {
         Welcome, {user?.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}!
       </Typography>
 
+      {error && (
+        <Alert severity="error" sx={{ mb: 4 }}>
+          {error}
+        </Alert>
+      )}
+
       {/* Document Summary */}
       <Stack 
         direction={{ xs: 'column', sm: 'row' }} 
@@ -86,13 +167,18 @@ const DashboardPage: React.FC = () => {
           }}
         >
           <ResumeIcon fontSize="large" color="primary" sx={{ mb: 1 }} />
-          <Typography variant="h5">{resumeCount}</Typography>
+          {loading ? (
+            <CircularProgress size={30} sx={{ my: 1 }} />
+          ) : (
+            <Typography variant="h5">{resumeCount}</Typography>
+          )}
           <Typography variant="subtitle1">Resumes</Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             sx={{ mt: 2 }}
             onClick={handleCreateResume}
+            disabled={loading}
           >
             Create Resume
           </Button>
@@ -111,13 +197,18 @@ const DashboardPage: React.FC = () => {
           }}
         >
           <CoverLetterIcon fontSize="large" color="primary" sx={{ mb: 1 }} />
-          <Typography variant="h5">{coverLetterCount}</Typography>
+          {loading ? (
+            <CircularProgress size={30} sx={{ my: 1 }} />
+          ) : (
+            <Typography variant="h5">{coverLetterCount}</Typography>
+          )}
           <Typography variant="subtitle1">Cover Letters</Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
             sx={{ mt: 2 }}
             onClick={handleCreateCoverLetter}
+            disabled={loading}
           >
             Create Cover Letter
           </Button>
@@ -133,20 +224,29 @@ const DashboardPage: React.FC = () => {
             alignItems: 'center',
             flexGrow: 1,
             width: { xs: '100%', sm: '33%' },
-            bgcolor: completedProfile ? 'success.50' : 'warning.50'
+            bgcolor: portfolioComplete ? 'success.50' : 'warning.50'
           }}
         >
-          <PersonIcon fontSize="large" color={completedProfile ? "success" : "warning"} sx={{ mb: 1 }} />
-          <Typography variant="h5">
-            {completedProfile ? 'Complete' : 'Incomplete'}
-          </Typography>
+          <PersonIcon 
+            fontSize="large" 
+            color={loading ? "disabled" : (portfolioComplete ? "success" : "warning")} 
+            sx={{ mb: 1 }} 
+          />
+          {loading ? (
+            <CircularProgress size={30} sx={{ my: 1 }} />
+          ) : (
+            <Typography variant="h5">
+              {portfolioComplete ? 'Complete' : 'Incomplete'}
+            </Typography>
+          )}
           <Typography variant="subtitle1">Portfolio Status</Typography>
           <Button
             variant="outlined"
             sx={{ mt: 2 }}
             onClick={handleEditPortfolio}
+            disabled={loading}
           >
-            {completedProfile ? 'View Portfolio' : 'Complete Portfolio'}
+            {portfolioComplete ? 'View Portfolio' : 'Complete Portfolio'}
           </Button>
         </Paper>
       </Stack>
@@ -162,15 +262,18 @@ const DashboardPage: React.FC = () => {
         </Box>
       ) : (
         <Box>
-          <Stack 
-            direction={{ xs: 'column', sm: 'row' }} 
-            spacing={2} 
-            sx={{ mb: 2 }}
-            alignItems="stretch"
-            flexWrap="wrap"
-          >
-            {mockRecentItems.map((item) => (
-              <Card key={item.id} sx={{ width: { xs: '100%', sm: '30%' }, minWidth: 250, mb: 2 }}>
+          <Box sx={{ 
+            display: 'grid', 
+            gridTemplateColumns: { 
+              xs: '1fr', 
+              sm: 'repeat(2, 1fr)', 
+              md: 'repeat(3, 1fr)' 
+            },
+            gap: 2,
+            mb: 2
+          }}>
+            {recentItems.map((item) => (
+              <Card key={item.id} sx={{ height: '100%' }}>
                 <CardContent>
                   <Typography variant="h6" component="div" noWrap>
                     {item.title}
@@ -193,9 +296,9 @@ const DashboardPage: React.FC = () => {
                 </CardActions>
               </Card>
             ))}
-          </Stack>
+          </Box>
           
-          {mockRecentItems.length === 0 && (
+          {recentItems.length === 0 && (
             <Typography variant="body1" sx={{ textAlign: 'center', py: 4 }}>
               No recent activity. Create your first document!
             </Typography>
