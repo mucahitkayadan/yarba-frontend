@@ -4,12 +4,13 @@ This document provides information on implementing authentication in the fronten
 
 ## Authentication Flow
 
-ResumeBuilderTeX uses JWT (JSON Web Token) based authentication. Here's the workflow:
+ResumeBuilderTeX uses Firebase for authentication with JWT tokens for API access. Here's the workflow:
 
-1. **Registration**: User creates an account
-2. **Login**: User provides credentials and receives a JWT token
-3. **Authorization**: JWT token is sent with each API request
-4. **Token Expiration**: Token expires after a set time (30 minutes by default)
+1. **Registration**: User creates an account using Firebase Authentication
+2. **Login**: User logs in with Firebase and receives an ID token
+3. **Backend Authentication**: Firebase ID token is sent to backend to get a JWT token
+4. **Authorization**: JWT token is sent with each API request
+5. **Token Expiration**: Token expires after a set time (30 minutes by default)
 
 ## Implementation Guide
 
@@ -49,33 +50,81 @@ const isAuthenticated = (): boolean => {
 };
 ```
 
-### API Authentication Requests
+### Firebase Setup
 
-#### Registration
+1. Add Firebase to your web application:
 
 ```typescript
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAuth } from "firebase/auth";
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+```
+
+### API Authentication Requests
+
+#### Registration with Firebase
+
+```typescript
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { auth } from "../firebase";
+
 interface RegistrationData {
-  username: string;
   email: string;
   password: string;
   full_name: string;
+  username?: string;
 }
 
 const register = async (data: RegistrationData): Promise<any> => {
   try {
+    // 1. Create user with Firebase
+    const userCredential = await createUserWithEmailAndPassword(
+      auth, 
+      data.email, 
+      data.password
+    );
+    
+    // 2. Update user profile with full name
+    await updateProfile(userCredential.user, {
+      displayName: data.full_name
+    });
+    
+    // 3. Get ID token
+    const idToken = await userCredential.user.getIdToken();
+    
+    // 4. Register with backend
     const response = await fetch('/api/v1/auth/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        email: data.email,
+        password: data.password,
+        full_name: data.full_name,
+        username: data.username
+      }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Registration failed');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error('Registration error:', error);
@@ -84,47 +133,103 @@ const register = async (data: RegistrationData): Promise<any> => {
 };
 ```
 
-#### Login
+#### Login with Firebase
 
 ```typescript
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
+
 interface LoginData {
-  username: string;
+  email: string;
   password: string;
 }
 
 interface LoginResponse {
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    email_verified: boolean;
+    is_active: boolean;
+    is_superuser: boolean;
+    auth_provider: string;
+  };
   access_token: string;
   token_type: string;
 }
 
 const login = async (data: LoginData): Promise<LoginResponse> => {
   try {
-    // Convert to FormData as the login endpoint requires x-www-form-urlencoded
-    const formData = new URLSearchParams();
-    formData.append('username', data.username);
-    formData.append('password', data.password);
+    // 1. Sign in with Firebase
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      data.email,
+      data.password
+    );
     
+    // 2. Get the Firebase ID token
+    const idToken = await userCredential.user.getIdToken();
+
+    // 3. Exchange Firebase token for API token
     const response = await fetch('/api/v1/auth/login', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
       },
-      body: formData.toString(),
+      body: JSON.stringify({ id_token: idToken }),
     });
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'Login failed');
     }
-    
+
     const result = await response.json();
-    
-    // Store the token
+
+    // 4. Store the API token for future requests
     storeToken(result.access_token);
-    
+
     return result;
   } catch (error) {
     console.error('Login error:', error);
+    throw error;
+  }
+};
+```
+
+#### Password Change
+
+```typescript
+import { updatePassword, EmailAuthProvider, reauthenticateWithCredential } from "firebase/auth";
+import { auth } from "../firebase";
+
+interface ChangePasswordData {
+  currentPassword: string;
+  newPassword: string;
+}
+
+const changePassword = async (data: ChangePasswordData): Promise<any> => {
+  try {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) {
+      throw new Error('No authenticated user found');
+    }
+    
+    // 1. Re-authenticate the user
+    const credential = EmailAuthProvider.credential(
+      currentUser.email, 
+      data.currentPassword
+    );
+    
+    await reauthenticateWithCredential(currentUser, credential);
+    
+    // 2. Change the password in Firebase
+    await updatePassword(currentUser, data.newPassword);
+    
+    // Success
+    return { message: 'Password changed successfully' };
+  } catch (error) {
+    console.error('Password change error:', error);
     throw error;
   }
 };
@@ -136,46 +241,46 @@ Create a utility function for making authenticated API requests:
 
 ```typescript
 const apiRequest = async (
-  url: string, 
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET', 
+  url: string,
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
   body?: any
 ): Promise<any> => {
   const token = getToken();
-  
+
   if (!token) {
     throw new Error('No authentication token found');
   }
-  
+
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   };
-  
+
   const config: RequestInit = {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
   };
-  
+
   try {
     const response = await fetch(url, config);
-    
+
     // Handle 401 Unauthorized - Token might be expired
     if (response.status === 401) {
       // Remove the invalid token
       removeToken();
-      
+
       // Redirect to login
       window.location.href = '/login';
-      
+
       throw new Error('Session expired. Please login again.');
     }
-    
+
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.detail || 'API request failed');
     }
-    
+
     return await response.json();
   } catch (error) {
     console.error(`API error (${method} ${url}):`, error);
@@ -212,13 +317,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  
+
   const fetchCurrentUser = async (): Promise<void> => {
     if (!getToken()) {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const userData = await apiRequest('/api/v1/auth/me');
       setUser(userData);
@@ -229,11 +334,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchCurrentUser();
   }, []);
-  
+
   const loginHandler = async (username: string, password: string): Promise<void> => {
     setIsLoading(true);
     try {
@@ -243,12 +348,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsLoading(false);
     }
   };
-  
+
   const logoutHandler = (): void => {
     removeToken();
     setUser(null);
   };
-  
+
   const value = {
     user,
     isAuthenticated: !!user,
@@ -256,17 +361,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login: loginHandler,
     logout: logoutHandler,
   };
-  
+
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  
+
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
-  
+
   return context;
 };
 ```
@@ -287,16 +392,16 @@ interface ProtectedRouteProps {
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
-  
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
+
   if (!isAuthenticated) {
     // Redirect to login page but save the location they were trying to access
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
-  
+
   return <>{children}</>;
 };
 ```
@@ -318,13 +423,13 @@ const App: React.FC = () => {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route 
-            path="/dashboard" 
+          <Route
+            path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
               </ProtectedRoute>
-            } 
+            }
           />
           {/* Other protected routes */}
         </Routes>
@@ -362,10 +467,135 @@ To test authentication in development:
 4. **Token Expiration**: Test behavior when token expires
 5. **Logout**: Verify token is removed and user is redirected
 
+## Using Swagger UI with Firebase Authentication
+
+Swagger UI requires a Firebase ID token for authentication. There are two ways to get this token:
+
+### Option 1: Use the Swagger Login Endpoint (Development Only)
+
+The API provides a development-only endpoint that simplifies getting an ID token:
+
+1. In Swagger UI, find the `/auth/swagger-login` endpoint
+2. Provide your email and password
+3. Execute the request
+4. Copy the returned `id_token` value
+5. Use this token with the `/auth/login` endpoint to get your JWT token
+
+### Option 2: Get the ID Token from a Browser
+
+For a more permanent solution:
+
+1. Create an HTML file with this code:
+
+```html
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Firebase Token Generator</title>
+</head>
+<body>
+  <h2>Get Firebase ID Token</h2>
+  <div>
+    <input id="email" placeholder="Email" /><br>
+    <input id="password" type="password" placeholder="Password" /><br>
+    <button onclick="login()">Get Token</button><br>
+    <textarea id="token" rows="10" cols="50"></textarea>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+    
+    // Your Firebase config - replace with your actual config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.storageBucket.com",
+      messagingSenderId: "YOUR_messagingSenderId",
+      appId: "YOUR_appId"
+    };
+    
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    window.login = async function() {
+      try {
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const idToken = await userCredential.user.getIdToken();
+        
+        document.getElementById('token').value = idToken;
+      } catch (error) {
+        console.error("Error:", error);
+        document.getElementById('token').value = "Error: " + error.message;
+      }
+    };
+  </script>
+</body>
+</html>
+```
+
+2. Open this file in a browser
+3. Enter your Firebase email and password
+4. Click "Get Token" to retrieve your ID token
+5. Use this token with the `/auth/login` endpoint in Swagger UI
+
 ## Common Authentication Errors
 
 - **401 Unauthorized**: Invalid or expired token
 - **403 Forbidden**: Valid token but insufficient permissions
 - **422 Unprocessable Entity**: Invalid request data format
 
-Handle these errors appropriately in your UI to provide a good user experience. 
+Handle these errors appropriately in your UI to provide a good user experience.
+
+# This Section is Written by Frontend
+
+## Consolidated Authentication Service
+
+For better maintainability, all authentication-related functions have been consolidated into a single service (`authService.ts`). This service handles:
+
+1. Firebase authentication operations (registration, login, Google sign-in)
+2. Firebase token exchange with backend for JWT tokens
+3. User profile management
+4. Password management
+
+Having a single service for authentication simplifies the codebase and ensures consistent error handling and logging.
+
+```typescript
+// Example of using the consolidated authService:
+import { loginWithEmail, loginWithGoogle, logout } from '../services/authService';
+
+// Login with email and password
+const login = async () => {
+  try {
+    const response = await loginWithEmail('user@example.com', 'password123');
+    console.log('Login successful, token:', response.access_token);
+  } catch (error) {
+    console.error('Login failed:', error);
+  }
+};
+
+// Login with Google
+const googleLogin = async () => {
+  try {
+    const response = await loginWithGoogle();
+    console.log('Google login successful');
+  } catch (error) {
+    console.error('Google login failed:', error);
+  }
+};
+
+// Logout
+const handleLogout = async () => {
+  try {
+    await logout();
+    console.log('Logout successful');
+  } catch (error) {
+    console.error('Logout failed:', error);
+  }
+};
+```

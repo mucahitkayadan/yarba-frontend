@@ -2,13 +2,13 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import { User as FirebaseUser } from 'firebase/auth';
 import api from '../services/api';
 import { 
-  loginWithFirebase, 
-  registerWithFirebase, 
-  signInWithGoogleProvider, 
-  signOutFromFirebase,
+  loginWithEmail,
+  registerWithEmail,
+  loginWithGoogle,
+  logout,
   exchangeFirebaseTokenForJWT,
   getCurrentFirebaseUser
-} from '../services/firebaseAuthService';
+} from '../services/authService';
 import { createDebugger } from '../utils/debug';
 
 const debug = createDebugger('AuthContext');
@@ -214,14 +214,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error(errorMsg);
       }
       
-      const fbUser = await loginWithFirebase(email, password);
+      const authResponse = await loginWithEmail(email, password);
+      // Update Firebase user state from the current Firebase user
+      const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
       debug.log('Firebase login successful');
       
-      // Force token exchange immediately - don't wait for auth state listener
-      if (fbUser) {
-        debug.log('Starting token exchange immediately after login');
-        await handleTokenExchange(fbUser);
+      // The token exchange is already handled by loginWithEmail
+      if (authResponse.access_token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${authResponse.access_token}`;
+        setIsAuthenticated(true);
+        await fetchCurrentUser();
       }
     } catch (err: any) {
       debug.error('Login error:', err);
@@ -238,44 +241,54 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setError(null);
       
-      const fbUser = await registerWithFirebase(email, password);
+      const registrationData = {
+        email,
+        password,
+        username,
+        full_name: fullName
+      };
+      
+      const result = await registerWithEmail(registrationData);
+      // Update Firebase user state from the current Firebase user
+      const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
       debug.log('Firebase registration successful');
       
-      // Force token exchange immediately - don't wait for auth state listener
-      if (fbUser) {
-        debug.log('Starting token exchange immediately after registration');
-        await handleTokenExchange(fbUser);
-      }
+      // The token exchange is already handled by registerWithEmail
+      setIsAuthenticated(true);
+      await fetchCurrentUser();
     } catch (err: any) {
       debug.error('Registration error:', err);
       setError(err.message);
       setLoading(false);
-      throw err; // Re-throw for component-level handling
+      throw err;
     }
   };
 
-  // Google sign-in function
+  // Sign in with Google
   const signInWithGoogle = async () => {
     try {
       debug.log('Starting Google sign-in process');
       setLoading(true);
       setError(null);
       
-      const fbUser = await signInWithGoogleProvider();
+      const authResponse = await loginWithGoogle();
+      // Update Firebase user state from the current Firebase user
+      const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
       debug.log('Google sign-in successful');
       
-      // Force token exchange immediately - don't wait for auth state listener
-      if (fbUser) {
-        debug.log('Starting token exchange immediately after Google sign-in');
-        await handleTokenExchange(fbUser);
+      // The token exchange is already handled by loginWithGoogle
+      if (authResponse.access_token) {
+        api.defaults.headers.common['Authorization'] = `Bearer ${authResponse.access_token}`;
+        setIsAuthenticated(true);
+        await fetchCurrentUser();
       }
     } catch (err: any) {
       debug.error('Google sign-in error:', err);
       setError(err.message);
       setLoading(false);
-      throw err; // Re-throw for component-level handling
+      throw err;
     }
   };
 
@@ -285,7 +298,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('Starting sign-out process');
       setLoading(true);
       
-      await signOutFromFirebase();
+      await logout();
       
       // Clear auth data
       localStorage.removeItem('auth_token');

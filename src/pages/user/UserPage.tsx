@@ -21,7 +21,7 @@ import {
   Save as SaveIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import { changePassword } from '../../services/firebaseAuthService';
+import { changePassword } from '../../services/authService';
 
 const UserPage: React.FC = () => {
   const { user } = useAuth();

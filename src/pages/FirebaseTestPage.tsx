@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Typography, Box, Button, Paper, CircularProgress, Alert, Divider, Stack, TextField } from '@mui/material';
-import { verifyFirebaseToken, getFirebaseIdToken, signInWithGoogleProvider, loginWithFirebase } from '../services/firebaseAuthService';
+import { verifyFirebaseToken, getFirebaseIdToken, loginWithGoogle, loginWithEmail, getCurrentFirebaseUser } from '../services/authService';
 import { useAuth } from '../contexts/AuthContext';
 import { Google as GoogleIcon } from '@mui/icons-material';
 import api from '../services/api';
@@ -62,17 +62,23 @@ const FirebaseTestPage: React.FC = () => {
     
     try {
       // This directly tests Firebase Google auth without involving the backend
-      const fbUser = await signInWithGoogleProvider();
-      setFirebaseUser({
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName,
-        photoURL: fbUser.photoURL,
-      });
-      
-      // Get the Firebase token to display
-      const token = await fbUser.getIdToken();
-      setIdToken(token);
+      await loginWithGoogle();
+      // Get the actual Firebase user after login
+      const fbUser = await getCurrentFirebaseUser();
+      if (fbUser) {
+        setFirebaseUser({
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName,
+          photoURL: fbUser.photoURL,
+        });
+        
+        // Get the Firebase token to display
+        const token = await fbUser.getIdToken();
+        setIdToken(token);
+      } else {
+        throw new Error('Failed to retrieve Firebase user after login');
+      }
     } catch (err: any) {
       console.error('Direct Google sign-in error:', err);
       setError(err.message || 'Failed to sign in with Google directly');
@@ -102,7 +108,7 @@ const FirebaseTestPage: React.FC = () => {
       console.log('Payload:', payload);
       
       // Send the token to the backend
-      const response = await api.post('/auth/firebase/login', payload);
+      const response = await api.post('/auth/login', payload);
       
       console.log('Backend response:', response.data);
       setResult(response.data);
@@ -148,17 +154,23 @@ const FirebaseTestPage: React.FC = () => {
     
     try {
       // This directly tests Firebase email/password auth 
-      const fbUser = await loginWithFirebase(testEmail, testPassword);
-      setFirebaseUser({
-        uid: fbUser.uid,
-        email: fbUser.email,
-        displayName: fbUser.displayName,
-        photoURL: fbUser.photoURL,
-      });
-      
-      // Get the Firebase token to display
-      const token = await fbUser.getIdToken();
-      setIdToken(token);
+      await loginWithEmail(testEmail, testPassword);
+      // Get the actual Firebase user after login
+      const fbUser = await getCurrentFirebaseUser();
+      if (fbUser) {
+        setFirebaseUser({
+          uid: fbUser.uid,
+          email: fbUser.email,
+          displayName: fbUser.displayName,
+          photoURL: fbUser.photoURL,
+        });
+        
+        // Get the Firebase token to display
+        const token = await fbUser.getIdToken();
+        setIdToken(token);
+      } else {
+        throw new Error('Failed to retrieve Firebase user after login');
+      }
     } catch (err: any) {
       console.error('Email/password login error:', err);
       setError(err.message || 'Failed to sign in with email/password');
