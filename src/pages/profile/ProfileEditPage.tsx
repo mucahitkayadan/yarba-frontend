@@ -312,9 +312,6 @@ const ProfileEditPage: React.FC = () => {
     <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', p: 3 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h4">
-            Edit Profile
-          </Typography>
           
           <Button
             variant="outlined"

@@ -104,9 +104,6 @@ const CreateResumePage: React.FC = () => {
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 3, mb: 3 }}>
-        <Typography variant="h4" gutterBottom align="center">
-          Create New Resume
-        </Typography>
 
         {createdResume ? (
           <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>

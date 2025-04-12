@@ -435,7 +435,7 @@ const ResumesPage: React.FC = () => {
   const hasMultiplePages = totalResumes > pageSize;
 
   return (
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', p: 3, pl: 2, pt: 2 }}>
       <Box sx={{ 
         display: 'flex',
         justifyContent: 'space-between',
@@ -444,9 +444,6 @@ const ResumesPage: React.FC = () => {
         flexDirection: { xs: 'column', sm: 'row' },
         gap: 2
       }}>
-        <Typography variant="h4">
-          Your Resumes
-        </Typography>
         <Button
           variant="contained"
           color="primary"

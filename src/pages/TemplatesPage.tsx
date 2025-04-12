@@ -160,9 +160,6 @@ const TemplatesPage: React.FC = () => {
 
   return (
     <Box sx={{ width: '100%' }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Templates
-      </Typography>
 
       <Paper elevation={1} sx={{ mb: 4 }}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>

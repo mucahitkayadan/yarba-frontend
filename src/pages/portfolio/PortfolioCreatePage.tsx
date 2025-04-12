@@ -188,9 +188,6 @@ const PortfolioCreatePage: React.FC = () => {
       </Button>
       
       <Paper elevation={3} sx={{ p: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Create New Portfolio
-        </Typography>
         
         <Typography variant="body1" color="text.secondary" paragraph>
           Start by adding your skills. You can add more details like work experience, education, and projects later.

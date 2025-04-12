@@ -133,10 +133,7 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
+    <Box sx={{ p: 3, pl: 2, pt: 2 }}>
       <Typography variant="subtitle1" sx={{ mb: 4 }}>
         Welcome, {user?.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}!
       </Typography>

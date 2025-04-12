@@ -475,8 +475,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className="fade-in"
         sx={{ 
           flexGrow: 1,
-          p: 2,
-          pt: 3,
+          p: 0,
           width: '100%',
           marginTop: '64px',
           marginLeft: {
