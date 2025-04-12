@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
-  TextField,
   Button,
   Paper,
   Avatar,
@@ -14,11 +13,6 @@ import {
   Tabs,
   Tab,
   Chip,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  SelectChangeEvent,
   Dialog,
   DialogActions,
   DialogContent,
@@ -32,8 +26,8 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
-import api from '../services/api';
+import { useAuth } from '../../contexts/AuthContext';
+import api from '../../services/api';
 import { useNavigate } from 'react-router-dom';
 import { 
   getUserProfile, 
@@ -41,8 +35,8 @@ import {
   deleteProfilePicture,
   uploadSignature,
   deleteSignature
-} from '../services/profileService';
-import { Profile } from '../types/models';
+} from '../../services/profileService';
+import { Profile } from '../../types/models';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -254,7 +248,7 @@ const ProfilePage: React.FC = () => {
               {/* User avatar in personal tab */}
               {profile.profile_picture_key ? (
                 <img 
-                  src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture_key}?v=${imageVersion}`}
+                  src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture_key}?v=${imageVersion}`}
                   alt={profile.personal_information?.full_name || "User profile picture"}
                   style={{ 
                     width: 100, 
@@ -293,9 +287,9 @@ const ProfilePage: React.FC = () => {
                 </Typography>
               )}
               
-              {profile.personal_information?.location && (
+              {profile.personal_information?.address && (
                 <Typography variant="body1" gutterBottom>
-                  📍 {profile.personal_information.location}
+                  📍 {profile.personal_information.address}
                 </Typography>
               )}
             </Box>
@@ -506,8 +500,8 @@ const ProfilePage: React.FC = () => {
                 {profile?.profile_picture_key ? (
                   <Box sx={{ position: 'relative', mb: 2 }}>
                     <img
-                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.profile_picture_key}?v=${imageVersion}`}
-                      alt="Profile Picture"
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.profile_picture_key}?v=${imageVersion}`}
+                      alt={profile?.personal_information?.full_name || "User profile"}
                       style={{ width: 150, height: 150, objectFit: 'cover', borderRadius: '50%' }}
                     />
                   </Box>
@@ -518,7 +512,6 @@ const ProfilePage: React.FC = () => {
                     {profile?.personal_information?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || '?'}
                   </Avatar>
                 )}
-                
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button
                     variant="contained"
@@ -552,7 +545,7 @@ const ProfilePage: React.FC = () => {
                 {profile?.signature_key ? (
                   <Box sx={{ position: 'relative', mb: 2 }}>
                     <img
-                      src={`${process.env.REACT_APP_CLOUDFRONT_URL || 'https://d1172i562pfcnb.cloudfront.net/'}${profile.signature_key}?v=${imageVersion}`}
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profile.signature_key}?v=${imageVersion}`}
                       alt="Signature"
                       style={{ maxWidth: '100%', maxHeight: 150 }}
                     />

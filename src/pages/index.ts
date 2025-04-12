@@ -4,10 +4,10 @@ export { default as RegisterPage } from './RegisterPage';
 
 // Main Pages
 export { default as DashboardPage } from './DashboardPage';
-export { default as ProfilePage } from './ProfilePage';
+export { default as ProfilePage } from './profile/ProfilePage';
 export { default as ResumesPage } from './ResumesPage';
 export { default as ViewResumePage } from './ViewResumePage';
-export { default as PortfolioPage } from './PortfolioPage';
+export { default as PortfolioPage } from './portfolio/PortfolioPage';
 export { default as TemplatesPage } from './TemplatesPage';
 export { default as FirebaseTestPage } from './FirebaseTestPage';
 export { default as CreateResumePage } from './CreateResumePage';

@@ -26,7 +26,7 @@ export interface Profile {
     full_name: string;
     email: string;
     phone?: string;
-    location?: string;
+    address?: string;
     website?: string;
     linkedin?: string;
     github?: string;

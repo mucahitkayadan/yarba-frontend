@@ -104,7 +104,7 @@ const ProfileEditPage: React.FC = () => {
           full_name: profileData.personal_information.full_name || '',
           email: profileData.personal_information.email || '',
           phone: profileData.personal_information.phone || '',
-          address: profileData.personal_information.location || '',
+          address: profileData.personal_information.address || '',
           linkedin: profileData.personal_information.linkedin || '',
           github: profileData.personal_information.github || '',
           website: profileData.personal_information.website || ''
@@ -195,7 +195,7 @@ const ProfileEditPage: React.FC = () => {
           full_name: personalInfo.full_name,
           email: personalInfo.email,
           phone: personalInfo.phone,
-          location: personalInfo.address,
+          address: personalInfo.address,
           linkedin: personalInfo.linkedin,
           github: personalInfo.github,
           website: personalInfo.website
