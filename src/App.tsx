@@ -18,7 +18,8 @@ import {
   PortfolioCreatePage,
   PortfolioEditPage,
   PortfolioViewPage,
-  UserPage
+  UserPage,
+  CoverLettersPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -122,7 +123,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div>Cover Letters Page Placeholder</div>
+                    <CoverLettersPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
