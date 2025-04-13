@@ -72,13 +72,22 @@ export const deleteResume = async (id: string): Promise<void> => {
 };
 
 // Generate PDF for a resume
-export const getResumePdf = async (id: string, timeout: number = 30): Promise<Blob> => {
+export const getResumePdf = async (id: string, timeout: number = 30): Promise<Blob | { pdf_url: string }> => {
   console.log(`Requesting PDF for resume ID: ${id} with timeout: ${timeout}`);
   try {
-    const response = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`, {
+    // First try without responseType: 'blob' to check if we get the new JSON response
+    const response = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`);
+    
+    // If we got JSON with pdf_url, return it
+    if (response.data && response.data.pdf_url) {
+      return response.data;
+    }
+    
+    // If we didn't get a pdf_url, try the old approach with blob response type
+    const blobResponse = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`, {
       responseType: 'blob'
     });
-    return response.data;
+    return blobResponse.data;
   } catch (error: any) {
     console.error('PDF generation error:', error);
     // If we get a response with error details

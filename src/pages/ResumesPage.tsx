@@ -53,6 +53,21 @@ import { getUserPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
+// Type for the PDF response from the server
+interface PdfResponse {
+  pdf_url: string;
+}
+
+// Type guard to check if response is PdfResponse
+const isPdfResponse = (response: any): response is PdfResponse => {
+  return response && typeof response.pdf_url === 'string';
+};
+
+// Type guard to check if response is Blob
+const isBlob = (response: any): response is Blob => {
+  return response instanceof Blob;
+};
+
 // Set up the worker for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -349,19 +364,29 @@ const ResumesPage: React.FC = () => {
         setSelectedResumeName(resume.title);
       }
       
-      const pdfBlob = await getResumePdf(resumeId);
-      setPdfBlob(pdfBlob);
+      const response = await getResumePdf(resumeId);
       
-      // Create a URL for the PDF blob
-      const url = URL.createObjectURL(pdfBlob);
-      setPdfUrl(url);
+      if (isPdfResponse(response)) {
+        // Use the URL directly
+        setPdfUrl(response.pdf_url);
+        setPdfBlob(null);
+      } else if (isBlob(response)) {
+        // Create a URL for the PDF blob
+        const blob: Blob = response;
+        setPdfBlob(blob);
+        const url = URL.createObjectURL(blob);
+        setPdfUrl(url);
+      } else {
+        throw new Error('Unexpected response format from PDF service');
+      }
       
       // Open the PDF viewer modal
       setPdfViewerOpen(true);
       setSelectedResumeId(resumeId); // Set the selected resume ID for download button
     } catch (error: any) {
-      console.error('Failed to generate PDF:', error);
-      let errorMsg = 'Failed to generate PDF';
+      console.error('Failed to load PDF:', error);
+      
+      let errorMsg = 'Failed to load PDF';
       if (error.response?.data instanceof Blob) {
         try {
           const errorText = await error.response.data.text();
@@ -372,6 +397,7 @@ const ResumesPage: React.FC = () => {
       } else if (error.message) {
         errorMsg = error.message;
       }
+      
       setErrorMessage(errorMsg);
       setSnackbarOpen(true);
     } finally {
@@ -419,23 +445,32 @@ const ResumesPage: React.FC = () => {
         return;
       }
       
-      const pdfBlob = await getResumePdf(resumeId);
-      
-      // Create a download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
+      const response = await getResumePdf(resumeId);
       
       // Find the resume title for the filename
       const filename = resume ? `${resume.title}.pdf` : `resume-${resumeId}.pdf`;
       
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      if (isPdfResponse(response)) {
+        // Direct download from URL
+        const link = document.createElement('a');
+        link.href = response.pdf_url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else if (isBlob(response)) {
+        // Create a download link from blob
+        const url = window.URL.createObjectURL(response);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Unexpected response format from PDF service');
+      }
     } catch (error: any) {
       console.error('Failed to download PDF:', error);
       // Extract and display the error message
@@ -667,8 +702,13 @@ const ResumesPage: React.FC = () => {
                           placement="top"
                           TransitionProps={{ timeout: 0 }}
                         >
-                          <Button onClick={() => handleViewPdf(resume.id)}>
-                            <PdfIcon fontSize="small" />
+                          <Button 
+                            variant="outlined" 
+                            startIcon={generatingPdf && !pdfViewerOpen ? <CircularProgress size={16} /> : <PdfIcon />}
+                            onClick={() => handleViewPdf(resume.id)}
+                            disabled={generatingPdf}
+                          >
+                            {generatingPdf && !pdfViewerOpen ? 'Loading...' : 'See PDF'}
                           </Button>
                         </Tooltip>
                         <Tooltip 
@@ -848,7 +888,7 @@ const ResumesPage: React.FC = () => {
         <DialogTitle>Attach Portfolio to Resume</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            Select a portfolio to attach to this resume. This is required for PDF generation.
+            Select a portfolio to attach to this resume. This is required for PDF access.
           </DialogContentText>
           
           {loadingPortfolios ? (
@@ -1005,7 +1045,23 @@ const ResumesPage: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<PdfIcon />}
-                onClick={() => handleDownloadPdf(selectedResumeId)}
+                onClick={() => {
+                  // If the URL is a direct link (not a blob URL), download directly
+                  if (pdfUrl.startsWith('http')) {
+                    const resume = resumes.find(r => r.id === selectedResumeId);
+                    const filename = resume ? `${resume.title}.pdf` : `resume-${selectedResumeId}.pdf`;
+                    
+                    const link = document.createElement('a');
+                    link.href = pdfUrl;
+                    link.setAttribute('download', filename);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  } else {
+                    // Use the standard download function for blob URLs
+                    handleDownloadPdf(selectedResumeId);
+                  }
+                }}
                 size="small"
               >
                 Download

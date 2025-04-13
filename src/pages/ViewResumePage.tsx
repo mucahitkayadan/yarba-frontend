@@ -51,6 +51,21 @@ import { getResumeById, getResumePdf, deleteResume } from '../services/resumeSer
 import { Resume } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
+// Type for the PDF response from the server
+interface PdfResponse {
+  pdf_url: string;
+}
+
+// Type guard to check if response is PdfResponse
+const isPdfResponse = (response: any): response is PdfResponse => {
+  return response && typeof response.pdf_url === 'string';
+};
+
+// Type guard to check if response is Blob
+const isBlob = (response: any): response is Blob => {
+  return response instanceof Blob;
+};
+
 // Set up the worker for PDF.js
 pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
@@ -121,19 +136,28 @@ const ViewResumePage: React.FC = () => {
     
     setGeneratingPdf(true);
     try {
-      const blob = await getResumePdf(id);
-      setPdfBlob(blob);
+      const response = await getResumePdf(id);
       
-      // Create a URL for the PDF blob
-      const url = URL.createObjectURL(blob);
-      setPdfUrl(url);
+      // Check if response has pdf_url property (new format)
+      if (isPdfResponse(response)) {
+        // Just use the URL directly, no need to create a blob
+        setPdfUrl(response.pdf_url);
+        setPdfBlob(null); // We don't have a blob anymore
+      } else if (isBlob(response)) {
+        // Fallback to old approach (treating response as blob)
+        setPdfBlob(response);
+        const url = URL.createObjectURL(response);
+        setPdfUrl(url);
+      } else {
+        throw new Error('Unexpected response format from PDF service');
+      }
       
       // Open the PDF viewer modal
       setPdfViewerOpen(true);
     } catch (err: any) {
-      console.error('Failed to generate PDF:', err);
+      console.error('Failed to load PDF:', err);
       
-      let errorMsg = 'Failed to generate PDF';
+      let errorMsg = 'Failed to load PDF';
       if (err.response?.data instanceof Blob) {
         try {
           const errorText = await err.response.data.text();
@@ -187,23 +211,45 @@ const ViewResumePage: React.FC = () => {
         return;
       }
       
-      const pdfBlob = await getResumePdf(id);
+      const response = await getResumePdf(id);
       
-      // Create a download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Set the filename
-      const filename = `${resume.title}.pdf`;
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Handle the new response format that returns a pdf_url
+      if (isPdfResponse(response)) {
+        // Create a link element to trigger download of remote file
+        const link = document.createElement('a');
+        link.href = response.pdf_url;
+        
+        // Set the filename
+        const filename = `${resume.title}.pdf`;
+        link.setAttribute('download', filename);
+        
+        // Append to the document
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+      } else if (isBlob(response)) {
+        // Fallback to old approach (treating response as blob)
+        
+        // Create a download link
+        const url = window.URL.createObjectURL(response);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Set the filename
+        const filename = `${resume.title}.pdf`;
+        
+        link.setAttribute('download', filename);
+        document.body.appendChild(link);
+        link.click();
+        
+        // Clean up
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } else {
+        throw new Error('Unexpected response format from PDF service');
+      }
     } catch (err: any) {
       console.error('Failed to download PDF:', err);
       
@@ -1239,7 +1285,7 @@ const ViewResumePage: React.FC = () => {
             disabled={generatingPdf}
             size="small"
           >
-            {generatingPdf && !pdfViewerOpen ? 'Generating...' : 'See PDF'}
+            {generatingPdf && !pdfViewerOpen ? 'Loading...' : 'See PDF'}
           </Button>
           <Button 
             variant="contained" 
@@ -1248,7 +1294,7 @@ const ViewResumePage: React.FC = () => {
             disabled={generatingPdf}
             size="small"
           >
-            {generatingPdf ? 'Generating...' : 'Download PDF'}
+            {generatingPdf ? 'Loading...' : 'Download PDF'}
           </Button>
         </Stack>
       </Box>
@@ -1455,7 +1501,22 @@ const ViewResumePage: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<PdfIcon />}
-                onClick={handleDownloadPdf}
+                onClick={() => {
+                  // For direct pdf_url from server, we can just open it in new tab 
+                  // or trigger download using the URL we already have
+                  if (pdfUrl.startsWith('http')) {
+                    // Create a link element to trigger download
+                    const link = document.createElement('a');
+                    link.href = pdfUrl;
+                    link.setAttribute('download', `${resume?.title || 'resume'}.pdf`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  } else {
+                    // For blob URLs or other cases, fallback to regular download flow
+                    handleDownloadPdf();
+                  }
+                }}
                 size="small"
               >
                 Download
