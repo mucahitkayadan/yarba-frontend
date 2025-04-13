@@ -463,11 +463,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         open={isMobile ? drawerOpen : true}
         onClose={isMobile ? toggleDrawer : undefined}
         keepMounted={false}
+        disableScrollLock={true}
         ModalProps={{
           keepMounted: false,
           disableAutoFocus: true,
           disableEnforceFocus: true,
           disableRestoreFocus: true,
+          disablePortal: true,
+          hideBackdrop: !isMobile,
           BackdropProps: {
             sx: {
               backgroundColor: 'rgba(0, 0, 0, 0.5)', // Proper scrim opacity
