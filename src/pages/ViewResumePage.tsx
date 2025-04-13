@@ -536,9 +536,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No skills information available</Typography>;
     }
     
+    // Filter out empty skill categories or ones without valid skills arrays
+    const validSkillCategories = skills.filter(
+      category => category && category.category && category.skills && Array.isArray(category.skills) && category.skills.length > 0
+    );
+    
+    if (validSkillCategories.length === 0) {
+      return <Typography variant="body2">No skills information available</Typography>;
+    }
+    
     return (
       <Grid container spacing={2}>
-        {skills.map((skillCategory, index) => (
+        {validSkillCategories.map((skillCategory, index) => (
           <Grid item xs={12} sm={6} md={4} key={index}>
             <Card variant="outlined" sx={{ height: '100%' }}>
               <CardContent>
@@ -594,9 +603,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No work experience information available</Typography>;
     }
     
+    // Filter out empty or invalid work experiences
+    const validExperiences = experiences.filter(
+      job => job && (job.position || job.job_title) && job.company
+    );
+    
+    if (validExperiences.length === 0) {
+      return <Typography variant="body2">No work experience information available</Typography>;
+    }
+    
     return (
       <Box>
-        {experiences.map((job, index) => (
+        {validExperiences.map((job, index) => (
           <Box key={index} sx={{ display: 'flex', mb: 3 }}>
             {/* Date column */}
             <Box sx={{ width: '120px', pr: 2, pt: 1 }}>
@@ -695,9 +713,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No education information available</Typography>;
     }
     
+    // Filter out empty or invalid education entries
+    const validEducation = education.filter(
+      edu => edu && (edu.institution || edu.university_name) && (edu.degree || edu.field_of_study)
+    );
+    
+    if (validEducation.length === 0) {
+      return <Typography variant="body2">No education information available</Typography>;
+    }
+    
     return (
       <Box>
-        {education.map((edu, index) => (
+        {validEducation.map((edu, index) => (
           <Box key={index} sx={{ display: 'flex', mb: 3 }}>
             {/* Date column */}
             <Box sx={{ width: '120px', pr: 2, pt: 1 }}>
@@ -797,9 +824,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No project information available</Typography>;
     }
     
+    // Filter out empty or invalid projects
+    const validProjects = projects.filter(
+      project => project && project.name && (project.description || (project.achievements && project.achievements.length > 0) || (project.bullet_points && project.bullet_points.length > 0))
+    );
+    
+    if (validProjects.length === 0) {
+      return <Typography variant="body2">No project information available</Typography>;
+    }
+    
     return (
       <Grid container spacing={2}>
-        {projects.map((project, index) => (
+        {validProjects.map((project, index) => (
           <Grid item xs={12} key={index}>
             <Card variant="outlined">
               <CardContent>
@@ -880,9 +916,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No certification information available</Typography>;
     }
     
+    // Filter out empty certifications
+    const validCertifications = certifications.filter(
+      cert => cert && cert.name && cert.issuer
+    );
+    
+    if (validCertifications.length === 0) {
+      return <Typography variant="body2">No certification information available</Typography>;
+    }
+    
     return (
       <Grid container spacing={2}>
-        {certifications.map((cert, index) => (
+        {validCertifications.map((cert, index) => (
           <Grid item xs={12} sm={6} key={index}>
             <Card variant="outlined" sx={{ height: '100%' }}>
               <CardContent>
@@ -969,9 +1014,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No awards information available</Typography>;
     }
     
+    // Filter out empty awards
+    const validAwards = awards.filter(
+      award => award && (award.title || award.name)
+    );
+    
+    if (validAwards.length === 0) {
+      return <Typography variant="body2">No awards information available</Typography>;
+    }
+    
     return (
       <List disablePadding>
-        {awards.map((award, index) => (
+        {validAwards.map((award, index) => (
           <ListItem key={index} alignItems="flex-start" disablePadding sx={{ mb: 2 }}>
             <Avatar sx={{ bgcolor: 'secondary.main', mr: 2 }}>
               <AwardIcon />
@@ -1050,9 +1104,18 @@ const ViewResumePage: React.FC = () => {
       return <Typography variant="body2">No publications information available</Typography>;
     }
     
+    // Filter out empty publications
+    const validPublications = publications.filter(
+      pub => pub && (pub.title || pub.name) && pub.publisher
+    );
+    
+    if (validPublications.length === 0) {
+      return <Typography variant="body2">No publications information available</Typography>;
+    }
+    
     return (
       <List disablePadding>
-        {publications.map((pub, index) => (
+        {validPublications.map((pub, index) => (
           <ListItem key={index} alignItems="flex-start" disablePadding sx={{ mb: 2 }}>
             <Avatar sx={{ bgcolor: 'info.main', mr: 2 }}>
               <DescriptionIcon />
