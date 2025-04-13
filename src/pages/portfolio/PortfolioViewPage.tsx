@@ -293,48 +293,107 @@ const PortfolioViewPage: React.FC = () => {
 
         {/* Career Summary */}
         <TabPanel value={tabValue} index={0}>          
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>Job Titles</Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-              {portfolio.career_summary && portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 ? (
-                portfolio.career_summary.job_titles.map((title: string, index: number) => (
-                  <Chip 
-                    key={index} 
-                    label={title} 
-                    color={portfolio.career_summary?.default_job_title === title ? undefined : "primary"}
-                    sx={{
-                      bgcolor: portfolio.career_summary?.default_job_title === title ? '#E05B49' : undefined,
-                      color: portfolio.career_summary?.default_job_title === title ? 'white' : undefined,
-                    }}
-                  />
-                ))
-              ) : (
-                <Typography variant="body2" color="text.secondary">No job titles specified</Typography>
-              )}
+          {/* Job Title chip and experience in a single sentence, with other job titles above and below */}
+          {portfolio.career_summary && portfolio.career_summary.years_of_experience && 
+           (portfolio.career_summary.default_job_title || portfolio.career_summary.job_titles?.length > 0) && 
+           portfolio.career_summary.default_summary ? (
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 2, pl: 4, position: 'relative' }}>
+              {/* Calculate dynamic chip width based on longest job title */}
+              {(() => {
+                // Collect all job titles including the default one
+                const allTitles = [...(portfolio.career_summary.job_titles || [])];
+                if (portfolio.career_summary.default_job_title && 
+                    !allTitles.includes(portfolio.career_summary.default_job_title)) {
+                  allTitles.push(portfolio.career_summary.default_job_title);
+                }
+                
+                // Calculate approximate width (7px per character + 16px padding)
+                const chipWidth = allTitles.length > 0 
+                  ? Math.max(...allTitles.map(title => title.length)) * 7 + 16
+                  : 100; // fallback width
+                
+                // Get default title and other titles
+                const defaultTitle = portfolio.career_summary.default_job_title || 
+                  (portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 
+                    ? portfolio.career_summary.job_titles[0] 
+                    : '');
+                    
+                const otherTitles = (portfolio.career_summary.job_titles || [])
+                  .filter(title => title !== defaultTitle);
+                
+                // Split other titles into two groups
+                const firstHalf = otherTitles.slice(0, Math.ceil(otherTitles.length / 2));
+                const secondHalf = otherTitles.slice(Math.ceil(otherTitles.length / 2));
+                
+                return (
+                  <>
+                    {/* First half of other job titles */}
+                    {firstHalf.length > 0 && (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        {firstHalf.map((title, index) => (
+                          <Chip 
+                            key={index} 
+                            label={title} 
+                            color="primary"
+                            size="small"
+                            sx={{ width: chipWidth }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                    
+                    {/* The default job title chip with "A" to the left */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+                      <Typography 
+                        variant="body1" 
+                        sx={{ 
+                          position: 'absolute', 
+                          right: '100%', 
+                          mr: 1, 
+                          whiteSpace: 'nowrap' 
+                        }}
+                      >
+                        A
+                      </Typography>
+                      <Chip 
+                        label={defaultTitle} 
+                        size="small"
+                        sx={{
+                          bgcolor: portfolio.career_summary?.default_job_title ? '#E05B49' : 'primary.main',
+                          color: 'white',
+                          width: chipWidth
+                        }}
+                      />
+                      <Typography variant="body1" sx={{ ml: 1 }}>
+                        with <Typography component="span" variant="body1" fontWeight="bold" display="inline">
+                          {portfolio.career_summary?.years_of_experience}
+                        </Typography> years of experience {portfolio.career_summary?.default_summary}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Second half of other job titles */}
+                    {secondHalf.length > 0 && (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        {secondHalf.map((title, index) => (
+                          <Chip 
+                            key={index} 
+                            label={title} 
+                            color="primary"
+                            size="small"
+                            sx={{ width: chipWidth }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </>
+                );
+              })()}
             </Box>
-          </Box>
-          
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>Professional Summary</Typography>
-            <Typography variant="body1">
-              {portfolio.career_summary && portfolio.career_summary.default_summary ? (
-                portfolio.career_summary.default_summary
-              ) : (
-                "No professional summary provided yet."
-              )}
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              {portfolio.career_summary?.default_summary || "No professional summary provided yet."}
             </Typography>
-          </Box>
-          
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>Years of Experience</Typography>
-            <Typography variant="body1">
-              {portfolio.career_summary && portfolio.career_summary.years_of_experience ? (
-                `${portfolio.career_summary.years_of_experience} years`
-              ) : (
-                "Not specified"
-              )}
-            </Typography>
-          </Box>
+          )}
         </TabPanel>
 
         {/* Skills Tab */}
