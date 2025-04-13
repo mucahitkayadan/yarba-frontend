@@ -463,9 +463,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         open={isMobile ? drawerOpen : true}
         onClose={isMobile ? toggleDrawer : undefined}
         keepMounted={false}
-        disableAutoFocus={true}
-        disableEnforceFocus={true}
-        disableRestoreFocus={true}
         ModalProps={{
           keepMounted: false,
           disableAutoFocus: true,
