@@ -66,6 +66,7 @@ interface ViewPortfolio {
     job_titles: string[];
     years_of_experience: string;
     default_summary: string;
+    default_job_title?: string;
   };
   skills?: Array<{
     category: string;
@@ -276,8 +277,8 @@ const PortfolioViewPage: React.FC = () => {
             value={tabValue} 
             onChange={handleTabChange} 
             aria-label="portfolio tabs"
-            variant="scrollable"
-            scrollButtons="auto"
+            variant="fullWidth"
+            centered
           >
             <Tab icon={<PersonIcon />} label="Summary" />
             <Tab icon={<WorkIcon />} label="Skills" />
@@ -297,7 +298,15 @@ const PortfolioViewPage: React.FC = () => {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {portfolio.career_summary && portfolio.career_summary.job_titles && portfolio.career_summary.job_titles.length > 0 ? (
                 portfolio.career_summary.job_titles.map((title: string, index: number) => (
-                  <Chip key={index} label={title} color="primary" />
+                  <Chip 
+                    key={index} 
+                    label={title} 
+                    color={portfolio.career_summary?.default_job_title === title ? undefined : "primary"}
+                    sx={{
+                      bgcolor: portfolio.career_summary?.default_job_title === title ? '#E05B49' : undefined,
+                      color: portfolio.career_summary?.default_job_title === title ? 'white' : undefined,
+                    }}
+                  />
                 ))
               ) : (
                 <Typography variant="body2" color="text.secondary">No job titles specified</Typography>

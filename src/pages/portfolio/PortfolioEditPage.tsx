@@ -99,6 +99,7 @@ const PortfolioEditPage: React.FC = () => {
     job_titles: string[];
     years_of_experience: string;
     default_summary: string;
+    default_job_title?: string;
   }>({
     job_titles: [],
     years_of_experience: '',
@@ -195,7 +196,8 @@ const PortfolioEditPage: React.FC = () => {
         setCareerSummary({
           job_titles: portfolioData.career_summary.job_titles || [],
           years_of_experience: portfolioData.career_summary.years_of_experience || '',
-          default_summary: portfolioData.career_summary.default_summary || ''
+          default_summary: portfolioData.career_summary.default_summary || '',
+          default_job_title: portfolioData.career_summary.default_job_title || undefined
         });
       }
       
@@ -451,7 +453,7 @@ const PortfolioEditPage: React.FC = () => {
         Back to Portfolio
       </Button>
       
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', mb: 3 }}>
         
         <Button
           variant="contained"
@@ -501,7 +503,7 @@ const PortfolioEditPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>Career Summary</Typography>
           <Divider sx={{ mb: 3 }} />
           
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             <Grid item xs={12}>
               <TextField
                 fullWidth
@@ -562,7 +564,7 @@ const PortfolioEditPage: React.FC = () => {
                 )}
               </Box>
               
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <TextField
                   label="New Job Title"
                   value={newJobTitle}
@@ -600,6 +602,31 @@ const PortfolioEditPage: React.FC = () => {
                   Add Job Title
                 </Button>
               </Box>
+              
+              <FormControl fullWidth margin="normal">
+                <InputLabel id="default-job-title-label">Default Job Title</InputLabel>
+                <Select
+                  labelId="default-job-title-label"
+                  id="default-job-title"
+                  value={careerSummary.default_job_title || ''}
+                  onChange={(e) => setCareerSummary({
+                    ...careerSummary,
+                    default_job_title: e.target.value || undefined
+                  })}
+                  label="Default Job Title"
+                  disabled={careerSummary.job_titles.length === 0}
+                >
+                  <MenuItem value="">
+                    <em>None (Auto-generate from experience)</em>
+                  </MenuItem>
+                  {careerSummary.job_titles.map((title, index) => (
+                    <MenuItem key={index} value={title}>{title}</MenuItem>
+                  ))}
+                </Select>
+                <FormHelperText>
+                  Select a default job title to display in resumes. Leave empty to use automatically generated titles based on experience.
+                </FormHelperText>
+              </FormControl>
             </Grid>
           </Grid>
         </TabPanel>

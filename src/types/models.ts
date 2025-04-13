@@ -122,6 +122,7 @@ export interface Portfolio {
     job_titles: string[];
     years_of_experience: string;
     default_summary: string;
+    default_job_title?: string;
   };
   skills: {
     category: string;

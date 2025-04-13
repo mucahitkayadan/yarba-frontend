@@ -461,6 +461,23 @@ const ViewResumePage: React.FC = () => {
       summary = data;
     }
     
+    // Determine job title to use - first check for explicitly set default_job_title
+    const jobTitle = summary.default_job_title || summary.job_title || (summary.job_titles && summary.job_titles.length > 0 ? summary.job_titles[0] : '');
+    
+    // If we have all the necessary parts, display as a single sentence
+    if (jobTitle && summary.years_of_experience && summary.default_summary) {
+      return (
+        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+          A <Typography component="span" variant="body1" fontWeight="bold" display="inline">
+            {jobTitle}
+          </Typography> with <Typography component="span" variant="body1" fontWeight="bold" display="inline">
+            {summary.years_of_experience} years
+          </Typography> of experience {summary.default_summary}
+        </Typography>
+      );
+    }
+    
+    // Fallback to the original display if we don't have all parts
     return (
       <Box>
         {summary.job_title && (
