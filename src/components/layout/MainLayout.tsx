@@ -302,9 +302,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           backgroundImage: 'linear-gradient(to right,rgb(142, 92, 150),rgb(122, 172, 216))',
           zIndex: (theme) => theme.zIndex.drawer + 1,
           boxShadow: 3,
+          height: { 
+            xs: '56px',
+            sm: '56px',
+            md: '64px'
+          }
         }}
       >
-        <Toolbar sx={{ minHeight: { xs: 56, sm: 56 }, py: 0.5 }}>
+        <Toolbar 
+          sx={{ 
+            minHeight: { xs: 56, sm: 56, md: 64 }, 
+            py: { xs: 0, md: 0.5 },
+            px: { xs: 1, sm: 2 } // Reduce horizontal padding on mobile for more space
+          }}
+        >
           <IconButton
             color="inherit"
             aria-label="open drawer"
@@ -477,7 +488,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               duration: theme.transitions.duration.enteringScreen,
             }),
             boxSizing: 'border-box',
-            paddingTop: isMobile ? 0 : '64px', // Remove top padding on mobile to span full height
+            paddingTop: isMobile ? '56px' : '64px', // Proper padding for header height
+            marginTop: 0, // Ensure no additional margin
             height: '100%',
             backgroundColor: '#ffffff',
             backgroundImage: 'linear-gradient(to bottom right, rgb(142, 92, 150), rgb(122, 172, 216))',
@@ -497,7 +509,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           flexGrow: 1,
           p: 0,
           width: '100%',
-          marginTop: '64px',
+          marginTop: {
+            xs: '56px', // Mobile header height
+            sm: '56px', // Small tablets
+            md: '64px'  // Desktop header height
+          },
           marginLeft: {
             xs: 0, // Mobile: no margin
             md: drawerOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` // Desktop: margin based on drawer width
