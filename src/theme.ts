@@ -139,6 +139,15 @@ const theme = createTheme({
         },
       },
     },
+    MuiContainer: {
+      styleOverrides: {
+        root: {
+          paddingLeft: 0,
+          paddingRight: 0,
+          maxWidth: '100% !important',
+        },
+      },
+    },
     MuiSnackbar: {
       defaultProps: {
         anchorOrigin: {
