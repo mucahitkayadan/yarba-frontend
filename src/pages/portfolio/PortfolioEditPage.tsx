@@ -22,7 +22,11 @@ import {
   FormHelperText,
   InputAdornment,
   Card,
-  CardContent
+  CardContent,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import {
   Save as SaveIcon,
@@ -106,6 +110,7 @@ const PortfolioEditPage: React.FC = () => {
     default_summary: ''
   });
   const [newJobTitle, setNewJobTitle] = useState('');
+  const [jobTitleDialogOpen, setJobTitleDialogOpen] = useState(false);
   
   // Work Experience state
   const [workExperience, setWorkExperience] = useState<Array<{
@@ -326,6 +331,20 @@ const PortfolioEditPage: React.FC = () => {
     }
   };
 
+  const handleDeleteJobTitle = (index: number) => {
+    const updatedTitles = [...careerSummary.job_titles];
+    const titleToRemove = updatedTitles[index];
+    updatedTitles.splice(index, 1);
+    
+    setCareerSummary({
+      ...careerSummary,
+      job_titles: updatedTitles,
+      default_job_title: careerSummary.default_job_title === titleToRemove ? 
+        (updatedTitles.length > 0 ? updatedTitles[0] : undefined) : 
+        careerSummary.default_job_title
+    });
+  };
+
   const handleSave = async () => {
     if (!id || !portfolio) return;
     
@@ -504,105 +523,44 @@ const PortfolioEditPage: React.FC = () => {
           <Divider sx={{ mb: 3 }} />
           
           <Grid container spacing={2}>
+            {/* Preview of how it will look */}
             <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Years of Experience"
-                value={careerSummary.years_of_experience}
-                onChange={(e) => setCareerSummary({
-                  ...careerSummary,
-                  years_of_experience: e.target.value
-                })}
-                variant="outlined"
-                placeholder="e.g., 5"
-                margin="normal"
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Default Summary"
-                value={careerSummary.default_summary}
-                onChange={(e) => setCareerSummary({
-                  ...careerSummary,
-                  default_summary: e.target.value
-                })}
-                variant="outlined"
-                placeholder="e.g., in software development, machine learning, and computer vision."
-                margin="normal"
-                multiline
-                rows={3}
-              />
-            </Grid>
-            
-            <Grid item xs={12}>
-              <Typography variant="subtitle1" gutterBottom>
-                Job Titles
-              </Typography>
-              
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                {careerSummary.job_titles.map((title, index) => (
-                  <Chip
-                    key={index}
-                    label={title}
-                    onDelete={() => {
-                      const updatedTitles = [...careerSummary.job_titles];
-                      updatedTitles.splice(index, 1);
-                      setCareerSummary({
-                        ...careerSummary,
-                        job_titles: updatedTitles
-                      });
+              <Paper elevation={0} sx={{ p: 2, mb: 3, bgcolor: 'rgba(0, 0, 0, 0.02)', borderRadius: 1 }}>
+                <Typography variant="subtitle2" gutterBottom color="text.secondary">Preview:</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1, pl: 1 }}>
+                  <Typography variant="body1">A</Typography>
+                  <Chip 
+                    label={careerSummary.default_job_title || (careerSummary.job_titles.length > 0 ? careerSummary.job_titles[0] : 'Your Job Title')} 
+                    size="small"
+                    sx={{
+                      bgcolor: careerSummary.default_job_title ? '#E05B49' : 'primary.main',
+                      color: 'white',
                     }}
-                    sx={{ m: 0.5 }}
                   />
-                ))}
-                {careerSummary.job_titles.length === 0 && (
-                  <Typography variant="body2" color="text.secondary">
-                    No job titles added yet
+                  <Typography variant="body1">
+                    with <Box 
+                      component="span" 
+                      sx={{ 
+                        display: 'inline-flex',
+                        fontWeight: 'bold',
+                        bgcolor: 'rgba(25, 118, 210, 0.1)',
+                        borderRadius: 1,
+                        px: 1,
+                        py: 0.3,
+                        mx: 0.5,
+                        border: '1px solid rgba(25, 118, 210, 0.3)',
+                        color: 'primary.main'
+                      }}
+                    >
+                      {careerSummary.years_of_experience || '...'}
+                    </Box> years of experience {careerSummary.default_summary || '...'}
                   </Typography>
-                )}
-              </Box>
-              
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                <TextField
-                  label="New Job Title"
-                  value={newJobTitle}
-                  onChange={(e) => setNewJobTitle(e.target.value)}
-                  variant="outlined"
-                  size="small"
-                  sx={{ flexGrow: 1, mr: 2 }}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      if (newJobTitle.trim()) {
-                        setCareerSummary({
-                          ...careerSummary,
-                          job_titles: [...careerSummary.job_titles, newJobTitle.trim()]
-                        });
-                        setNewJobTitle('');
-                      }
-                    }
-                  }}
-                />
-                
-                <Button
-                  variant="outlined"
-                  onClick={() => {
-                    if (newJobTitle.trim()) {
-                      setCareerSummary({
-                        ...careerSummary,
-                        job_titles: [...careerSummary.job_titles, newJobTitle.trim()]
-                      });
-                      setNewJobTitle('');
-                    }
-                  }}
-                  disabled={!newJobTitle.trim()}
-                >
-                  Add Job Title
-                </Button>
-              </Box>
-              
+                </Box>
+              </Paper>
+            </Grid>
+            
+            {/* Default Job Title Selection */}
+            <Grid item xs={12} md={6}>
               <FormControl fullWidth margin="normal">
                 <InputLabel id="default-job-title-label">Default Job Title</InputLabel>
                 <Select
@@ -624,9 +582,133 @@ const PortfolioEditPage: React.FC = () => {
                   ))}
                 </Select>
                 <FormHelperText>
-                  Select a default job title to display in resumes. Leave empty to use automatically generated titles based on experience.
+                  Select a default job title to display in resumes
                 </FormHelperText>
               </FormControl>
+            </Grid>
+            
+            {/* Years of Experience */}
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Years of Experience"
+                value={careerSummary.years_of_experience}
+                onChange={(e) => setCareerSummary({
+                  ...careerSummary,
+                  years_of_experience: e.target.value
+                })}
+                variant="outlined"
+                placeholder="e.g., 5"
+                margin="normal"
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">years</InputAdornment>,
+                }}
+              />
+            </Grid>
+            
+            {/* Professional Summary */}
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Professional Summary"
+                value={careerSummary.default_summary}
+                onChange={(e) => setCareerSummary({
+                  ...careerSummary,
+                  default_summary: e.target.value
+                })}
+                variant="outlined"
+                placeholder="e.g., in software development, machine learning, and computer vision."
+                margin="normal"
+                multiline
+                rows={3}
+                helperText="Describe your experience and expertise without mentioning job title or years - those are automatically filled in"
+              />
+            </Grid>
+            
+            <Grid item xs={12} sx={{ mt: 1 }}>
+              <Divider>
+                <Chip label="Job Titles" size="small" />
+              </Divider>
+            </Grid>
+            
+            <Grid item xs={12}>
+              <Typography variant="subtitle2" gutterBottom>
+                Available Job Titles
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                {careerSummary.job_titles.map((title, index) => (
+                  <Chip
+                    key={index}
+                    label={title}
+                    color={title === careerSummary.default_job_title ? undefined : "primary"}
+                    sx={{ 
+                      bgcolor: title === careerSummary.default_job_title ? '#E05B49' : undefined,
+                      color: title === careerSummary.default_job_title ? 'white' : undefined,
+                    }}
+                    onDelete={() => handleDeleteJobTitle(index)}
+                  />
+                ))}
+                <Chip
+                  icon={<AddIcon />}
+                  label="Add Job Title"
+                  onClick={() => setJobTitleDialogOpen(true)}
+                  color="default"
+                  variant="outlined"
+                  sx={{ borderStyle: 'dashed' }}
+                />
+                {careerSummary.job_titles.length === 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    No job titles added yet
+                  </Typography>
+                )}
+              </Box>
+              
+              {/* Add Job Title Dialog */}
+              <Dialog open={jobTitleDialogOpen} onClose={() => setJobTitleDialogOpen(false)}>
+                <DialogTitle>Add New Job Title</DialogTitle>
+                <DialogContent>
+                  <TextField
+                    autoFocus
+                    margin="dense"
+                    id="jobTitle"
+                    label="Job Title"
+                    type="text"
+                    fullWidth
+                    variant="outlined"
+                    value={newJobTitle}
+                    onChange={(e) => setNewJobTitle(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter' && newJobTitle.trim()) {
+                        setCareerSummary({
+                          ...careerSummary,
+                          job_titles: [...careerSummary.job_titles, newJobTitle.trim()]
+                        });
+                        setNewJobTitle('');
+                        setJobTitleDialogOpen(false);
+                      }
+                    }}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={() => setJobTitleDialogOpen(false)}>Cancel</Button>
+                  <Button 
+                    onClick={() => {
+                      if (newJobTitle.trim()) {
+                        setCareerSummary({
+                          ...careerSummary,
+                          job_titles: [...careerSummary.job_titles, newJobTitle.trim()]
+                        });
+                        setNewJobTitle('');
+                        setJobTitleDialogOpen(false);
+                      }
+                    }} 
+                    disabled={!newJobTitle.trim()}
+                  >
+                    Add
+                  </Button>
+                </DialogActions>
+              </Dialog>
             </Grid>
           </Grid>
         </TabPanel>

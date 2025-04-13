@@ -365,9 +365,22 @@ const PortfolioViewPage: React.FC = () => {
                         }}
                       />
                       <Typography variant="body1" sx={{ ml: 1 }}>
-                        with <Typography component="span" variant="body1" fontWeight="bold" display="inline">
+                        with <Box 
+                          component="span" 
+                          sx={{ 
+                            display: 'inline-flex',
+                            fontWeight: 'bold',
+                            bgcolor: 'rgba(25, 118, 210, 0.1)',
+                            borderRadius: 1,
+                            px: 1,
+                            py: 0.3,
+                            mx: 0.5,
+                            border: '1px solid rgba(25, 118, 210, 0.3)',
+                            color: 'primary.main'
+                          }}
+                        >
                           {portfolio.career_summary?.years_of_experience}
-                        </Typography> years of experience {portfolio.career_summary?.default_summary}
+                        </Box> years of experience {portfolio.career_summary?.default_summary}
                       </Typography>
                     </Box>
                     
