@@ -1186,9 +1186,10 @@ const ViewResumePage: React.FC = () => {
 
   return (
     <Box sx={{ 
-      p: '16px 16px 16px 0',
-      maxWidth: '1000px',
-      margin: '0 auto'
+      width: '100%', 
+      p: 3, 
+      pl: 2, 
+      pt: 2
     }}>
       {/* Breadcrumbs Navigation */}
       <Breadcrumbs sx={{ mb: 2 }}>
