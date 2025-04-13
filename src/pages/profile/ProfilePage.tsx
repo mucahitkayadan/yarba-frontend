@@ -337,132 +337,392 @@ const ProfilePage: React.FC = () => {
         </TabPanel>
         
         <TabPanel value={tabValue} index={1}>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            {/* Career Summary Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Career Summary
-              </Typography>
-              <Typography variant="body2">
-                Minimum Words: {profile.preferences?.career_summary_details?.min_words || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Maximum Words: {profile.preferences?.career_summary_details?.max_words || 'Not set'}
-              </Typography>
-            </Paper>
+          <Box sx={{ width: '100%' }}>
+            {/* Career Summary */}
+            <Typography variant="h6" gutterBottom>
+              Career Summary
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Minimum Words:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.career_summary_details?.min_words || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Words:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.career_summary_details?.max_words || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Work Experience Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Work Experience
-              </Typography>
-              <Typography variant="body2">
-                Maximum Jobs: {profile.preferences?.work_experience_details?.max_jobs || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Bullet Points Per Job: {profile.preferences?.work_experience_details?.bullet_points_per_job || 'Not set'}
-              </Typography>
-            </Paper>
+            {/* Work Experience */}
+            <Typography variant="h6" gutterBottom>
+              Work Experience
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Jobs:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.work_experience_details?.max_jobs || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Bullet Points Per Job:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.work_experience_details?.bullet_points_per_job || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Project Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Projects
-              </Typography>
-              <Typography variant="body2">
-                Maximum Projects: {profile.preferences?.project_details?.max_projects || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Bullet Points Per Project: {profile.preferences?.project_details?.bullet_points_per_project || 'Not set'}
-              </Typography>
-            </Paper>
+            {/* Projects */}
+            <Typography variant="h6" gutterBottom>
+              Projects
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Projects:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.project_details?.max_projects || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Bullet Points Per Project:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.project_details?.bullet_points_per_project || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Skills Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Skills
-              </Typography>
-              <Typography variant="body2">
-                Maximum Categories: {profile.preferences?.skills_details?.max_categories || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Min Skills Per Category: {profile.preferences?.skills_details?.min_skills_per_category || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Max Skills Per Category: {profile.preferences?.skills_details?.max_skills_per_category || 'Not set'}
-              </Typography>
-            </Paper>
+            {/* Skills */}
+            <Typography variant="h6" gutterBottom>
+              Skills
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Categories:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.skills_details?.max_categories || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Min Skills Per Category:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.skills_details?.min_skills_per_category || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Max Skills Per Category:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.skills_details?.max_skills_per_category || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Education Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Education
-              </Typography>
-              <Typography variant="body2">
-                Maximum Entries: {profile.preferences?.education_details?.max_entries || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Maximum Courses: {profile.preferences?.education_details?.max_courses || 'Not set'}
-              </Typography>
-            </Paper>
+            {/* Education */}
+            <Typography variant="h6" gutterBottom>
+              Education
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Entries:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.education_details?.max_entries || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Courses:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.education_details?.max_courses || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Cover Letter Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Cover Letter
-              </Typography>
-              <Typography variant="body2">
-                Paragraphs: {profile.preferences?.cover_letter_details?.paragraphs || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Target Grade Level: {profile.preferences?.cover_letter_details?.target_grade_level || 'Not set'}
-              </Typography>
-            </Paper>
+            {/* Cover Letter */}
+            <Typography variant="h6" gutterBottom>
+              Cover Letter
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Paragraphs:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.cover_letter_details?.paragraphs || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Target Age:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.cover_letter_details?.target_age || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
-            {/* Other Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Other Sections
+            {/* Other Sections */}
+            <Typography variant="h6" gutterBottom>
+              Other Sections
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Awards:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.awards_details?.max_awards || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Maximum Publications:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.publications_details?.max_publications || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Section Processing */}
+            <Typography variant="h6" gutterBottom>
+              Section Processing
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Personal Information:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.personal_information || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Career Summary:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.career_summary || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Skills:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.skills || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Work Experience:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.work_experience || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Education:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.education || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Projects:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.projects || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Awards:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.awards || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Publications:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.section_preferences?.publications || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Default Templates */}
+            <Typography variant="h6" gutterBottom>
+              Default Templates
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Resume Template:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.default_latex_templates?.default_resume_template_id || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Cover Letter Template:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.default_latex_templates?.default_cover_letter_template_id || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* LaTeX Template Preferences */}
+            <Typography variant="h6" gutterBottom>
+              LaTeX Template Preferences
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Resume Template:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.latex_template_preferences?.resume_template || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Cover Letter Template:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.latex_template_preferences?.cover_letter_template || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
+            
+            {/* Privacy Settings */}
+            <Typography variant="h6" gutterBottom>
+              Privacy Settings
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                {Object.keys(profile.preferences?.privacy || {}).length > 0 
+                  ? 'Custom privacy settings configured' 
+                  : 'No privacy settings configured'}
               </Typography>
-              <Typography variant="body2">
-                Maximum Awards: {profile.preferences?.awards_details?.max_awards || 'Not set'}
+            </Box>
+            
+            {/* Notification Settings */}
+            <Typography variant="h6" gutterBottom>
+              Notification Settings
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                {Object.keys(profile.preferences?.notifications || {}).length > 0 
+                  ? 'Custom notification settings configured' 
+                  : 'No notification settings configured'}
               </Typography>
-              <Typography variant="body2">
-                Maximum Publications: {profile.preferences?.publications_details?.max_publications || 'Not set'}
-              </Typography>
-            </Paper>
+            </Box>
             
             {/* AI Settings */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                AI Settings
-              </Typography>
-              <Typography variant="body2">
-                Model Type: {profile.preferences?.llm_preferences?.model_type || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Model Name: {profile.preferences?.llm_preferences?.model_name || 'Not set'}
-              </Typography>
-              <Typography variant="body2">
-                Temperature: {profile.preferences?.llm_preferences?.temperature || 'Not set'}
-              </Typography>
-            </Paper>
+            <Typography variant="h6" gutterBottom>
+              AI Settings
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Model Type:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.llm_preferences?.model_type || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Model Name:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.llm_preferences?.model_name || 'Not set'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Temperature:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.llm_preferences?.temperature || 'Not set'}
+                </Typography>
+              </Box>
+            </Box>
             
             {/* Feature Preferences */}
-            <Paper elevation={0} sx={{ p: 2, bgcolor: 'background.default' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Feature Preferences
-              </Typography>
-              <Typography variant="body2">
-                Dark Mode: {profile.preferences?.feature_preferences?.dark_mode ? 'Enabled' : 'Disabled'}
-              </Typography>
-              <Typography variant="body2">
-                Auto Save: {profile.preferences?.feature_preferences?.auto_save ? 'Enabled' : 'Disabled'}
-              </Typography>
-              <Typography variant="body2">
-                Check Clearance: {profile.preferences?.feature_preferences?.check_clearance ? 'Enabled' : 'Disabled'}
-              </Typography>
-            </Paper>
+            <Typography variant="h6" gutterBottom>
+              Feature Preferences
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ mb: 4 }}>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Dark Mode:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.feature_preferences?.dark_mode ? 'Enabled' : 'Disabled'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Auto Save:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.feature_preferences?.auto_save ? 'Enabled' : 'Disabled'}
+                </Typography>
+              </Box>
+              <Box sx={{ display: 'flex', mb: 1 }}>
+                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
+                  Check Clearance:
+                </Typography>
+                <Typography variant="body2">
+                  {profile.preferences?.feature_preferences?.check_clearance ? 'Enabled' : 'Disabled'}
+                </Typography>
+              </Box>
+            </Box>
           </Box>
         </TabPanel>
         

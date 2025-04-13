@@ -1179,7 +1179,7 @@ const ViewResumePage: React.FC = () => {
     
     return (
       <Paper elevation={0} sx={{ mb: 2, p: 2, backgroundColor: '#f9f9f9' }}>
-        <Typography variant="h6" gutterBottom color="primary" sx={{ fontSize: '1.1rem' }}>
+        <Typography variant="h6" component="div" gutterBottom color="primary" sx={{ fontSize: '1.1rem' }}>
           {title}
         </Typography>
         <Divider sx={{ mb: 1.5 }} />
@@ -1361,7 +1361,7 @@ const ViewResumePage: React.FC = () => {
       <Box sx={{ width: '100%' }}>
         {/* Resume Details */}
         <Paper elevation={0} sx={{ mb: 3, p: 2, backgroundColor: '#f9f9f9' }}>
-          <Typography variant="h6" gutterBottom color="primary">
+          <Typography variant="h6" component="div" gutterBottom color="primary">
             Resume Details
           </Typography>
           <Divider sx={{ mb: 2 }} />
@@ -1489,7 +1489,7 @@ const ViewResumePage: React.FC = () => {
         }}
       >
         <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6">
+          <Typography variant="h6" component="div">
             {resume?.title || 'Resume'} PDF Preview
           </Typography>
           <IconButton onClick={handleClosePdfViewer} size="small">

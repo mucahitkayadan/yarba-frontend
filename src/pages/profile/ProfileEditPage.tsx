@@ -12,7 +12,14 @@ import {
   Divider,
   Tabs,
   Tab,
-  SelectChangeEvent
+  SelectChangeEvent,
+  Switch,
+  FormControlLabel,
+  FormGroup,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
 import { getUserProfile, updateProfile, updatePersonalInformation, updatePreferences, updateLifeStory } from '../../services/profileService';
@@ -74,7 +81,7 @@ const ProfileEditPage: React.FC = () => {
     project_max_projects: 3,
     project_bullet_points_per_project: 3,
     cover_letter_paragraphs: 3,
-    cover_letter_target_grade_level: 9,
+    cover_letter_target_age: 25,
     skills_max_categories: 5,
     skills_min_per_category: 3,
     skills_max_per_category: 8,
@@ -82,7 +89,20 @@ const ProfileEditPage: React.FC = () => {
     education_max_courses: 5,
     awards_max_awards: 3,
     publications_max_publications: 3,
-    certifications_max_certifications: 3
+    certifications_max_certifications: 3,
+    feature_check_clearance: true,
+    feature_auto_save: true,
+    feature_dark_mode: false,
+    section_personal_information: 'Hardcode',
+    section_career_summary: 'Process',
+    section_skills: 'Process',
+    section_work_experience: 'Process',
+    section_education: 'Process',
+    section_projects: 'Process',
+    section_awards: 'Hardcode',
+    section_publications: 'Hardcode',
+    default_resume_template_id: 'classic',
+    default_cover_letter_template_id: 'standard'
   });
   
   // Fetch profile data on component mount
@@ -124,7 +144,7 @@ const ProfileEditPage: React.FC = () => {
           project_max_projects: profileData.preferences.project_details?.max_projects || 3,
           project_bullet_points_per_project: profileData.preferences.project_details?.bullet_points_per_project || 3,
           cover_letter_paragraphs: profileData.preferences.cover_letter_details?.paragraphs || 3,
-          cover_letter_target_grade_level: profileData.preferences.cover_letter_details?.target_grade_level || 9,
+          cover_letter_target_age: profileData.preferences.cover_letter_details?.target_age || 25,
           skills_max_categories: profileData.preferences.skills_details?.max_categories || 5,
           skills_min_per_category: profileData.preferences.skills_details?.min_skills_per_category || 3,
           skills_max_per_category: profileData.preferences.skills_details?.max_skills_per_category || 8,
@@ -133,6 +153,19 @@ const ProfileEditPage: React.FC = () => {
           awards_max_awards: profileData.preferences.awards_details?.max_awards || 3,
           publications_max_publications: profileData.preferences.publications_details?.max_publications || 3,
           certifications_max_certifications: profileData.preferences.certifications_max_certifications || 3,
+          feature_check_clearance: profileData.preferences.feature_preferences?.check_clearance || true,
+          feature_auto_save: profileData.preferences.feature_preferences?.auto_save || true,
+          feature_dark_mode: profileData.preferences.feature_preferences?.dark_mode || false,
+          section_personal_information: profileData.preferences.section_preferences?.personal_information || 'Hardcode',
+          section_career_summary: profileData.preferences.section_preferences?.career_summary || 'Process',
+          section_skills: profileData.preferences.section_preferences?.skills || 'Process',
+          section_work_experience: profileData.preferences.section_preferences?.work_experience || 'Process',
+          section_education: profileData.preferences.section_preferences?.education || 'Process',
+          section_projects: profileData.preferences.section_preferences?.projects || 'Process',
+          section_awards: profileData.preferences.section_preferences?.awards || 'Hardcode',
+          section_publications: profileData.preferences.section_preferences?.publications || 'Hardcode',
+          default_resume_template_id: profileData.preferences.default_latex_templates?.default_resume_template_id || 'classic',
+          default_cover_letter_template_id: profileData.preferences.default_latex_templates?.default_cover_letter_template_id || 'standard'
         });
       }
     } catch (err: any) {
@@ -179,6 +212,14 @@ const ProfileEditPage: React.FC = () => {
     setPreferences(prev => ({
       ...prev,
       [name]: newValue
+    }));
+  };
+
+  const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setPreferences(prev => ({
+      ...prev,
+      [name]: checked
     }));
   };
 
@@ -233,13 +274,32 @@ const ProfileEditPage: React.FC = () => {
           },
           cover_letter_details: {
             paragraphs: parseInt(preferences.cover_letter_paragraphs.toString()),
-            target_grade_level: parseInt(preferences.cover_letter_target_grade_level.toString())
+            target_age: parseInt(preferences.cover_letter_target_age.toString())
           },
           awards_details: {
             max_awards: parseInt(preferences.awards_max_awards.toString())
           },
           publications_details: {
             max_publications: parseInt(preferences.publications_max_publications.toString())
+          },
+          feature_preferences: {
+            check_clearance: preferences.feature_check_clearance,
+            auto_save: preferences.feature_auto_save,
+            dark_mode: preferences.feature_dark_mode
+          },
+          section_preferences: {
+            personal_information: preferences.section_personal_information,
+            career_summary: preferences.section_career_summary,
+            skills: preferences.section_skills,
+            work_experience: preferences.section_work_experience,
+            education: preferences.section_education,
+            projects: preferences.section_projects,
+            awards: preferences.section_awards,
+            publications: preferences.section_publications
+          },
+          default_latex_templates: {
+            default_resume_template_id: preferences.default_resume_template_id,
+            default_cover_letter_template_id: preferences.default_cover_letter_template_id
           }
         };
         
@@ -728,15 +788,15 @@ const ProfileEditPage: React.FC = () => {
                 <TextField
                   fullWidth
                   type="number"
-                  label="Target Grade Level"
-                  name="cover_letter_target_grade_level"
-                  value={preferences.cover_letter_target_grade_level}
+                  label="Target Age"
+                  name="cover_letter_target_age"
+                  value={preferences.cover_letter_target_age}
                   onChange={handleNumberInputChange}
                   margin="normal"
                   InputProps={{ 
                     inputProps: { 
                       min: 0,
-                      max: 20
+                      max: 100
                     }
                   }}
                 />
@@ -783,6 +843,190 @@ const ProfileEditPage: React.FC = () => {
                   }}
                 />
               </Box>
+            </Stack>
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mt: 4 }}>
+              Feature Preferences
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            
+            <FormGroup>
+              <FormControlLabel 
+                control={<Switch 
+                  checked={preferences.feature_check_clearance}
+                  onChange={handleSwitchChange}
+                  name="feature_check_clearance"
+                />} 
+                label="Check Clearance" 
+              />
+              <FormControlLabel 
+                control={<Switch 
+                  checked={preferences.feature_auto_save}
+                  onChange={handleSwitchChange}
+                  name="feature_auto_save"
+                />} 
+                label="Auto Save" 
+              />
+              <FormControlLabel 
+                control={<Switch 
+                  checked={preferences.feature_dark_mode}
+                  onChange={handleSwitchChange}
+                  name="feature_dark_mode"
+                />} 
+                label="Dark Mode" 
+              />
+            </FormGroup>
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mt: 4 }}>
+              Section Processing Preferences
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            
+            <Typography variant="body2" color="text.secondary" paragraph>
+              Control how each section is processed: "Hardcode" uses exact content from your portfolio, "Process" allows AI to enhance the content.
+            </Typography>
+            
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              <FormControl fullWidth>
+                <InputLabel>Personal Information</InputLabel>
+                <Select
+                  name="section_personal_information"
+                  value={preferences.section_personal_information}
+                  label="Personal Information"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Career Summary</InputLabel>
+                <Select
+                  name="section_career_summary"
+                  value={preferences.section_career_summary}
+                  label="Career Summary"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Skills</InputLabel>
+                <Select
+                  name="section_skills"
+                  value={preferences.section_skills}
+                  label="Skills"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Work Experience</InputLabel>
+                <Select
+                  name="section_work_experience"
+                  value={preferences.section_work_experience}
+                  label="Work Experience"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Education</InputLabel>
+                <Select
+                  name="section_education"
+                  value={preferences.section_education}
+                  label="Education"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Projects</InputLabel>
+                <Select
+                  name="section_projects"
+                  value={preferences.section_projects}
+                  label="Projects"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Awards</InputLabel>
+                <Select
+                  name="section_awards"
+                  value={preferences.section_awards}
+                  label="Awards"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Publications</InputLabel>
+                <Select
+                  name="section_publications"
+                  value={preferences.section_publications}
+                  label="Publications"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="Hardcode">Hardcode</MenuItem>
+                  <MenuItem value="Process">Process</MenuItem>
+                </Select>
+              </FormControl>
+            </Stack>
+
+            <Typography variant="subtitle1" gutterBottom sx={{ mt: 4 }}>
+              Default Templates
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
+            
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              <FormControl fullWidth>
+                <InputLabel>Default Resume Template</InputLabel>
+                <Select
+                  name="default_resume_template_id"
+                  value={preferences.default_resume_template_id}
+                  label="Default Resume Template"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="classic">Classic</MenuItem>
+                  <MenuItem value="modern">Modern</MenuItem>
+                  <MenuItem value="professional">Professional</MenuItem>
+                  <MenuItem value="elegant">Elegant</MenuItem>
+                </Select>
+              </FormControl>
+              
+              <FormControl fullWidth>
+                <InputLabel>Default Cover Letter Template</InputLabel>
+                <Select
+                  name="default_cover_letter_template_id"
+                  value={preferences.default_cover_letter_template_id}
+                  label="Default Cover Letter Template"
+                  onChange={handlePreferenceChange}
+                >
+                  <MenuItem value="standard">Standard</MenuItem>
+                  <MenuItem value="formal">Formal</MenuItem>
+                  <MenuItem value="creative">Creative</MenuItem>
+                  <MenuItem value="modern">Modern</MenuItem>
+                </Select>
+              </FormControl>
             </Stack>
           </TabPanel>
 

@@ -62,7 +62,7 @@ export interface Profile {
     };
     cover_letter_details?: {
       paragraphs: number;
-      target_grade_level: number;
+      target_age: number;
     };
     awards_details?: {
       max_awards: number;
@@ -99,7 +99,7 @@ export interface Profile {
     project_max_projects?: number;
     project_bullet_points_per_project?: number;
     cover_letter_paragraphs?: number;
-    cover_letter_target_grade_level?: number;
+    cover_letter_target_age?: number;
     skills_max_categories?: number;
     skills_min_per_category?: number;
     skills_max_per_category?: number;
