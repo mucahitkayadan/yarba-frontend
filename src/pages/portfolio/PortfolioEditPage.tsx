@@ -97,6 +97,8 @@ const PortfolioEditPage: React.FC = () => {
   const [newSkill, setNewSkill] = useState('');
   const [newCategory, setNewCategory] = useState('');
   const [selectedCategoryIndex, setSelectedCategoryIndex] = useState(0);
+  const [skillDialogOpen, setSkillDialogOpen] = useState(false);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   
   // Career Summary state
   const [careerSummary, setCareerSummary] = useState<{
@@ -743,13 +745,23 @@ const PortfolioEditPage: React.FC = () => {
                         key={skillIndex}
                         label={skill}
                         onDelete={() => handleDeleteSkill(categoryIndex, skillIndex)}
-                        deleteIcon={<CloseIcon />}
                         sx={{ m: 0.5 }}
                       />
                     ))}
+                    <Chip
+                      icon={<AddIcon />}
+                      label="Add Skill"
+                      onClick={() => {
+                        setSelectedCategoryIndex(categoryIndex);
+                        setSkillDialogOpen(true);
+                      }}
+                      color="default"
+                      variant="outlined"
+                      sx={{ borderStyle: 'dashed', m: 0.5 }}
+                    />
                     {category.skills.length === 0 && (
-                      <Typography variant="body2" color="text.secondary">
-                        No skills added yet in this category
+                      <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                        No skills added yet
                       </Typography>
                     )}
                   </Box>
@@ -758,85 +770,104 @@ const PortfolioEditPage: React.FC = () => {
             ))}
           </Grid>
           
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Add New Skills
-            </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-              <TextField
-                select
-                label="Category"
-                value={selectedCategoryIndex}
-                onChange={handleNewCategoryChange}
-                variant="outlined"
-                size="small"
-                sx={{ width: 200, mr: 2 }}
-                SelectProps={{
-                  native: true
-                }}
-              >
-                {skills.map((category, index) => (
-                  <option key={index} value={index}>
-                    {category.category}
-                  </option>
-                ))}
-              </TextField>
+          {/* Add Skill Dialog */}
+          <Dialog open={skillDialogOpen} onClose={() => setSkillDialogOpen(false)}>
+            <DialogTitle>Add New Skill to {skills[selectedCategoryIndex]?.category || 'Category'}</DialogTitle>
+            <DialogContent>
+              <FormControl fullWidth sx={{ mb: 2, mt: 1 }}>
+                <InputLabel id="skill-category-label">Category</InputLabel>
+                <Select
+                  labelId="skill-category-label"
+                  value={selectedCategoryIndex}
+                  onChange={(e) => setSelectedCategoryIndex(Number(e.target.value))}
+                  label="Category"
+                >
+                  {skills.map((category, index) => (
+                    <MenuItem key={index} value={index}>
+                      {category.category}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               
               <TextField
-                label="New Skill"
+                autoFocus
+                margin="dense"
+                id="skillName"
+                label="Skill"
+                type="text"
+                fullWidth
+                variant="outlined"
                 value={newSkill}
                 onChange={(e) => setNewSkill(e.target.value)}
-                variant="outlined"
-                size="small"
-                sx={{ flexGrow: 1, mr: 2 }}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
+                  if (e.key === 'Enter' && newSkill.trim()) {
                     handleAddSkill();
+                    setSkillDialogOpen(false);
                   }
                 }}
               />
-              
-              <Button
-                variant="outlined"
-                onClick={handleAddSkill}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSkillDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={() => {
+                  handleAddSkill();
+                  setSkillDialogOpen(false);
+                }} 
                 disabled={!newSkill.trim()}
               >
-                Add Skill
+                Add
               </Button>
-            </Box>
-          </Box>
+            </DialogActions>
+          </Dialog>
           
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle1" gutterBottom>
-              Add New Category
-            </Typography>
-            
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* Add Category Dialog */}
+          <Dialog open={categoryDialogOpen} onClose={() => setCategoryDialogOpen(false)}>
+            <DialogTitle>Add New Category</DialogTitle>
+            <DialogContent>
               <TextField
-                label="New Category Name"
+                autoFocus
+                margin="dense"
+                id="categoryName"
+                label="Category Name"
+                type="text"
+                fullWidth
+                variant="outlined"
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value)}
-                variant="outlined"
-                size="small"
-                sx={{ flexGrow: 1, mr: 2 }}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
+                  if (e.key === 'Enter' && newCategory.trim()) {
                     handleAddCategory();
+                    setCategoryDialogOpen(false);
                   }
                 }}
               />
-              
-              <Button
-                variant="outlined"
-                onClick={handleAddCategory}
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setCategoryDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={() => {
+                  handleAddCategory();
+                  setCategoryDialogOpen(false);
+                }} 
                 disabled={!newCategory.trim()}
               >
-                Add Category
+                Add
               </Button>
-            </Box>
+            </DialogActions>
+          </Dialog>
+          
+          {/* Add Category Button */}
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Chip
+              icon={<AddIcon />}
+              label="Add New Category"
+              onClick={() => setCategoryDialogOpen(true)}
+              color="primary"
+              variant="outlined"
+              sx={{ borderStyle: 'dashed', cursor: 'pointer' }}
+            />
           </Box>
         </TabPanel>
         
