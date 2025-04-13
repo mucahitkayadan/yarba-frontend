@@ -56,7 +56,10 @@ export const getResumeById = async (id: string): Promise<Resume> => {
 
 // Create a new resume
 export const createResume = async (data: ResumeCreateRequest): Promise<Resume> => {
-  const response = await api.post('/resumes', data);
+  // The API requires job_description and accepts generate_pdf (default: false)
+  // We're setting generate_pdf to true so PDF is generated automatically
+  const requestData = { ...data, generate_pdf: true };
+  const response = await api.post('/resumes', requestData);
   return response.data;
 };
 

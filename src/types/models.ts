@@ -283,37 +283,9 @@ export interface LoginResponse {
 }
 
 export interface ResumeCreateRequest {
-  title: string;
-  template_id?: string;
-  job_description?: string;
-  selected_sections?: {
-    personal_information: "Hardcode" | "Process";
-    career_summary: "Hardcode" | "Process";
-    skills: "Hardcode" | "Process";
-    work_experience: "Hardcode" | "Process";
-    education: "Hardcode" | "Process";
-    projects: "Hardcode" | "Process";
-    awards: "Hardcode" | "Process";
-    publications: "Hardcode" | "Process";
-    certifications: "Hardcode" | "Process";
-  };
-  llm_preferences?: {
-    model: string;
-    temperature: number;
-  };
+  job_description: string;
 }
 
 export interface CoverLetterCreateRequest {
-  title: string;
-  template_id: string;
-  resume_id?: string;
-  job_description?: string;
-  recipient_name?: string;
-  recipient_title?: string;
-  company_name?: string;
-  company_address?: string;
-  llm_preferences: {
-    model: string;
-    temperature: number;
-  };
+  resume_id: string;
 } 

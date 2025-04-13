@@ -52,7 +52,10 @@ export const getCoverLetterById = async (id: string): Promise<CoverLetter> => {
 
 // Create a new cover letter
 export const createCoverLetter = async (data: CoverLetterCreateRequest): Promise<CoverLetter> => {
-  const response = await api.post('/cover-letters', data);
+  // The API requires resume_id and accepts generate_pdf (default: False)
+  // We're setting generate_pdf to true so PDF is generated automatically
+  const requestData = { ...data, generate_pdf: true };
+  const response = await api.post('/cover-letters', requestData);
   return response.data;
 };
 

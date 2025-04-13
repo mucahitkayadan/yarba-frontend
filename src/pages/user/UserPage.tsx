@@ -11,8 +11,7 @@ import {
   CircularProgress,
   Stack,
   IconButton,
-  InputAdornment,
-  Snackbar
+  InputAdornment
 } from '@mui/material';
 import { 
   Visibility, 
@@ -22,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { changePassword } from '../../services/authService';
+import { Toast } from '../../components/common';
 
 const UserPage: React.FC = () => {
   const { user } = useAuth();
@@ -233,22 +233,12 @@ const UserPage: React.FC = () => {
         </Grid>
       </Grid>
 
-      <Snackbar
+      <Toast
         open={!!success}
-        autoHideDuration={6000}
+        message={success || ''}
+        severity="success"
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-        sx={{ zIndex: 2000 }}
-      >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity="success" 
-          variant="filled"
-          sx={{ width: '100%', fontWeight: 500 }}
-        >
-          {success}
-        </Alert>
-      </Snackbar>
+      />
     </Box>
   );
 };

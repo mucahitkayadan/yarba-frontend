@@ -9,12 +9,12 @@ import {
   Tab,
   Tabs,
   CircularProgress,
-  Snackbar,
   Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { createResume } from '../services/resumeService';
 import { Resume, ResumeCreateRequest } from '../types/models';
+import { Toast } from '../components/common';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -72,7 +72,6 @@ const CreateResumePage: React.FC = () => {
 
       // Prepare request data based on API requirements
       const resumeData: ResumeCreateRequest = {
-        title: "Resume for " + new Date().toLocaleDateString(),
         job_description: finalJobDescription
       };
 
@@ -194,11 +193,12 @@ const CreateResumePage: React.FC = () => {
         )}
       </Paper>
 
-      <Snackbar open={!!error} autoHideDuration={6000} onClose={() => setError(null)}>
-        <Alert onClose={() => setError(null)} severity="error">
-          {error}
-        </Alert>
-      </Snackbar>
+      <Toast 
+        open={!!error} 
+        message={error || ''} 
+        severity="error"
+        onClose={() => setError(null)}
+      />
     </Container>
   );
 };

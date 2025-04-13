@@ -20,7 +20,6 @@ import {
   Stack,
   Chip,
   Tooltip,
-  Snackbar,
   Alert,
   Select,
   FormControl,
@@ -52,6 +51,7 @@ import { getResumes, deleteResume, getResumePdf, updateResume } from '../service
 import { getUserPortfolio } from '../services/portfolioService';
 import { Portfolio } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { Toast } from '../components/common';
 
 // Type for the PDF response from the server
 interface PdfResponse {
@@ -940,21 +940,13 @@ const ResumesPage: React.FC = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Error Snackbar */}
-      <Snackbar 
-        open={snackbarOpen} 
-        autoHideDuration={6000} 
+      {/* Error Toast */}
+      <Toast
+        open={snackbarOpen}
+        message={errorMessage || ''}
+        severity={errorMessage?.includes('success') ? 'success' : 'error'}
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
-          severity={errorMessage?.includes('success') ? 'success' : 'error'}
-          sx={{ width: '100%' }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
+      />
       
       {/* PDF Viewer Dialog */}
       <Dialog

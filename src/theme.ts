@@ -1,4 +1,5 @@
 import { createTheme } from '@mui/material/styles';
+import React from 'react';
 
 // Modern blue-focused color palette
 const palette = {
@@ -135,6 +136,18 @@ const theme = createTheme({
         },
         contained: {
           boxShadow: '0px 3px 6px rgba(63, 114, 175, 0.2)',
+        },
+      },
+    },
+    MuiSnackbar: {
+      defaultProps: {
+        anchorOrigin: {
+          vertical: 'top',
+          horizontal: 'center',
+        },
+      },
+      styleOverrides: {
+        root: {
         },
       },
     },

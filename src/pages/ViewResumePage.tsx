@@ -1295,12 +1295,6 @@ const ViewResumePage: React.FC = () => {
                 size="small" 
               />
             )}
-            <Chip 
-              label={`v${resume.version}`} 
-              size="small" 
-              variant="outlined" 
-              color="secondary"
-            />
           </Stack>
           <Typography variant="body2" color="text.secondary">
             Last updated: {formatDate(resume.updated_at)}

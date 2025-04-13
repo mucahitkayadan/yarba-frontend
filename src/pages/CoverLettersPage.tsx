@@ -20,7 +20,6 @@ import {
   Stack,
   Chip,
   Tooltip,
-  Snackbar,
   Alert,
   Select,
   FormControl,
@@ -51,6 +50,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCoverLetters, deleteCoverLetter, getCoverLetterPdf } from '../services/coverLetterService';
 import { CoverLetter } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { Toast } from '../components/common';
 
 // Define page size options
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
@@ -691,21 +691,12 @@ const CoverLettersPage: React.FC = () => {
       </Dialog>
       
       {/* Error snackbar */}
-      <Snackbar
+      <Toast
         open={snackbarOpen}
-        autoHideDuration={6000}
+        message={errorMessage || ''}
+        severity="error"
         onClose={() => setSnackbarOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert 
-          onClose={() => setSnackbarOpen(false)} 
-          severity="error" 
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {errorMessage}
-        </Alert>
-      </Snackbar>
+      />
       
       {/* PDF Viewer Dialog */}
       <Dialog
