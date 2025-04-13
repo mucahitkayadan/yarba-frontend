@@ -34,6 +34,8 @@ export const getFirebaseErrorMessage = (error: any): string => {
       return 'No account found with this email. Please check or register.';
     case 'auth/wrong-password':
       return 'Incorrect password. Please try again or reset your password.';
+    case 'auth/invalid-credential':
+      return 'Invalid login credentials. Please check your email and password and try again.';
     case 'auth/weak-password':
       return 'The password is too weak. Please use a stronger password.';
     case 'auth/popup-closed-by-user':

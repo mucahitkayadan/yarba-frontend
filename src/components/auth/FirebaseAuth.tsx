@@ -5,6 +5,7 @@ import {
 import GoogleIcon from '@mui/icons-material/Google';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { useAuth } from '../../contexts/AuthContext';
 import { getFirebaseErrorMessage } from '../../utils/errorHandler';
 import { createDebugger } from '../../utils/debug';
@@ -208,8 +209,28 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
       </Typography>
 
       {errorMessage && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {errorMessage}
+        <Alert 
+          severity="error" 
+          sx={{ 
+            mb: 3,
+            display: 'flex',
+            alignItems: 'center',
+            '& .MuiAlert-icon': {
+              fontSize: '1.5rem' 
+            },
+            borderRadius: 1,
+            boxShadow: 1
+          }}
+          icon={<ErrorOutlineIcon fontSize="inherit" />}
+        >
+          <Box sx={{ ml: 0.5 }}>
+            <Typography variant="subtitle2" fontWeight="600">
+              Sign-in Failed
+            </Typography>
+            <Typography variant="body2">
+              {errorMessage}
+            </Typography>
+          </Box>
         </Alert>
       )}
 
