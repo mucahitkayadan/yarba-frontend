@@ -43,7 +43,7 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 2 }}>
+        <Box sx={{ p: { xs: 1, sm: 2 } }}>
           {children}
         </Box>
       )}
@@ -74,22 +74,22 @@ const ProfileEditPage: React.FC = () => {
   const [lifeStory, setLifeStory] = useState('');
   
   const [preferences, setPreferences] = useState({
-    career_summary_min_words: 50,
-    career_summary_max_words: 200,
-    work_experience_max_jobs: 5,
-    work_experience_bullet_points_per_job: 4,
-    project_max_projects: 3,
-    project_bullet_points_per_project: 3,
-    cover_letter_paragraphs: 3,
-    cover_letter_target_age: 25,
-    skills_max_categories: 5,
-    skills_min_per_category: 3,
-    skills_max_per_category: 8,
-    education_max_entries: 3,
-    education_max_courses: 5,
-    awards_max_awards: 3,
-    publications_max_publications: 3,
-    certifications_max_certifications: 3,
+    career_summary_min_words: '',
+    career_summary_max_words: '',
+    work_experience_max_jobs: '',
+    work_experience_bullet_points_per_job: '',
+    project_max_projects: '',
+    project_bullet_points_per_project: '',
+    cover_letter_paragraphs: '',
+    cover_letter_target_age: '',
+    skills_max_categories: '',
+    skills_min_per_category: '',
+    skills_max_per_category: '',
+    education_max_entries: '',
+    education_max_courses: '',
+    awards_max_awards: '',
+    publications_max_publications: '',
+    certifications_max_certifications: '',
     feature_check_clearance: true,
     feature_auto_save: true,
     feature_dark_mode: false,
@@ -137,22 +137,22 @@ const ProfileEditPage: React.FC = () => {
       // Initialize preferences form
       if (profileData.preferences) {
         setPreferences({
-          career_summary_min_words: profileData.preferences.career_summary_details?.min_words || 50,
-          career_summary_max_words: profileData.preferences.career_summary_details?.max_words || 200,
-          work_experience_max_jobs: profileData.preferences.work_experience_details?.max_jobs || 5,
-          work_experience_bullet_points_per_job: profileData.preferences.work_experience_details?.bullet_points_per_job || 4,
-          project_max_projects: profileData.preferences.project_details?.max_projects || 3,
-          project_bullet_points_per_project: profileData.preferences.project_details?.bullet_points_per_project || 3,
-          cover_letter_paragraphs: profileData.preferences.cover_letter_details?.paragraphs || 3,
-          cover_letter_target_age: profileData.preferences.cover_letter_details?.target_age || 25,
-          skills_max_categories: profileData.preferences.skills_details?.max_categories || 5,
-          skills_min_per_category: profileData.preferences.skills_details?.min_skills_per_category || 3,
-          skills_max_per_category: profileData.preferences.skills_details?.max_skills_per_category || 8,
-          education_max_entries: profileData.preferences.education_details?.max_entries || 3,
-          education_max_courses: profileData.preferences.education_details?.max_courses || 5,
-          awards_max_awards: profileData.preferences.awards_details?.max_awards || 3,
-          publications_max_publications: profileData.preferences.publications_details?.max_publications || 3,
-          certifications_max_certifications: profileData.preferences.certifications_max_certifications || 3,
+          career_summary_min_words: profileData.preferences.career_summary_details?.min_words?.toString() || '',
+          career_summary_max_words: profileData.preferences.career_summary_details?.max_words?.toString() || '',
+          work_experience_max_jobs: profileData.preferences.work_experience_details?.max_jobs?.toString() || '',
+          work_experience_bullet_points_per_job: profileData.preferences.work_experience_details?.bullet_points_per_job?.toString() || '',
+          project_max_projects: profileData.preferences.project_details?.max_projects?.toString() || '',
+          project_bullet_points_per_project: profileData.preferences.project_details?.bullet_points_per_project?.toString() || '',
+          cover_letter_paragraphs: profileData.preferences.cover_letter_details?.paragraphs?.toString() || '',
+          cover_letter_target_age: profileData.preferences.cover_letter_details?.target_age?.toString() || '',
+          skills_max_categories: profileData.preferences.skills_details?.max_categories?.toString() || '',
+          skills_min_per_category: profileData.preferences.skills_details?.min_skills_per_category?.toString() || '',
+          skills_max_per_category: profileData.preferences.skills_details?.max_skills_per_category?.toString() || '',
+          education_max_entries: profileData.preferences.education_details?.max_entries?.toString() || '',
+          education_max_courses: profileData.preferences.education_details?.max_courses?.toString() || '',
+          awards_max_awards: profileData.preferences.awards_details?.max_awards?.toString() || '',
+          publications_max_publications: profileData.preferences.publications_details?.max_publications?.toString() || '',
+          certifications_max_certifications: profileData.preferences.certifications_max_certifications?.toString() || '',
           feature_check_clearance: profileData.preferences.feature_preferences?.check_clearance || true,
           feature_auto_save: profileData.preferences.feature_preferences?.auto_save || true,
           feature_dark_mode: profileData.preferences.feature_preferences?.dark_mode || false,
@@ -204,7 +204,7 @@ const ProfileEditPage: React.FC = () => {
     const { name, value } = e.target;
     setPreferences(prev => ({
       ...prev,
-      [name]: value === '' ? 0 : Number(value)
+      [name]: value
     }));
   };
 
@@ -249,38 +249,43 @@ const ProfileEditPage: React.FC = () => {
         await updateLifeStory(lifeStory);
         setSuccess('Life story updated successfully!');
       } else if (tabValue === 2) {
+        // Helper function to safely parse number values
+        const parseNumberOrDefault = (value: string): number => {
+          return value === '' ? 0 : parseInt(value);
+        };
+        
         // Transform flat preferences to nested structure that matches backend
         const preferencesData: Partial<NonNullable<Profile['preferences']>> = {
           career_summary_details: {
-            min_words: parseInt(preferences.career_summary_min_words.toString()),
-            max_words: parseInt(preferences.career_summary_max_words.toString())
+            min_words: parseNumberOrDefault(preferences.career_summary_min_words),
+            max_words: parseNumberOrDefault(preferences.career_summary_max_words)
           },
           work_experience_details: {
-            max_jobs: parseInt(preferences.work_experience_max_jobs.toString()),
-            bullet_points_per_job: parseInt(preferences.work_experience_bullet_points_per_job.toString())
+            max_jobs: parseNumberOrDefault(preferences.work_experience_max_jobs),
+            bullet_points_per_job: parseNumberOrDefault(preferences.work_experience_bullet_points_per_job)
           },
           project_details: {
-            max_projects: parseInt(preferences.project_max_projects.toString()),
-            bullet_points_per_project: parseInt(preferences.project_bullet_points_per_project.toString())
+            max_projects: parseNumberOrDefault(preferences.project_max_projects),
+            bullet_points_per_project: parseNumberOrDefault(preferences.project_bullet_points_per_project)
           },
           skills_details: {
-            max_categories: parseInt(preferences.skills_max_categories.toString()),
-            min_skills_per_category: parseInt(preferences.skills_min_per_category.toString()),
-            max_skills_per_category: parseInt(preferences.skills_max_per_category.toString())
+            max_categories: parseNumberOrDefault(preferences.skills_max_categories),
+            min_skills_per_category: parseNumberOrDefault(preferences.skills_min_per_category),
+            max_skills_per_category: parseNumberOrDefault(preferences.skills_max_per_category)
           },
           education_details: {
-            max_entries: parseInt(preferences.education_max_entries.toString()),
-            max_courses: parseInt(preferences.education_max_courses.toString())
+            max_entries: parseNumberOrDefault(preferences.education_max_entries),
+            max_courses: parseNumberOrDefault(preferences.education_max_courses)
           },
           cover_letter_details: {
-            paragraphs: parseInt(preferences.cover_letter_paragraphs.toString()),
-            target_age: parseInt(preferences.cover_letter_target_age.toString())
+            paragraphs: parseNumberOrDefault(preferences.cover_letter_paragraphs),
+            target_age: parseNumberOrDefault(preferences.cover_letter_target_age)
           },
           awards_details: {
-            max_awards: parseInt(preferences.awards_max_awards.toString())
+            max_awards: parseNumberOrDefault(preferences.awards_max_awards)
           },
           publications_details: {
-            max_publications: parseInt(preferences.publications_max_publications.toString())
+            max_publications: parseNumberOrDefault(preferences.publications_max_publications)
           },
           feature_preferences: {
             check_clearance: preferences.feature_check_clearance,
@@ -369,7 +374,7 @@ const ProfileEditPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto', p: 3 }}>
+    <Box sx={{ width: '100%', p: 3 }}>
       <Paper elevation={3} sx={{ p: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           
@@ -411,8 +416,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 2 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="Full Name"
@@ -423,7 +428,7 @@ const ProfileEditPage: React.FC = () => {
                   required
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="Email"
@@ -437,8 +442,8 @@ const ProfileEditPage: React.FC = () => {
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 2 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="Phone"
@@ -448,7 +453,7 @@ const ProfileEditPage: React.FC = () => {
                   margin="normal"
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="Address"
@@ -465,8 +470,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 2 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="LinkedIn"
@@ -477,7 +482,7 @@ const ProfileEditPage: React.FC = () => {
                   placeholder="https://linkedin.com/in/username"
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="GitHub"
@@ -490,8 +495,8 @@ const ProfileEditPage: React.FC = () => {
               </Box>
             </Stack>
 
-            <Stack direction="row" spacing={2} flexWrap="wrap">
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   label="Personal Website"
@@ -536,8 +541,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -546,15 +551,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.career_summary_min_words}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{
-                    inputProps: { 
-                      min: 0,
-                      max: 100
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 100
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -563,11 +566,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.career_summary_max_words}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 500
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 500
                   }}
                 />
               </Box>
@@ -578,8 +579,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -588,15 +589,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.work_experience_max_jobs}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -605,11 +604,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.work_experience_bullet_points_per_job}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
@@ -620,8 +617,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -630,15 +627,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.project_max_projects}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -647,11 +642,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.project_bullet_points_per_project}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
@@ -662,8 +655,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 2 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 2 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -672,15 +665,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.skills_max_categories}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -689,18 +680,16 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.skills_min_per_category}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
             </Stack>
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -709,11 +698,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.skills_max_per_category}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 20
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 20
                   }}
                 />
               </Box>
@@ -724,8 +711,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -734,15 +721,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.education_max_entries}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 5
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 5
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -751,11 +736,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.education_max_courses}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
@@ -766,8 +749,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -776,15 +759,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.cover_letter_paragraphs}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -793,11 +774,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.cover_letter_target_age}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 100
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 100
                   }}
                 />
               </Box>
@@ -808,8 +787,8 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ mb: 3 }}>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+            <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 3 }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -818,15 +797,13 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.awards_max_awards}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
-              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 8px)' } }}>
+              <Box sx={{ width: { xs: '100%', sm: 'calc(50% - 4px)' } }}>
                 <TextField
                   fullWidth
                   type="number"
@@ -835,11 +812,9 @@ const ProfileEditPage: React.FC = () => {
                   value={preferences.publications_max_publications}
                   onChange={handleNumberInputChange}
                   margin="normal"
-                  InputProps={{ 
-                    inputProps: { 
-                      min: 0,
-                      max: 10
-                    }
+                  inputProps={{ 
+                    min: 0,
+                    max: 10
                   }}
                 />
               </Box>
@@ -886,7 +861,7 @@ const ProfileEditPage: React.FC = () => {
               Control how each section is processed: "Hardcode" uses exact content from your portfolio, "Process" allows AI to enhance the content.
             </Typography>
             
-            <Stack spacing={2} sx={{ mb: 3 }}>
+            <Stack spacing={1} sx={{ mb: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>Personal Information</InputLabel>
                 <Select
@@ -997,7 +972,7 @@ const ProfileEditPage: React.FC = () => {
             </Typography>
             <Divider sx={{ mb: 3 }} />
             
-            <Stack spacing={2} sx={{ mb: 3 }}>
+            <Stack spacing={1} sx={{ mb: 3 }}>
               <FormControl fullWidth>
                 <InputLabel>Default Resume Template</InputLabel>
                 <Select
