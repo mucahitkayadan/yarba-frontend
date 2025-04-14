@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -9,12 +9,17 @@ import {
   Tab,
   Tabs,
   CircularProgress,
-  Alert
+  Alert,
+  Divider,
+  Card,
+  CardContent
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { createResume } from '../services/resumeService';
-import { Resume, ResumeCreateRequest } from '../types/models';
+import { getUserProfile } from '../services/profileService';
+import { Resume, ResumeCreateRequest, Profile } from '../types/models';
 import { Toast } from '../components/common';
+import { Settings as SettingsIcon } from '@mui/icons-material';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -34,7 +39,7 @@ function TabPanel(props: TabPanelProps) {
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <Box sx={{ p: '0 3px 3px 3px' }}>
           {children}
         </Box>
       )}
@@ -45,12 +50,29 @@ function TabPanel(props: TabPanelProps) {
 const CreateResumePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [jobDescription, setJobDescription] = useState('');
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState('');
   const [createdResume, setCreatedResume] = useState<Resume | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+
+  useEffect(() => {
+    fetchUserProfile();
+  }, []);
+
+  const fetchUserProfile = async () => {
+    try {
+      const profileData = await getUserProfile();
+      setProfile(profileData);
+    } catch (err) {
+      console.error('Failed to fetch profile:', err);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
@@ -100,10 +122,13 @@ const CreateResumePage: React.FC = () => {
     }
   };
 
+  const handleEditPreferences = () => {
+    navigate('/profile/edit');
+  };
+
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 3, mb: 3 }}>
-
         {createdResume ? (
           <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
             <Alert severity="success" sx={{ mb: 3 }}>
@@ -192,6 +217,146 @@ const CreateResumePage: React.FC = () => {
           </>
         )}
       </Paper>
+
+      {!createdResume && (
+        <Card elevation={1} sx={{ mb: 3 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+              <Typography variant="h6">Resume Preferences</Typography>
+              <Button 
+                variant="outlined" 
+                startIcon={<SettingsIcon />} 
+                onClick={handleEditPreferences}
+                size="small"
+              >
+                Edit Preferences
+              </Button>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+            
+            {profileLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
+                {/* Content Sections */}
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom color="primary">Content Limits</Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Career Summary:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.career_summary_details?.min_words || 'Not set'} - {profile?.preferences?.career_summary_details?.max_words || 'Not set'} words
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Work Experience:</Typography>
+                      <Typography variant="body2">
+                        Max {profile?.preferences?.work_experience_details?.max_jobs || 'Not set'} jobs, {profile?.preferences?.work_experience_details?.bullet_points_per_job || 'Not set'} bullets each
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Projects:</Typography>
+                      <Typography variant="body2">
+                        Max {profile?.preferences?.project_details?.max_projects || 'Not set'} projects, {profile?.preferences?.project_details?.bullet_points_per_project || 'Not set'} bullets each
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Skills:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.skills_details?.max_categories || 'Not set'} categories, {profile?.preferences?.skills_details?.min_skills_per_category || 'Not set'}-{profile?.preferences?.skills_details?.max_skills_per_category || 'Not set'} skills each
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Education:</Typography>
+                      <Typography variant="body2">
+                        Max {profile?.preferences?.education_details?.max_entries || 'Not set'} entries, {profile?.preferences?.education_details?.max_courses || 'Not set'} courses
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Awards:</Typography>
+                      <Typography variant="body2">
+                        Max {profile?.preferences?.awards_details?.max_awards || 'Not set'} awards
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Publications:</Typography>
+                      <Typography variant="body2">
+                        Max {profile?.preferences?.publications_details?.max_publications || 'Not set'} publications
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Cover Letter:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.cover_letter_details?.paragraphs || 'Not set'} paragraphs, age {profile?.preferences?.cover_letter_details?.target_age || 'Not set'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+                
+                {/* Processing Preferences */}
+                <Box>
+                  <Typography variant="subtitle2" gutterBottom color="primary">Processing Preferences</Typography>
+                  
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Security Check:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.feature_preferences?.check_clearance ? 'Enabled' : 'Disabled'}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Model:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.llm_preferences?.model_type || 'Not set'} ({profile?.preferences?.llm_preferences?.model_name?.split('-').slice(-1)[0] || 'Default'})
+                      </Typography>
+                    </Box>
+                    
+                    <Typography variant="subtitle2" gutterBottom color="primary" sx={{ mt: 1 }}>Section Processing</Typography>
+                    
+                    {profile?.preferences?.section_preferences && Object.entries(profile.preferences.section_preferences).map(([key, value]) => (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }} key={key}>
+                        <Typography variant="body2" color="text.secondary">
+                          {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:
+                        </Typography>
+                        <Typography variant="body2">
+                          {value as string}
+                        </Typography>
+                      </Box>
+                    ))}
+                    
+                    <Typography variant="subtitle2" gutterBottom color="primary" sx={{ mt: 1 }}>Templates</Typography>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Resume Template:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.default_latex_templates?.default_resume_template_id || 'Classic'}
+                      </Typography>
+                    </Box>
+                    
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Typography variant="body2" color="text.secondary">Cover Letter Template:</Typography>
+                      <Typography variant="body2">
+                        {profile?.preferences?.default_latex_templates?.default_cover_letter_template_id || 'Standard'}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Toast 
         open={!!error} 

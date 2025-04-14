@@ -19,7 +19,9 @@ import {
   PortfolioEditPage,
   PortfolioViewPage,
   UserPage,
-  CoverLettersPage
+  CoverLettersPage,
+  CoverLetterNewPage,
+  CoverLetterViewPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -133,7 +135,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div>Create Cover Letter Page Placeholder</div>
+                    <CoverLetterNewPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
@@ -143,7 +145,7 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <MainLayout>
-                    <div>View Cover Letter Page Placeholder</div>
+                    <CoverLetterViewPage />
                   </MainLayout>
                 </ProtectedRoute>
               }

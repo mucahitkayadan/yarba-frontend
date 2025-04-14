@@ -244,10 +244,12 @@ const ProfileEditPage: React.FC = () => {
         
         await updatePersonalInformation(personalInfoData);
         setSuccess('Personal information updated successfully!');
+        navigate('/profile');
       } else if (tabValue === 1) {
         // Update life story
         await updateLifeStory(lifeStory);
         setSuccess('Life story updated successfully!');
+        navigate('/profile');
       } else if (tabValue === 2) {
         // Helper function to safely parse number values
         const parseNumberOrDefault = (value: string): number => {
@@ -339,6 +341,7 @@ const ProfileEditPage: React.FC = () => {
         
         await updatePreferences(preferencesData);
         setSuccess('Preferences updated successfully!');
+        navigate('/profile');
       }
       
       // Refresh profile data

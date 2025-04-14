@@ -341,7 +341,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   fontSize: '1.1rem'
                 }}
               >
-                Welcome, {profile?.personal_information?.full_name || user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
+                {profile?.personal_information?.full_name || user.username?.replace(/_[0-9]+$/, '').replace(/_/g, ' ') || 'User'}
               </Typography>
               {/* Avatar/Image that opens dropdown */}
               <Box

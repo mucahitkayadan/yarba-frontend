@@ -7,6 +7,8 @@ export { default as DashboardPage } from './DashboardPage';
 export { default as ProfilePage } from './profile/ProfilePage';
 export { default as ResumesPage } from './ResumesPage';
 export { default as CoverLettersPage } from './CoverLettersPage';
+export { default as CoverLetterNewPage } from './CoverLetterNewPage';
+export { default as CoverLetterViewPage } from './CoverLetterViewPage';
 export { default as ViewResumePage } from './ViewResumePage';
 export { default as PortfolioPage } from './portfolio/PortfolioPage';
 export { default as TemplatesPage } from './TemplatesPage';
