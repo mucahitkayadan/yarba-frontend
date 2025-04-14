@@ -249,14 +249,19 @@ const ResumesPage: React.FC = () => {
       const newTotalCount = totalResumes - 1;
       setTotalResumes(newTotalCount);
       
-      // Check if we need to adjust the page number
-      // This happens when we delete the last item on a page
+      // Calculate how many total pages we would have after deletion
       const totalPages = Math.ceil(newTotalCount / pageSize);
+      
+      // Check if we need to adjust the page number or refresh the data
       if (page > totalPages && totalPages > 0) {
-        // Go to the last available page
+        // Go to the last available page if current page no longer exists
         setPage(totalPages);
       } else if (updatedResumes.length === 0 && newTotalCount > 0) {
         // If we deleted the last item on the page but there are more items, refresh
+        fetchResumes();
+      } else if (updatedResumes.length < pageSize && newTotalCount > updatedResumes.length) {
+        // If we have fewer items than page size but there are more items in total,
+        // we should refresh to pull in items from the next page
         fetchResumes();
       }
       
