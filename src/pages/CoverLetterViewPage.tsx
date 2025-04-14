@@ -28,6 +28,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { getCoverLetterById, getCoverLetterPdf, deleteCoverLetter } from '../services/coverLetterService';
+import { getResumeById } from '../services/resumeService';
 import { CoverLetter } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
@@ -51,6 +52,8 @@ const CoverLetterViewPage: React.FC = () => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   
+  const [resumeTitle, setResumeTitle] = useState<string>('');
+  
   // Clean up object URL when component unmounts or dialog closes
   useEffect(() => {
     return () => {
@@ -68,6 +71,15 @@ const CoverLetterViewPage: React.FC = () => {
       try {
         const data = await getCoverLetterById(id);
         setCoverLetter(data);
+        
+        // Fetch resume title
+        try {
+          const resume = await getResumeById(data.resume_id);
+          setResumeTitle(resume.title);
+        } catch (resumeErr) {
+          console.error('Failed to fetch resume:', resumeErr);
+        }
+        
         setError(null);
       } catch (err: any) {
         console.error('Failed to fetch cover letter:', err);
@@ -80,8 +92,8 @@ const CoverLetterViewPage: React.FC = () => {
     fetchCoverLetter();
   }, [id]);
 
-  // Generate a title for the cover letter since the new API doesn't include one
-  const coverLetterTitle = coverLetter ? `Cover Letter (${coverLetter.resume_id.substring(0, 8)})` : '';
+  // Generate a title for the cover letter
+  const coverLetterTitle = coverLetter ? (resumeTitle || `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`) : '';
 
   const handleEdit = () => {
     if (id) {
@@ -268,7 +280,7 @@ const CoverLetterViewPage: React.FC = () => {
               size="small" 
             />
             <Chip 
-              label={`Resume ID: ${coverLetter.resume_id.substring(0, 8)}`} 
+              label={resumeTitle || `Resume ID: ${coverLetter.resume_id.substring(0, 8)}`} 
               size="small" 
             />
           </Stack>

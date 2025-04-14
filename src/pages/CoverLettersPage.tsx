@@ -48,6 +48,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { getCoverLetters, deleteCoverLetter, getCoverLetterPdf } from '../services/coverLetterService';
+import { getResumeById } from '../services/resumeService';
 import { CoverLetter } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Toast } from '../components/common';
@@ -80,6 +81,7 @@ const CoverLettersPage: React.FC = () => {
   const [numPages, setNumPages] = useState<number | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [selectedCoverLetterName, setSelectedCoverLetterName] = useState<string>('');
+  const [resumeTitles, setResumeTitles] = useState<Record<string, string>>({});
 
   const fetchCoverLetters = async () => {
     setLoading(true);
@@ -117,6 +119,34 @@ const CoverLettersPage: React.FC = () => {
     console.log(`Page/PageSize changed: page=${page}, pageSize=${pageSize}, fetching cover letters...`);
     fetchCoverLetters();
   }, [page, pageSize, searchTerm]);
+
+  useEffect(() => {
+    // Fetch resume titles for all cover letters
+    const fetchResumeTitles = async () => {
+      const resumeIds = coverLetters.map(cl => cl.resume_id);
+      const uniqueResumeIds = Array.from(new Set(resumeIds));
+      
+      const newResumeTitles: Record<string, string> = {};
+      
+      await Promise.all(
+        uniqueResumeIds.map(async (resumeId) => {
+          try {
+            const resume = await getResumeById(resumeId);
+            newResumeTitles[resumeId] = resume.title;
+          } catch (error) {
+            console.error(`Failed to fetch resume title for ID ${resumeId}:`, error);
+            newResumeTitles[resumeId] = `Resume (${resumeId.substring(0, 8)})`;
+          }
+        })
+      );
+      
+      setResumeTitles(newResumeTitles);
+    };
+    
+    if (coverLetters.length > 0) {
+      fetchResumeTitles();
+    }
+  }, [coverLetters]);
 
   useEffect(() => {
     return () => {
@@ -279,9 +309,13 @@ const CoverLettersPage: React.FC = () => {
     return 'N/A';
   };
 
-  // Generate title from resume_id
+  // Generate title using resume title when available
   const getCoverLetterTitle = (coverLetter: CoverLetter) => {
-    return `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`;
+    const resumeId = coverLetter.resume_id;
+    if (resumeTitles[resumeId]) {
+      return `${resumeTitles[resumeId]}`;
+    }
+    return `(${resumeId.substring(0, 8)})`;
   };
 
   const handleViewPdf = async (coverLetterId: string) => {
@@ -399,20 +433,6 @@ const CoverLettersPage: React.FC = () => {
           }}
           sx={{ maxWidth: { xs: '100%', sm: 300 } }}
         />
-        <FormControl sx={{ minWidth: 100, maxWidth: 150 }} size="small">
-          <InputLabel id="page-size-select-label">Items per page</InputLabel>
-          <Select
-            labelId="page-size-select-label"
-            id="page-size-select"
-            value={pageSize}
-            label="Items per page"
-            onChange={handlePageSizeChange}
-          >
-            {PAGE_SIZE_OPTIONS.map(option => (
-              <MenuItem key={option} value={option}>{option}</MenuItem>
-            ))}
-          </Select>
-        </FormControl>
       </Box>
       
       {loading ? (
@@ -559,29 +579,58 @@ const CoverLettersPage: React.FC = () => {
             </Table>
           </TableContainer>
           
-          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'flex-start', sm: 'center' }, 
+            flexWrap: 'wrap',
+            gap: 2,
+            mb: 4
+          }}>
+            <Box sx={{ 
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: 'wrap'
+            }}>
+              <Typography variant="body2" color="text.secondary">
+                {totalCoverLetters === 0 ? 'No results' : 
+                  `Showing ${(page - 1) * pageSize + 1} to ${Math.min(page * pageSize, totalCoverLetters)} of ${totalCoverLetters} cover letter${totalCoverLetters !== 1 ? 's' : ''}`
+                }
+              </Typography>
+              
+              <FormControl size="small" sx={{ minWidth: 120 }}>
+                <InputLabel id="page-size-select-label">Page Size</InputLabel>
+                <Select
+                  labelId="page-size-select-label"
+                  id="page-size-select"
+                  value={pageSize}
+                  label="Page Size"
+                  onChange={handlePageSizeChange}
+                >
+                  {PAGE_SIZE_OPTIONS.map((size) => (
+                    <MenuItem key={size} value={size}>{size} per page</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+            
             <Pagination 
-              count={Math.ceil(totalCoverLetters / pageSize)} 
+              count={Math.max(1, Math.ceil(totalCoverLetters / pageSize))}
               page={page} 
               onChange={handlePageChange}
               color="primary"
-              siblingCount={1}
-              boundaryCount={1}
               size="large"
+              showFirstButton
+              showLastButton
               sx={{
                 '& .MuiPaginationItem-root': {
-                  borderRadius: 2,
-                  fontWeight: 500,
-                },
+                  fontSize: '1rem',
+                }
               }}
             />
           </Box>
-          <Typography 
-            variant="body2" 
-            sx={{ textAlign: 'center', color: 'text.secondary' }}
-          >
-            Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, totalCoverLetters)} of {totalCoverLetters} cover letters
-          </Typography>
         </>
       )}
       
