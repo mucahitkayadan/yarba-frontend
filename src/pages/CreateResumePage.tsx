@@ -58,6 +58,9 @@ const CreateResumePage: React.FC = () => {
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState('');
   const [createdResume, setCreatedResume] = useState<Resume | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
   useEffect(() => {
     fetchUserProfile();
@@ -100,26 +103,29 @@ const CreateResumePage: React.FC = () => {
       // Make the API request
       const response = await createResume(resumeData);
       
-      // Set the created resume data for display
-      setCreatedResume(response);
-      setSuccess(true);
+      // Set success toast and navigate to view resume page
+      setToastMessage('Resume created successfully!');
+      setToastSeverity('success');
+      setToastOpen(true);
       
-      // Clear form after successful creation
-      setJobDescription('');
-      setJobDescriptionUrl('');
+      // Navigate directly to the view resume page
+      if (response && response.id) {
+        navigate(`/resumes/${response.id}`);
+      }
 
     } catch (err: any) {
       console.error('Failed to create resume:', err);
       setError(err.message || 'Failed to create resume. Please try again.');
+      setToastMessage('Failed to create resume. Please try again.');
+      setToastSeverity('error');
+      setToastOpen(true);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleViewResume = () => {
-    if (createdResume && createdResume.id) {
-      navigate(`/resumes/${createdResume.id}`);
-    }
+  const handleCloseToast = () => {
+    setToastOpen(false);
   };
 
   const handleEditPreferences = () => {
@@ -129,96 +135,61 @@ const CreateResumePage: React.FC = () => {
   return (
     <Container maxWidth="md">
       <Paper elevation={3} sx={{ p: 4, mt: 3, mb: 3 }}>
-        {createdResume ? (
-          <Box sx={{ mt: 4, mb: 2, textAlign: 'center' }}>
-            <Alert severity="success" sx={{ mb: 3 }}>
-              Resume created successfully!
-            </Alert>
-            <Typography variant="h6" gutterBottom>
-              {createdResume.title || 'New Resume'}
-            </Typography>
-            {createdResume.job_title && (
-              <Typography variant="body1" gutterBottom>
-                Job Title: {createdResume.job_title}
-              </Typography>
-            )}
-            {createdResume.company_name && (
-              <Typography variant="body1" gutterBottom>
-                Company: {createdResume.company_name}
-              </Typography>
-            )}
-            <Button 
-              variant="contained" 
-              color="primary" 
-              size="large"
-              onClick={handleViewResume}
-              sx={{ mt: 2 }}
-            >
-              View Resume
-            </Button>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              size="large"
-              onClick={() => setCreatedResume(null)}
-              sx={{ mt: 2, ml: 2 }}
-            >
-              Create Another Resume
-            </Button>
-          </Box>
-        ) : (
-          <>
-            <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-              <Tabs value={tabValue} onChange={handleTabChange} aria-label="resume creation tabs">
-                <Tab label="Job Description" id="resume-creation-tab-0" />
-                <Tab label="Job URL" id="resume-creation-tab-1" />
-              </Tabs>
-            </Box>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+          <Tabs value={tabValue} onChange={handleTabChange} aria-label="resume creation tabs">
+            <Tab label="Job Description" id="resume-creation-tab-0" />
+            <Tab label="Job URL" id="resume-creation-tab-1" />
+          </Tabs>
+        </Box>
 
-            <TabPanel value={tabValue} index={0}>
-              <TextField
-                label="Job Description"
-                multiline
-                rows={8}
-                fullWidth
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the job description here..."
-                variant="outlined"
-                margin="normal"
-              />
-            </TabPanel>
+        <TabPanel value={tabValue} index={0}>
+          <TextField
+            label="Job Description"
+            multiline
+            rows={8}
+            fullWidth
+            value={jobDescription}
+            onChange={(e) => setJobDescription(e.target.value)}
+            placeholder="Paste the job description here..."
+            variant="outlined"
+            margin="normal"
+          />
+        </TabPanel>
 
-            <TabPanel value={tabValue} index={1}>
-              <TextField
-                label="Job Posting URL"
-                fullWidth
-                value={jobDescriptionUrl}
-                onChange={(e) => setJobDescriptionUrl(e.target.value)}
-                placeholder="Enter the URL of the job posting..."
-                variant="outlined"
-                margin="normal"
-                helperText="Please note: URL parsing functionality will be implemented later."
-              />
-            </TabPanel>
+        <TabPanel value={tabValue} index={1}>
+          <TextField
+            label="Job Posting URL"
+            fullWidth
+            value={jobDescriptionUrl}
+            onChange={(e) => setJobDescriptionUrl(e.target.value)}
+            placeholder="Enter the URL of the job posting..."
+            variant="outlined"
+            margin="normal"
+            helperText="Please note: URL parsing functionality will be implemented later."
+          />
+        </TabPanel>
 
-            <Box sx={{ mt: 3, mb: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                size="large"
-                onClick={handleCreateResume}
-                disabled={loading}
-              >
-                {loading ? <CircularProgress size={24} /> : 'Create Resume'}
-              </Button>
-            </Box>
-          </>
-        )}
+        <Box sx={{ mt: 3, mb: 2 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            size="large"
+            onClick={handleCreateResume}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Create Resume'}
+          </Button>
+        </Box>
       </Paper>
 
-      {!createdResume && (
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      {!loading && (
         <Card elevation={1} sx={{ mb: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -357,12 +328,13 @@ const CreateResumePage: React.FC = () => {
           </CardContent>
         </Card>
       )}
-
-      <Toast 
-        open={!!error} 
-        message={error || ''} 
-        severity="error"
-        onClose={() => setError(null)}
+      
+      {/* Toast notification */}
+      <Toast
+        open={toastOpen}
+        message={toastMessage}
+        severity={toastSeverity}
+        onClose={handleCloseToast}
       />
     </Container>
   );
