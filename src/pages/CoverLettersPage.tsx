@@ -301,14 +301,6 @@ const CoverLettersPage: React.FC = () => {
     });
   };
 
-  const getRecipientInfo = (coverLetter: CoverLetter) => {
-    return 'N/A';
-  };
-
-  const getCompanyInfo = (coverLetter: CoverLetter) => {
-    return 'N/A';
-  };
-
   // Generate title using resume title when available
   const getCoverLetterTitle = (coverLetter: CoverLetter) => {
     const resumeId = coverLetter.resume_id;
@@ -487,14 +479,25 @@ const CoverLettersPage: React.FC = () => {
               mb: 3
             }}
           >
-            <Table sx={{ minWidth: 650 }}>
+            <Table sx={{ minWidth: 650 }} aria-label="cover letters table">
               <TableHead sx={{ backgroundColor: 'rgba(0,0,0,0.03)' }}>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 600 }}>Title</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Recipient</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Company</TableCell>
-                  <TableCell sx={{ fontWeight: 600 }}>Last Updated</TableCell>
-                  <TableCell align="right" sx={{ fontWeight: 600 }}>Actions</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Title</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem'
+                  }}>Last Updated</TableCell>
+                  <TableCell sx={{ 
+                    fontWeight: 'bold',
+                    color: 'text.primary',
+                    fontSize: '0.875rem',
+                    textAlign: 'center'
+                  }}>Actions</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -507,12 +510,12 @@ const CoverLettersPage: React.FC = () => {
                       transition: 'background-color 0.2s ease',
                       '&:hover': { backgroundColor: 'rgba(0,0,0,0.01)' }
                     }}
+                    onClick={() => handleViewCoverLetter(coverLetter.id)}
                   >
                     <TableCell 
                       component="th" 
                       scope="row"
                       sx={{ cursor: 'pointer' }}
-                      onClick={() => handleViewCoverLetter(coverLetter.id)}
                     >
                       <Typography 
                         variant="subtitle1" 
@@ -524,52 +527,59 @@ const CoverLettersPage: React.FC = () => {
                         {getCoverLetterTitle(coverLetter)}
                       </Typography>
                     </TableCell>
-                    <TableCell>{getRecipientInfo(coverLetter)}</TableCell>
-                    <TableCell>{getCompanyInfo(coverLetter)}</TableCell>
-                    <TableCell>{formatDate(coverLetter.updated_at)}</TableCell>
-                    <TableCell align="right">
-                      <ButtonGroup size="small">
-                        <Tooltip title="View">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleViewCoverLetter(coverLetter.id)}
-                          >
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {formatDate(coverLetter.updated_at)}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="center" onClick={(e) => e.stopPropagation()}>
+                      <ButtonGroup size="small" variant="outlined">
+                        <Tooltip 
+                          title="View" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={() => handleViewCoverLetter(coverLetter.id)}>
                             <VisibilityIcon fontSize="small" />
-                          </IconButton>
+                          </Button>
                         </Tooltip>
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleEditCoverLetter(coverLetter.id)}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="See PDF">
-                          <IconButton
-                            size="small"
+                        <Tooltip 
+                          title="See PDF" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button 
+                            variant="outlined" 
+                            startIcon={generatingPdf && !pdfViewerOpen ? <CircularProgress size={16} /> : <PdfIcon />}
                             onClick={() => handleViewPdf(coverLetter.id)}
                             disabled={generatingPdf}
                           >
-                            <PdfIcon fontSize="small" />
-                          </IconButton>
+                            {generatingPdf && !pdfViewerOpen ? 'Loading...' : 'See PDF'}
+                          </Button>
                         </Tooltip>
-                        <Tooltip title="Download PDF">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleDownloadPdf(coverLetter.id)}
-                            disabled={generatingPdf}
+                        <Tooltip 
+                          title="Delete" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button 
+                            onClick={() => {
+                              setSelectedCoverLetterId(coverLetter.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                            color="error"
                           >
-                            <PdfIcon fontSize="small" />
-                          </IconButton>
+                            <DeleteIcon fontSize="small" />
+                          </Button>
                         </Tooltip>
-                        <Tooltip title="More Options">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => handleMenuOpen(e, coverLetter.id)}
-                          >
+                        <Tooltip 
+                          title="More options" 
+                          placement="top"
+                          TransitionProps={{ timeout: 0 }}
+                        >
+                          <Button onClick={(e) => handleMenuOpen(e, coverLetter.id)}>
                             <MoreVertIcon fontSize="small" />
-                          </IconButton>
+                          </Button>
                         </Tooltip>
                       </ButtonGroup>
                     </TableCell>
