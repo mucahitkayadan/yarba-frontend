@@ -5,7 +5,7 @@ import { createDebugger } from '../utils/debug';
 const debug = createDebugger('API');
 
 // Create Axios instance with default configuration
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api/v1';
+const API_URL = process.env.REACT_APP_API_URL;
 
 debug.log('API URL:', API_URL);
 console.log('Creating API service with URL:', API_URL);

@@ -84,27 +84,26 @@ const CoverLettersPage: React.FC = () => {
   const fetchCoverLetters = async () => {
     setLoading(true);
     try {
+      const template_id = undefined;
+      const resume_id = undefined;
       const skip = (page - 1) * pageSize;
       const limit = pageSize;
-      const title = searchTerm ? searchTerm : undefined;
+      const sort_by = 'updated_desc';
       
-      console.log(`Fetching cover letters with skip=${skip}, limit=${limit}, title=${title}, sort_by=updated_desc`);
+      console.log(`Fetching cover letters with template_id=${template_id}, resume_id=${resume_id}, skip=${skip}, limit=${limit}, sort_by=${sort_by}`);
       
-      const result = await getCoverLetters(skip, limit, title, undefined, 'updated_desc');
+      const result = await getCoverLetters(template_id, resume_id, skip, limit, sort_by);
       console.log('API result:', result);
       
-      // Log timestamps to verify sorting
-      if (result.items.length > 0) {
-        console.log('First cover letter updated_at:', result.items[0].updated_at);
-        if (result.items.length > 1) {
-          console.log('Second cover letter updated_at:', result.items[1].updated_at);
-        }
-      }
+      // Apply filtering based on searchTerm if needed
+      const filteredResults = searchTerm 
+        ? result.items.filter(cl => getCoverLetterTitle(cl).toLowerCase().includes(searchTerm.toLowerCase()))
+        : result.items;
       
-      setCoverLetters(result.items);
-      setTotalCoverLetters(result.total || 0);
+      setCoverLetters(filteredResults);
+      setTotalCoverLetters(result.total);
       
-      console.log(`Loaded ${result.items.length} cover letters, total: ${result.total}`);
+      console.log(`Loaded ${result.total} cover letters, displaying ${filteredResults.length}`);
     } catch (error) {
       console.error('Failed to fetch cover letters:', error);
       setCoverLetters([]);
@@ -239,26 +238,10 @@ const CoverLettersPage: React.FC = () => {
     console.log('Download PDF for cover letter:', coverLetterId);
     setGeneratingPdf(true);
     try {
-      const pdfBlob = await getCoverLetterPdf(coverLetterId);
+      const pdfResponse = await getCoverLetterPdf(coverLetterId);
       
-      // Create a URL for the blob
-      const url = URL.createObjectURL(pdfBlob);
-      
-      // Create a temporary link and trigger download
-      const a = document.createElement('a');
-      a.href = url;
-      
-      // Get the cover letter's title for the filename
-      const coverLetter = coverLetters.find(cl => cl.id === coverLetterId);
-      const title = coverLetter ? coverLetter.title.replace(/\s+/g, '_') : 'cover_letter';
-      
-      a.download = `${title}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      
-      // Clean up
-      URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Open PDF URL in a new tab for download
+      window.open(pdfResponse.pdf_url, '_blank');
     } catch (error: any) {
       console.error('Failed to download PDF:', error);
       let errorMsg = 'Failed to generate PDF';
@@ -289,17 +272,16 @@ const CoverLettersPage: React.FC = () => {
   };
 
   const getRecipientInfo = (coverLetter: CoverLetter) => {
-    if (coverLetter.recipient_name) {
-      return coverLetter.recipient_name;
-    }
-    return 'No recipient specified';
+    return 'N/A';
   };
 
   const getCompanyInfo = (coverLetter: CoverLetter) => {
-    if (coverLetter.company_name) {
-      return coverLetter.company_name;
-    }
-    return 'No company specified';
+    return 'N/A';
+  };
+
+  // Generate title from resume_id
+  const getCoverLetterTitle = (coverLetter: CoverLetter) => {
+    return `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`;
   };
 
   const handleViewPdf = async (coverLetterId: string) => {
@@ -310,14 +292,18 @@ const CoverLettersPage: React.FC = () => {
       
       // Store cover letter name for the dialog title
       if (coverLetter) {
-        setSelectedCoverLetterName(coverLetter.title);
+        setSelectedCoverLetterName(getCoverLetterTitle(coverLetter));
       }
       
-      const pdfBlob = await getCoverLetterPdf(coverLetterId);
-      setPdfBlob(pdfBlob);
+      const pdfResponse = await getCoverLetterPdf(coverLetterId);
+      
+      // Fetch the PDF from the URL
+      const response = await fetch(pdfResponse.pdf_url);
+      const blob = await response.blob();
+      setPdfBlob(blob);
       
       // Create a URL for the PDF blob
-      const url = URL.createObjectURL(pdfBlob);
+      const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       
       // Open the PDF viewer modal
@@ -515,7 +501,7 @@ const CoverLettersPage: React.FC = () => {
                           '&:hover': { textDecoration: 'underline' }
                         }}
                       >
-                        {coverLetter.title}
+                        {getCoverLetterTitle(coverLetter)}
                       </Typography>
                     </TableCell>
                     <TableCell>{getRecipientInfo(coverLetter)}</TableCell>

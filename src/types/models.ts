@@ -220,26 +220,12 @@ export interface CoverLetter {
   user_id: string;
   profile_id: string;
   portfolio_id: string;
-  resume_id?: string; // Optional reference to a related resume
-  title: string;
+  resume_id: string;
   template_id: string;
-  job_title?: string;
-  company_name?: string;
-  job_description?: string;
-  recipient_name?: string;
-  recipient_title?: string;
-  company_address?: string;
-  content?: {
-    salutation?: string;
-    introduction?: string;
-    body?: string[];
-    conclusion?: string;
-    signature?: string;
+  content: {
+    cover_letter_content: string;
   };
-  latex_content?: string; // The generated LaTeX source code
-  pdf_path?: string; // Path to the generated PDF file
-  version: number; // Version number for tracking revisions
-  is_cover_letter: boolean; // Should be true for CoverLetter objects
+  has_pdf: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -289,4 +275,6 @@ export interface ResumeCreateRequest {
 
 export interface CoverLetterCreateRequest {
   resume_id: string;
+  template_id?: string;
+  generate_pdf?: boolean;
 } 

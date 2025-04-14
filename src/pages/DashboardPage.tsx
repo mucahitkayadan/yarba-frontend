@@ -57,7 +57,7 @@ const DashboardPage: React.FC = () => {
         // Fetch resumes, cover letters, and portfolio data in parallel
         const [resumesResponse, coverLettersResponse, portfolioResponse, profileResponse] = await Promise.all([
           getResumes(0, 10),
-          getCoverLetters(0, 10),
+          getCoverLetters(undefined, undefined, 0, 3),
           getUserPortfolio().catch(err => {
             console.warn('Portfolio not found or error:', err);
             return null;
@@ -70,7 +70,7 @@ const DashboardPage: React.FC = () => {
         
         // Update counts
         setResumeCount(resumesResponse.total);
-        setCoverLetterCount(coverLettersResponse.total);
+        setCoverLetterCount(coverLettersResponse.items.length);
         
         // Set profile
         if (profileResponse) {
@@ -99,7 +99,7 @@ const DashboardPage: React.FC = () => {
           })),
           ...coverLettersResponse.items.map((coverLetter: CoverLetter) => ({
             id: coverLetter.id,
-            title: coverLetter.title,
+            title: `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`,
             type: 'cover-letter' as const,
             date: coverLetter.updated_at || coverLetter.created_at
           }))

@@ -15,7 +15,9 @@ import {
   Select,
   MenuItem,
   SelectChangeEvent,
-  FormHelperText
+  FormHelperText,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { createCoverLetter } from '../services/coverLetterService';
 import { getResumes } from '../services/resumeService';
@@ -30,6 +32,7 @@ const CoverLetterNewPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
+  const [generatePdf, setGeneratePdf] = useState<boolean>(false);
   const [errors, setErrors] = useState<{
     resumeId?: string;
   }>({});
@@ -74,6 +77,10 @@ const CoverLetterNewPage: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handleGeneratePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setGeneratePdf(event.target.checked);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -87,7 +94,8 @@ const CoverLetterNewPage: React.FC = () => {
     try {
       // Create the request based on the API specification
       const coverLetterData = {
-        resume_id: selectedResumeId
+        resume_id: selectedResumeId,
+        generate_pdf: generatePdf
       };
       
       const newCoverLetter = await createCoverLetter(coverLetterData);
@@ -187,6 +195,18 @@ const CoverLetterNewPage: React.FC = () => {
             </Select>
             {errors.resumeId && <FormHelperText>{errors.resumeId}</FormHelperText>}
           </FormControl>
+          
+          <FormControlLabel
+            control={
+              <Checkbox 
+                checked={generatePdf} 
+                onChange={handleGeneratePdfChange} 
+                name="generatePdf" 
+              />
+            }
+            label="Generate PDF immediately"
+            sx={{ mt: 2 }}
+          />
           
           <Stack 
             direction="row" 

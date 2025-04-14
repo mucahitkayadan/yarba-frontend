@@ -80,6 +80,9 @@ const CoverLetterViewPage: React.FC = () => {
     fetchCoverLetter();
   }, [id]);
 
+  // Generate a title for the cover letter since the new API doesn't include one
+  const coverLetterTitle = coverLetter ? `Cover Letter (${coverLetter.resume_id.substring(0, 8)})` : '';
+
   const handleEdit = () => {
     if (id) {
       navigate(`/cover-letters/${id}/edit`);
@@ -128,11 +131,15 @@ const CoverLetterViewPage: React.FC = () => {
     
     setGeneratingPdf(true);
     try {
-      const pdfBlob = await getCoverLetterPdf(id);
-      setPdfBlob(pdfBlob);
+      const pdfResponse = await getCoverLetterPdf(id);
+      
+      // Fetch the PDF from the URL
+      const response = await fetch(pdfResponse.pdf_url);
+      const blob = await response.blob();
+      setPdfBlob(blob);
       
       // Create a URL for the PDF blob
-      const url = URL.createObjectURL(pdfBlob);
+      const url = URL.createObjectURL(blob);
       setPdfUrl(url);
       
       // Open the PDF viewer modal
@@ -150,23 +157,10 @@ const CoverLetterViewPage: React.FC = () => {
     
     setGeneratingPdf(true);
     try {
-      const pdfBlob = await getCoverLetterPdf(id);
+      const pdfResponse = await getCoverLetterPdf(id);
       
-      // Create a download link
-      const url = window.URL.createObjectURL(pdfBlob);
-      const link = document.createElement('a');
-      link.href = url;
-      
-      // Set the filename
-      const filename = `${coverLetter.title.replace(/\s+/g, '_')}.pdf`;
-      
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      // Open PDF URL in a new tab for download
+      window.open(pdfResponse.pdf_url, '_blank');
     } catch (err: any) {
       console.error('Failed to download PDF:', err);
       setError('Failed to download PDF. Please try again.');
@@ -251,7 +245,7 @@ const CoverLetterViewPage: React.FC = () => {
         >
           Cover Letters
         </Link>
-        <Typography color="text.primary">{coverLetter.title}</Typography>
+        <Typography color="text.primary">{coverLetterTitle}</Typography>
       </Breadcrumbs>
       
       <Box sx={{ 
@@ -264,23 +258,19 @@ const CoverLetterViewPage: React.FC = () => {
       }}>
         <Box sx={{ maxWidth: { xs: '100%', md: '60%' } }}>
           <Typography variant="h4" component="h1" gutterBottom>
-            {coverLetter.title}
+            {coverLetterTitle}
           </Typography>
           <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
-            {coverLetter.job_title && (
-              <Chip 
-                label={coverLetter.job_title} 
-                color="primary" 
-                variant="outlined" 
-                size="small" 
-              />
-            )}
-            {coverLetter.company_name && (
-              <Chip 
-                label={coverLetter.company_name} 
-                size="small" 
-              />
-            )}
+            <Chip 
+              label="Cover Letter" 
+              color="primary" 
+              variant="outlined" 
+              size="small" 
+            />
+            <Chip 
+              label={`Resume ID: ${coverLetter.resume_id.substring(0, 8)}`} 
+              size="small" 
+            />
           </Stack>
           <Typography variant="body2" color="text.secondary">
             Last updated: {formatDate(coverLetter.updated_at)}
@@ -355,49 +345,15 @@ const CoverLetterViewPage: React.FC = () => {
               <Typography variant="body2">{formatDate(coverLetter.updated_at)}</Typography>
             </Grid>
             
-            {coverLetter.company_name && (
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Company</Typography>
-                <Typography variant="body2">{coverLetter.company_name}</Typography>
-              </Grid>
-            )}
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant="subtitle2" color="text.secondary">Resume ID</Typography>
+              <Typography variant="body2">{coverLetter.resume_id}</Typography>
+            </Grid>
             
-            {coverLetter.job_title && (
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Job Position</Typography>
-                <Typography variant="body2">{coverLetter.job_title}</Typography>
-              </Grid>
-            )}
-            
-            {coverLetter.recipient_name && (
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Recipient</Typography>
-                <Typography variant="body2">{coverLetter.recipient_name}</Typography>
-              </Grid>
-            )}
-
-            {coverLetter.recipient_title && (
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant="subtitle2" color="text.secondary">Recipient Title</Typography>
-                <Typography variant="body2">{coverLetter.recipient_title}</Typography>
-              </Grid>
-            )}
-
-            {coverLetter.company_address && (
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary">Company Address</Typography>
-                <Typography variant="body2">{coverLetter.company_address}</Typography>
-              </Grid>
-            )}
-            
-            {coverLetter.job_description && (
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary">Job Description</Typography>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {coverLetter.job_description}
-                </Typography>
-              </Grid>
-            )}
+            <Grid item xs={12} sm={6} md={4}>
+              <Typography variant="subtitle2" color="text.secondary">Has PDF</Typography>
+              <Typography variant="body2">{coverLetter.has_pdf ? 'Yes' : 'No'}</Typography>
+            </Grid>
           </Grid>
         </Paper>
         
@@ -409,43 +365,12 @@ const CoverLetterViewPage: React.FC = () => {
           <Divider sx={{ mb: 2 }} />
           
           <Box sx={{ px: 2 }}>
-            {/* Salutation */}
-            {coverLetter.content?.salutation && (
-              <Typography variant="body1" paragraph>
-                {coverLetter.content.salutation}
+            {/* Cover Letter Content */}
+            {coverLetter.content?.cover_letter_content ? (
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                {coverLetter.content.cover_letter_content}
               </Typography>
-            )}
-            
-            {/* Introduction */}
-            {coverLetter.content?.introduction && (
-              <Typography variant="body1" paragraph>
-                {coverLetter.content.introduction}
-              </Typography>
-            )}
-            
-            {/* Body Paragraphs */}
-            {coverLetter.content?.body && coverLetter.content.body.map((paragraph, index) => (
-              <Typography key={index} variant="body1" paragraph>
-                {paragraph}
-              </Typography>
-            ))}
-            
-            {/* Conclusion */}
-            {coverLetter.content?.conclusion && (
-              <Typography variant="body1" paragraph>
-                {coverLetter.content.conclusion}
-              </Typography>
-            )}
-            
-            {/* Signature */}
-            {coverLetter.content?.signature && (
-              <Typography variant="body1">
-                {coverLetter.content.signature}
-              </Typography>
-            )}
-
-            {/* If no content is available */}
-            {!coverLetter.content && (
+            ) : (
               <Typography variant="body2" color="text.secondary">
                 No content is available. Generate or edit the cover letter to add content.
               </Typography>
@@ -483,7 +408,7 @@ const CoverLetterViewPage: React.FC = () => {
         maxWidth="md"
       >
         <DialogTitle>
-          {coverLetter.title}
+          {coverLetterTitle}
           <IconButton
             aria-label="close"
             onClick={handleClosePdfViewer}
