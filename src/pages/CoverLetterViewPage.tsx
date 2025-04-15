@@ -449,12 +449,17 @@ const CoverLetterViewPage: React.FC = () => {
                 loading={<CircularProgress />}
                 error={<Typography color="error">Failed to load PDF</Typography>}
               >
-                <Page 
-                  pageNumber={pageNumber} 
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  width={550}
-                />
+                <Box sx={{ 
+                  border: '1px solid black', 
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                }}>
+                  <Page 
+                    pageNumber={pageNumber} 
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    width={550}
+                  />
+                </Box>
               </Document>
             )}
             
