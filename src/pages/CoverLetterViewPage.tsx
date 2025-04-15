@@ -11,7 +11,7 @@ import {
   Stack,
   Alert,
   Breadcrumbs,
-  Link,
+  Link as MuiLink,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,11 +25,17 @@ import {
   ArrowBack as ArrowBackIcon,
   PictureAsPdf as PdfIcon,
   Delete as DeleteIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Phone as PhoneIcon,
+  Email as EmailIcon,
+  LinkedIn as LinkedInIcon,
+  GitHub as GitHubIcon,
+  Language as WebsiteIcon,
+  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { getCoverLetterById, getCoverLetterPdf, deleteCoverLetter } from '../services/coverLetterService';
 import { getResumeById } from '../services/resumeService';
-import { CoverLetter } from '../types/models';
+import { CoverLetter, Resume } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 // Set up the PDF.js worker
@@ -53,6 +59,7 @@ const CoverLetterViewPage: React.FC = () => {
   const [pageNumber, setPageNumber] = useState(1);
   
   const [resumeTitle, setResumeTitle] = useState<string>('');
+  const [resumeData, setResumeData] = useState<Resume | null>(null);
   
   // Clean up object URL when component unmounts or dialog closes
   useEffect(() => {
@@ -72,10 +79,11 @@ const CoverLetterViewPage: React.FC = () => {
         const data = await getCoverLetterById(id);
         setCoverLetter(data);
         
-        // Fetch resume title
+        // Fetch resume title and data
         try {
           const resume = await getResumeById(data.resume_id);
           setResumeTitle(resume.title);
+          setResumeData(resume);
         } catch (resumeErr) {
           console.error('Failed to fetch resume:', resumeErr);
         }
@@ -249,14 +257,14 @@ const CoverLetterViewPage: React.FC = () => {
     <Box sx={{ p: 3 }}>
       {/* Navigation breadcrumbs */}
       <Breadcrumbs sx={{ mb: 3 }}>
-        <Link 
+        <MuiLink 
           underline="hover" 
           color="inherit" 
           onClick={handleBack}
           sx={{ cursor: 'pointer' }}
         >
           Cover Letters
-        </Link>
+        </MuiLink>
         <Typography color="text.primary">{coverLetterTitle}</Typography>
       </Breadcrumbs>
       
@@ -379,9 +387,237 @@ const CoverLetterViewPage: React.FC = () => {
           <Box sx={{ px: 2 }}>
             {/* Cover Letter Content */}
             {coverLetter.content?.cover_letter_content ? (
-              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                {coverLetter.content.cover_letter_content}
-              </Typography>
+              (() => {
+                let content;
+                try {
+                  // Try to parse the content as JSON
+                  interface CoverLetterContent {
+                    greeting?: string;
+                    paragraphs?: string[];
+                    closing?: string;
+                    full_document?: string;
+                    applicant_name?: string;
+                  }
+                  
+                  content = JSON.parse(coverLetter.content.cover_letter_content) as CoverLetterContent;
+                } catch (e) {
+                  // If it's not valid JSON, use it as is
+                  return (
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {coverLetter.content.cover_letter_content}
+                    </Typography>
+                  );
+                }
+                
+                // Render formatted cover letter
+                return (
+                  <Paper elevation={0} sx={{ 
+                    p: { xs: 3, sm: 5 }, 
+                    backgroundColor: '#fcfcfc',
+                    backgroundImage: 'linear-gradient(to bottom, #f9f9f9, #fcfcfc 15%)',
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 2,
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    fontFamily: '"Georgia", serif',
+                    lineHeight: 1.6,
+                    maxWidth: '800px',
+                    margin: '0 auto',
+                    position: 'relative',
+                  }}>
+                    {/* Personal Information Header */}
+                    <Box sx={{ mb: 4, textAlign: 'center' }}>
+                      {resumeData?.content?.personal_information && (() => {
+                        let personalInfo;
+                        try {
+                          // Try to parse personal info
+                          if (typeof resumeData.content.personal_information === 'string') {
+                            personalInfo = JSON.parse(resumeData.content.personal_information);
+                          } else {
+                            personalInfo = resumeData.content.personal_information;
+                          }
+                          
+                          return (
+                            <>
+                              <Typography variant="h4" sx={{ 
+                                fontWeight: 700, 
+                                textTransform: 'uppercase',
+                                letterSpacing: 1,
+                                mb: 1.5,
+                                color: '#333'
+                              }}>
+                                {personalInfo.full_name}
+                              </Typography>
+                              
+                              <Box sx={{ 
+                                display: 'flex', 
+                                justifyContent: 'center', 
+                                flexWrap: 'wrap',
+                                gap: { xs: 1, sm: 0 },
+                                mb: 3
+                              }}>
+                                {/* Create a contact info array to manage separators properly */}
+                                {(() => {
+                                  // Create an array of all available contact info elements
+                                  const contactElements = [];
+                                  
+                                  if (personalInfo.phone) {
+                                    contactElements.push({
+                                      key: 'phone',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <PhoneIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <Typography variant="body2">{personalInfo.phone}</Typography>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  if (personalInfo.email) {
+                                    contactElements.push({
+                                      key: 'email',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <EmailIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <MuiLink href={`mailto:${personalInfo.email}`} underline="hover" variant="body2">
+                                            {personalInfo.email}
+                                          </MuiLink>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  if (personalInfo.linkedin) {
+                                    contactElements.push({
+                                      key: 'linkedin',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <LinkedInIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <MuiLink href={personalInfo.linkedin} target="_blank" rel="noopener" underline="hover" variant="body2">
+                                            LinkedIn
+                                          </MuiLink>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  if (personalInfo.github) {
+                                    contactElements.push({
+                                      key: 'github',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <GitHubIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <MuiLink href={personalInfo.github} target="_blank" rel="noopener" underline="hover" variant="body2">
+                                            GitHub
+                                          </MuiLink>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  if (personalInfo.website) {
+                                    contactElements.push({
+                                      key: 'website',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <WebsiteIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <MuiLink href={personalInfo.website} target="_blank" rel="noopener" underline="hover" variant="body2">
+                                            Website
+                                          </MuiLink>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  if (personalInfo.address) {
+                                    contactElements.push({
+                                      key: 'address',
+                                      element: (
+                                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                          <LocationIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
+                                          <Typography variant="body2">{personalInfo.address}</Typography>
+                                        </Box>
+                                      )
+                                    });
+                                  }
+                                  
+                                  // Render all elements with separators between them
+                                  return contactElements.map((item, index) => (
+                                    <React.Fragment key={item.key}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', mx: 1 }}>
+                                        {item.element}
+                                      </Box>
+                                      {/* Add separator only if not the last item */}
+                                      {index < contactElements.length - 1 && (
+                                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>|</Typography>
+                                      )}
+                                    </React.Fragment>
+                                  ));
+                                })()}
+                              </Box>
+                              
+                              <Divider sx={{ width: '100%', mb: 3 }} />
+                            </>
+                          );
+                        } catch (e) {
+                          console.error('Error parsing personal information:', e);
+                          return null;
+                        }
+                      })()}
+                    </Box>
+                    
+                    {/* Date */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
+                      <Typography sx={{ color: '#555' }}>
+                        {new Date().toLocaleDateString('en-US', { 
+                          year: 'numeric', 
+                          month: 'long', 
+                          day: 'numeric' 
+                        })}
+                      </Typography>
+                    </Box>
+                    
+                    {/* Greeting */}
+                    {content.greeting && (
+                      <Typography variant="body1" sx={{ mb: 3, fontWeight: 500, fontSize: '1.05rem' }}>
+                        {content.greeting}
+                      </Typography>
+                    )}
+                    
+                    {/* Body Paragraphs */}
+                    {content.paragraphs && Array.isArray(content.paragraphs) ? (
+                      content.paragraphs.map((paragraph: string, index: number) => (
+                        <Typography key={index} variant="body1" sx={{ 
+                          mb: 2.5, 
+                          textIndent: '1.5em',
+                          fontSize: '1.02rem',
+                          color: '#222',
+                          textAlign: 'justify'
+                        }}>
+                          {paragraph}
+                        </Typography>
+                      ))
+                    ) : content.full_document ? (
+                      <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                        {content.full_document}
+                      </Typography>
+                    ) : null}
+                    
+                    {/* Closing */}
+                    {content.closing && (
+                      <Box sx={{ mt: 5 }}>
+                        <Typography variant="body1" sx={{ mb: 4, fontStyle: 'italic' }}>
+                          {content.closing}
+                        </Typography>
+                        {/* Signature space */}
+                        <Box sx={{ height: 60, mb: 1 }} />
+                        <Typography variant="body1" sx={{ fontWeight: 500, borderTop: '1px solid #eaeaea', pt: 1, display: 'inline-block' }}>
+                          {content.applicant_name || ""}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Paper>
+                );
+              })()
             ) : (
               <Typography variant="body2" color="text.secondary">
                 No content is available. Generate or edit the cover letter to add content.
