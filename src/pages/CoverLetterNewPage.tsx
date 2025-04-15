@@ -32,7 +32,7 @@ const CoverLetterNewPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [resumes, setResumes] = useState<Resume[]>([]);
   const [selectedResumeId, setSelectedResumeId] = useState<string>('');
-  const [generatePdf, setGeneratePdf] = useState<boolean>(false);
+  const [generatePdf, setGeneratePdf] = useState<boolean>(true);
   const [errors, setErrors] = useState<{
     resumeId?: string;
   }>({});
@@ -75,10 +75,6 @@ const CoverLetterNewPage: React.FC = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
-
-  const handleGeneratePdfChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setGeneratePdf(event.target.checked);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -195,18 +191,6 @@ const CoverLetterNewPage: React.FC = () => {
             </Select>
             {errors.resumeId && <FormHelperText>{errors.resumeId}</FormHelperText>}
           </FormControl>
-          
-          <FormControlLabel
-            control={
-              <Checkbox 
-                checked={generatePdf} 
-                onChange={handleGeneratePdfChange} 
-                name="generatePdf" 
-              />
-            }
-            label="Generate PDF immediately"
-            sx={{ mt: 2 }}
-          />
           
           <Stack 
             direction="row" 
