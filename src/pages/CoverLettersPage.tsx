@@ -414,23 +414,23 @@ const CoverLettersPage: React.FC = () => {
         </Button>
       </Box>
       
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Paper sx={{ p: 2, mb: 3 }}>
         <TextField
-          placeholder="Search cover letters by title..."
+          fullWidth
+          placeholder="Search cover letters..."
           variant="outlined"
           value={searchTerm}
           onChange={handleSearchChange}
-          size="small"
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
-                <SearchIcon color="action" />
+                <SearchIcon />
               </InputAdornment>
             ),
           }}
-          sx={{ maxWidth: { xs: '100%', sm: 300 } }}
+          sx={{ mb: 0 }}
         />
-      </Box>
+      </Paper>
       
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
