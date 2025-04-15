@@ -61,6 +61,30 @@ POST /api/v1/auth/login
 }
 ```
 
+#### Swagger Login (Development Only)
+
+```
+POST /api/v1/auth/swagger-login
+```
+
+This endpoint is for **development use only** and is disabled in production. It allows testing API endpoints in Swagger UI by providing an ID token.
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "id_token": "string",
+  "message": "Use this ID token with the /auth/login endpoint in Swagger UI"
+}
+```
+
 #### Get Current User Info
 
 ```
@@ -80,11 +104,95 @@ GET /api/v1/auth/me
 }
 ```
 
+#### Forgot Password
+
+```
+POST /api/v1/auth/forgot-password
+```
+
+**Request Body:**
+```json
+{
+  "email": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Password reset instructions sent to your email"
+}
+```
+
+#### Verify Email
+
+```
+POST /api/v1/auth/verify-email
+```
+
+**Request Body:**
+```json
+{
+  "email": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Email verification instructions sent to your email"
+}
+```
+
+#### Change Password
+
+```
+POST /api/v1/auth/change-password
+```
+
+**Request Body:**
+```json
+{
+  "current_password": "string",
+  "new_password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Password changed successfully"
+}
+```
+
+## Rate Limiting
+
+The API implements rate limiting to prevent abuse. Different endpoints have different rate limits:
+
+- **Default rate limit**: 60 requests per 60 seconds
+- **Resume endpoints**: 30 requests per 60 seconds
+- **PDF generation endpoints**: 3 requests per 120 seconds
+
+When a rate limit is exceeded, the API will respond with a 429 Too Many Requests status code.
+
+The following headers are included in the response:
+- `X-RateLimit-Limit`: The maximum number of requests allowed in the window
+- `X-RateLimit-Remaining`: The number of requests remaining in the current window
+- `X-RateLimit-Reset`: The time when the current rate limit window resets
+
 ## Profile Management
 
-These endpoints manage user profiles containing personal information, skills, education, etc.
+These endpoints manage user profiles containing personal information, preferences, and profile media.
 
 ### Profile Endpoints
+
+#### Get Current User Profile
+
+```
+GET /api/v1/profiles/me
+```
+
+**Response:** Profile object
 
 #### Create Profile
 
@@ -95,30 +203,243 @@ POST /api/v1/profiles
 **Request Body:**
 ```json
 {
-  "full_name": "string",
-  "email": "string",
-  "phone": "string",
-  "location": "string",
-  "website": "string",
-  "linkedin": "string",
-  "github": "string",
-  "summary": "string"
+  "personal_information": {
+    "full_name": "string",
+    "email": "string",
+    "phone": "string (optional)",
+    "address": "string (optional)",
+    "linkedin": "string (optional)",
+    "github": "string (optional)",
+    "website": "string (optional)"
+  },
+  "preferences": {
+    // Optional preferences object
+  }
 }
 ```
 
-#### Get Current User Profile
+**Response:** Profile object
+
+#### Update Current User Profile
 
 ```
-GET /api/v1/profiles/me
+PUT /api/v1/profiles/me
 ```
 
-#### Update Profile
+**Request Body:**
+```json
+{
+  "personal_information": {
+    "full_name": "string (optional)",
+    "email": "string (optional)",
+    "phone": "string (optional)",
+    "address": "string (optional)",
+    "linkedin": "string (optional)",
+    "github": "string (optional)",
+    "website": "string (optional)"
+  }
+}
+```
+
+**Response:** Profile object
+
+#### Patch Current User Profile
 
 ```
-PUT /api/v1/profiles/{profile_id}
+PATCH /api/v1/profiles/me
 ```
 
-**Request Body:** Same as Create Profile, all fields optional
+**Request Body:**
+```json
+{
+  "life_story": "string (optional)",
+  "api_keys": { /* optional API keys object */ }
+}
+```
+
+**Response:** Profile object
+
+#### Update Current User Preferences
+
+```
+PUT /api/v1/profiles/me/preferences
+```
+
+**Request Body:**
+```json
+{
+  "project_details": { /* optional object */ },
+  "work_experience_details": { /* optional object */ },
+  "skills_details": { /* optional object */ },
+  "career_summary_details": { /* optional object */ },
+  "education_details": { /* optional object */ },
+  "cover_letter_details": { /* optional object */ },
+  "awards_details": { /* optional object */ },
+  "publications_details": { /* optional object */ },
+  "feature_preferences": { /* optional object */ },
+  "notifications": { /* optional object */ },
+  "privacy": { /* optional object */ },
+  "llm_preferences": { /* optional object */ },
+  "section_preferences": { /* optional object */ }
+}
+```
+
+**Response:** Profile object
+
+#### Patch Current User Preferences
+
+```
+PATCH /api/v1/profiles/me/preferences
+```
+
+**Request Body:** Same as PUT endpoint, all fields optional
+
+**Response:** Profile object
+
+#### Patch Personal Information
+
+```
+PATCH /api/v1/profiles/me/personal-information
+```
+
+**Request Body:**
+```json
+{
+  "full_name": "string (optional)",
+  "email": "string (optional)",
+  "phone": "string (optional)",
+  "address": "string (optional)",
+  "linkedin": "string (optional)",
+  "github": "string (optional)",
+  "website": "string (optional)"
+}
+```
+
+**Response:** Profile object
+
+#### Get Profile by ID
+
+```
+GET /api/v1/profiles/{profile_id}
+```
+
+**Response:** Profile object
+
+### Life Story Endpoints
+
+#### Patch Life Story
+
+```
+PATCH /api/v1/profiles/me/life-story
+```
+
+**Request Body:**
+```json
+{
+  "life_story": "string"
+}
+```
+
+**Response:** Profile object
+
+#### Get Life Story
+
+```
+GET /api/v1/profiles/me/life-story
+```
+
+**Response:**
+```json
+{
+  "life_story": "string"
+}
+```
+
+### Profile Picture Endpoints
+
+#### Upload Profile Picture
+
+```
+POST /api/v1/profiles/me/profile-picture
+```
+
+**Request:** Multipart form with file upload
+
+**Response:**
+```json
+{
+  "profile_picture_key": "string"
+}
+```
+
+#### Get Profile Picture Key
+
+```
+GET /api/v1/profiles/me/profile-picture
+```
+
+**Response:**
+```json
+{
+  "profile_picture_key": "string"
+}
+```
+
+#### Delete Profile Picture
+
+```
+DELETE /api/v1/profiles/me/profile-picture
+```
+
+**Response:**
+```json
+{
+  "profile_picture_key": null
+}
+```
+
+### Signature Endpoints
+
+#### Upload Signature
+
+```
+POST /api/v1/profiles/me/signature
+```
+
+**Request:** Multipart form with file upload
+
+**Response:**
+```json
+{
+  "signature_key": "string"
+}
+```
+
+#### Get Signature Key
+
+```
+GET /api/v1/profiles/me/signature
+```
+
+**Response:**
+```json
+{
+  "signature_key": "string"
+}
+```
+
+#### Delete Signature
+
+```
+DELETE /api/v1/profiles/me/signature
+```
+
+**Response:**
+```json
+{
+  "signature_key": null
+}
+```
 
 ## Resume Management
 
@@ -133,24 +454,7 @@ POST /api/v1/resumes
 **Request Body:**
 ```json
 {
-  "title": "string",
-  "template_id": "string",
-  "job_description": "string (optional)",
-  "selected_sections": {
-    "personal_information": "Hardcode|Process",
-    "career_summary": "Hardcode|Process",
-    "skills": "Hardcode|Process",
-    "work_experience": "Hardcode|Process",
-    "education": "Hardcode|Process",
-    "projects": "Hardcode|Process",
-    "awards": "Hardcode|Process",
-    "publications": "Hardcode|Process",
-    "certifications": "Hardcode|Process"
-  },
-  "llm_preferences": {
-    "model": "string",
-    "temperature": 0.7
-  }
+  "job_description": "string"
 }
 ```
 
@@ -165,10 +469,16 @@ GET /api/v1/resumes
 Query parameters:
 - `skip`: Number of resumes to skip (default: 0)
 - `limit`: Number of resumes to return (default: 10, max: 100)
-- `title`: Filter by title
-- `template_id`: Filter by template ID
+- `sort_by`: Sort field and direction (default: "updated_desc")
 
-**Response:** Array of Resume objects
+**Response:** Paginated list of Resume objects
+
+```json
+{
+  "items": [Resume objects],
+  "total": integer
+}
+```
 
 #### Get Resume by ID
 
@@ -225,7 +535,6 @@ POST /api/v1/resumes/{resume_id}/generate
 **Request Body:**
 ```json
 {
-  "job_description": "string",
   "selected_sections": ["personal_information", "career_summary", "skills", ...]
 }
 ```
@@ -241,7 +550,68 @@ GET /api/v1/resumes/{resume_id}/pdf
 Query parameters:
 - `timeout`: PDF generation timeout in seconds (default: 30, min: 5, max: 60)
 
-**Response:** PDF file
+**Response:** PDF URL
+
+```json
+{
+  "pdf_url": "string"
+}
+```
+
+#### Upload Resume PDF
+
+```
+POST /api/v1/resumes/{resume_id}/upload-pdf
+```
+
+**Request:** Multipart form with PDF file upload
+
+**Response:**
+```json
+{
+  "pdf_url": "string"
+}
+```
+
+#### Delete Resume PDF
+
+```
+DELETE /api/v1/resumes/{resume_id}/pdf
+```
+
+**Response:**
+```json
+{
+  "pdf_url": null
+}
+```
+
+#### Get Cover Letters For Resume
+
+```
+GET /api/v1/resumes/{resume_id}/cover-letters
+```
+
+**Response:** List of Cover Letter objects associated with this resume
+
+```json
+[
+  {
+    "id": "string",
+    "user_id": "string",
+    "profile_id": "string",
+    "portfolio_id": "string",
+    "resume_id": "string",
+    "template_id": "string",
+    "content": {
+      "cover_letter_content": "string"
+    },
+    "has_pdf": boolean,
+    "created_at": "2023-01-01T00:00:00.000Z",
+    "updated_at": "2023-01-01T00:00:00.000Z"
+  }
+]
+```
 
 #### Debug PDF Generation
 
@@ -251,7 +621,17 @@ POST /api/v1/resumes/{resume_id}/debug-pdf
 
 **Response:** Debugging information about PDF generation
 
+#### Advanced Debug PDF Generation
+
+```
+POST /api/v1/resumes/{resume_id}/advanced-debug
+```
+
+**Response:** Detailed debugging information about PDF generation
+
 ## Cover Letter Management
+
+Cover letters in this system are directly linked to resumes. Each cover letter must reference a resume, and it automatically inherits the resume's job title, company name, job description, and other metadata. This approach avoids data duplication and ensures consistency. When you create or retrieve a cover letter, the associated resume data is used for PDF generation and content creation.
 
 ### Cover Letter Endpoints
 
@@ -264,22 +644,31 @@ POST /api/v1/cover-letters
 **Request Body:**
 ```json
 {
-  "title": "string",
-  "template_id": "string",
-  "resume_id": "string (optional)",
-  "job_description": "string (optional)",
-  "recipient_name": "string (optional)",
-  "recipient_title": "string (optional)",
-  "company_name": "string (optional)",
-  "company_address": "string (optional)",
-  "llm_preferences": {
-    "model": "string",
-    "temperature": 0.7
-  }
+  "resume_id": "string",
+  "template_id": "string (optional)",
+  "generate_pdf": false
 }
 ```
 
 **Response:** Cover Letter object
+
+**Cover Letter Object Structure:**
+```json
+{
+  "id": "string",
+  "user_id": "string",
+  "profile_id": "string",
+  "portfolio_id": "string",
+  "resume_id": "string",
+  "template_id": "string",
+  "content": {
+    "cover_letter_content": "string"
+  },
+  "has_pdf": boolean,
+  "created_at": "2023-01-01T00:00:00.000Z",
+  "updated_at": "2023-01-01T00:00:00.000Z"
+}
+```
 
 #### Get All Cover Letters
 
@@ -288,10 +677,20 @@ GET /api/v1/cover-letters
 ```
 
 Query parameters:
-- `skip`: Number of items to skip (default: 0)
-- `limit`: Number of items to return (default: 10, max: 100)
+- `template_id`: Filter by template ID
+- `resume_id`: Filter by resume ID
+- `skip`: Number of cover letters to skip (default: 0)
+- `limit`: Number of cover letters to return (default: 10, max: 100)
+- `sort_by`: Sort field and direction (default: "updated_desc")
 
-**Response:** Array of Cover Letter objects
+**Response:** Paginated list of Cover Letter objects
+
+```json
+{
+  "items": [Cover Letter objects],
+  "total": integer
+}
+```
 
 #### Get Cover Letter by ID
 
@@ -310,11 +709,7 @@ PUT /api/v1/cover-letters/{cover_letter_id}
 **Request Body:**
 ```json
 {
-  "title": "string (optional)",
   "template_id": "string (optional)",
-  "job_title": "string (optional)",
-  "company_name": "string (optional)",
-  "job_description": "string (optional)",
   "content": {...}
 }
 ```
@@ -335,13 +730,8 @@ DELETE /api/v1/cover-letters/{cover_letter_id}
 POST /api/v1/cover-letters/{cover_letter_id}/generate
 ```
 
-**Request Body:**
-```json
-{
-  "job_description": "string",
-  "resume_id": "string (optional)"
-}
-```
+Query parameters:
+- `regenerate`: Whether to regenerate content even if it exists (default: false)
 
 **Response:** Cover Letter object with generated content
 
@@ -353,20 +743,57 @@ GET /api/v1/cover-letters/{cover_letter_id}/pdf
 
 Query parameters:
 - `timeout`: PDF generation timeout in seconds (default: 30, min: 5, max: 60)
+- `regenerate`: Whether to regenerate the PDF even if it exists (default: false)
 
-**Response:** PDF file
+**Response:** PDF file URL
+
+```json
+{
+  "pdf_url": "https://storage.example.com/cover-letters/abc123.pdf"
+}
+```
+
+#### Upload Cover Letter PDF
+
+```
+POST /api/v1/cover-letters/{cover_letter_id}/upload-pdf
+```
+
+**Request:** Multipart form with PDF file upload
+
+**Response:** PDF file URL
+
+```json
+{
+  "pdf_url": "https://storage.example.com/cover-letters/abc123.pdf"
+}
+```
+
+#### Delete Cover Letter PDF
+
+```
+DELETE /api/v1/cover-letters/{cover_letter_id}/pdf
+```
+
+**Response:**
+
+```json
+{
+  "pdf_url": null
+}
+```
 
 ## Portfolio Management
 
 ### Portfolio Endpoints
 
-#### Get User Portfolios
+#### Get User Portfolio
 
 ```
 GET /api/v1/portfolios/
 ```
 
-**Response:** Array of Portfolio objects
+**Response:** Portfolio object
 
 #### Create Portfolio
 
@@ -387,6 +814,14 @@ POST /api/v1/portfolios/
 
 ```
 GET /api/v1/portfolios/{portfolio_id}
+```
+
+**Response:** Portfolio object
+
+#### Get Portfolio by Profile ID
+
+```
+GET /api/v1/portfolios/by-profile/{profile_id}
 ```
 
 **Response:** Portfolio object
@@ -470,7 +905,6 @@ PUT /api/v1/portfolios/{portfolio_id}
   "custom_sections": {
     // Custom sections object
   },
-  "is_active": true,
   "version": "string"
 }
 ```
@@ -485,11 +919,237 @@ DELETE /api/v1/portfolios/{portfolio_id}
 
 **Response:** HTTP 204 No Content
 
+#### Patch Portfolio (Partial Update)
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}
+```
+
+**Request Body:**
+```json
+{
+  // Any combination of the following fields can be included
+  "profile_id": "string (optional)",
+  "professional_title": "string (optional)",
+  "career_summary": {
+    // Career summary object (optional)
+    "job_titles": ["string", "string", ...],
+    "years_of_experience": "string",
+    "default_summary": "string"
+  },
+  "skills": [
+    // Skills array (optional)
+    {
+      "category": "string",
+      "skills": ["string", "string", ...]
+    }
+  ],
+  "work_experience": [
+    // Work experience array (optional)
+    {
+      "job_title": "string",
+      "company": "string",
+      "location": "string",
+      "time": "string",
+      "responsibilities": ["string", "string", ...]
+    }
+  ],
+  "education": [
+    // Education array (optional)
+    {
+      "degree_type": "string",
+      "degree": "string",
+      "university_name": "string",
+      "time": "string",
+      "location": "string",
+      "GPA": "string",
+      "transcript": ["string", "string", ...]
+    }
+  ],
+  "projects": [
+    // Projects array (optional)
+    {
+      "name": "string",
+      "bullet_points": ["string", "string", ...],
+      "date": "string"
+    }
+  ],
+  "awards": [
+    // Awards array (optional)
+    {
+      "name": "string",
+      "explanation": "string"
+    }
+  ],
+  "publications": [
+    // Publications array (optional)
+    {
+      "name": "string",
+      "publisher": "string",
+      "link": "string",
+      "time": "string"
+    }
+  ],
+  "certifications": ["string", "string", ...], // Optional
+  "custom_sections": {
+    // Custom sections object (optional)
+    "enabled": ["string", "string", ...],
+    "order": ["string", "string", ...]
+  },
+  "version": "string" // Optional
+}
+```
+
+**Response:** Updated Portfolio object
+
+#### Section-Specific Portfolio Updates
+
+These endpoints allow updating specific sections of a portfolio independently:
+
+##### Update Career Summary
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/career-summary
+```
+
+**Request Body:**
+```json
+{
+  "job_titles": ["Software Engineer", "Machine Learning Engineer"],
+  "years_of_experience": "3",
+  "default_summary": "in software development, machine learning, and computer vision."
+}
+```
+
+##### Update Skills
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/skills
+```
+
+**Request Body:**
+```json
+[
+  {
+    "category": "Languages",
+    "skills": ["Python", "C", "C++", "Java"]
+  },
+  {
+    "category": "Frameworks",
+    "skills": ["TensorFlow", "PyTorch", "FastAPI"]
+  }
+]
+```
+
+##### Update Work Experience
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/work-experience
+```
+
+**Request Body:**
+```json
+[
+  {
+    "job_title": "Machine Learning Engineer",
+    "company": "Example Corp",
+    "location": "Remote",
+    "time": "01/2023 - Present",
+    "responsibilities": [
+      "Developed machine learning models for image recognition",
+      "Implemented data pipelines for processing large datasets"
+    ]
+  }
+]
+```
+
+##### Update Education
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/education
+```
+
+**Request Body:**
+```json
+[
+  {
+    "degree_type": "Master's Degree",
+    "degree": "Computer Science",
+    "university_name": "Example University",
+    "time": "2020 - 2022",
+    "location": "City, Country",
+    "GPA": "3.8",
+    "transcript": ["Machine Learning", "Computer Vision", "Advanced Algorithms"]
+  }
+]
+```
+
+##### Update Projects
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/projects
+```
+
+**Request Body:**
+```json
+[
+  {
+    "name": "AI Project",
+    "bullet_points": [
+      "Developed a machine learning model for image recognition",
+      "Implemented a web interface for easy access to the model"
+    ],
+    "date": "2023"
+  }
+]
+```
+
+##### Update Awards
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/awards
+```
+
+**Request Body:**
+```json
+[
+  {
+    "name": "Best Project Award",
+    "explanation": "Awarded for innovative approach to AI research"
+  }
+]
+```
+
+##### Update Publications
+
+```
+PATCH /api/v1/portfolios/{portfolio_id}/publications
+```
+
+**Request Body:**
+```json
+[
+  {
+    "name": "Research Paper Title",
+    "publisher": "Academic Journal",
+    "link": "https://example.com/paper",
+    "time": "Jan, 2023"
+  }
+]
+```
+
+**Response for all section-specific updates:** Updated Portfolio object
+
 #### Delete Portfolio Item
 
 ```
-DELETE /api/v1/portfolios/{portfolio_id}/items/{item_id}
+DELETE /api/v1/portfolios/{portfolio_id}/items/{item_type}/{item_index}
 ```
+
+**Path Parameters:**
+- `portfolio_id`: ID of the portfolio
+- `item_type`: Type of item to delete (e.g., "work_experience", "education", "skills")
+- `item_index`: Index of the item in the array to delete
 
 **Response:** HTTP 204 No Content
 
@@ -507,6 +1167,99 @@ GET /api/v1/
 }
 ```
 
+## LinkedIn Integration
+
+> **Note:** LinkedIn integration endpoints are currently commented out in the API implementation and are not available for use. The documentation below is for reference only and will be updated when these endpoints are enabled.
+
+### LinkedIn Credentials
+
+#### Save LinkedIn Credentials
+
+```
+POST /api/v1/linkedin/credentials
+```
+
+**Request Body:**
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "LinkedIn credentials saved successfully"
+}
+```
+
+#### Get LinkedIn Status
+
+```
+GET /api/v1/linkedin/status
+```
+
+**Response:**
+```json
+{
+  "enabled": true,
+  "email": "user@example.com",
+  "last_login": "2023-01-01T00:00:00.000Z"
+}
+```
+
+### LinkedIn Job Search & Applications
+
+#### Search for Jobs
+
+```
+POST /api/v1/linkedin/search
+```
+
+**Request Body:**
+```json
+{
+  "keywords": "string",
+  "location": "string",
+  "num_jobs": 10
+}
+```
+
+**Response:** List of job descriptions
+
+#### Apply for Multiple Jobs
+
+```
+POST /api/v1/linkedin/apply
+```
+
+**Request Body:**
+```json
+{
+  "job_urls": ["string", "string"],
+  "resume_id": "string"
+}
+```
+
+**Response:** Application results
+
+#### Apply for Single Job
+
+```
+POST /api/v1/linkedin/apply/single
+```
+
+**Request Body:**
+```json
+{
+  "job_url": "string",
+  "resume_id": "string"
+}
+```
+
+**Response:** Application result
+
 ## Error Responses
 
 All endpoints may return the following error responses:
@@ -515,4 +1268,5 @@ All endpoints may return the following error responses:
 - `401 Unauthorized`: Authentication is required or failed
 - `403 Forbidden`: The authenticated user does not have permission
 - `404 Not Found`: The requested resource was not found
-- `500 Internal Server Error`: An unexpected error occurred 
+- `429 Too Many Requests`: Rate limit exceeded
+- `500 Internal Server Error`: An unexpected error occurred
