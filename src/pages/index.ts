@@ -25,4 +25,13 @@ export { default as PortfolioEditPage } from './portfolio/PortfolioEditPage';
 export { default as PortfolioViewPage } from './portfolio/PortfolioViewPage';
 
 // Add UserPage to the exports
-export { default as UserPage } from './user/UserPage'; 
+export { default as UserPage } from './user/UserPage';
+
+// Footer Section Pages
+export { default as SupportPage } from './SupportPage';
+export { default as FAQPage } from './FAQPage';
+export { default as BlogPage } from './BlogPage';
+export { default as CareersPage } from './CareersPage';
+export { default as PrivacyPage } from './PrivacyPage';
+export { default as TermsPage } from './TermsPage';
+export { default as ContactPage } from './ContactPage'; 

@@ -22,7 +22,15 @@ import {
   CoverLettersPage,
   CoverLetterNewPage,
   CoverLetterViewPage,
-  AboutPage
+  AboutPage,
+  // Import new pages from index.ts
+  SupportPage,
+  FAQPage,
+  BlogPage,
+  CareersPage,
+  PrivacyPage,
+  TermsPage,
+  ContactPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -54,10 +62,52 @@ const App: React.FC = () => {
             <Route path="/login" element={<LoginPage authMode="login" />} />
             <Route path="/register" element={<LoginPage authMode="register" />} />
             
-            {/* About Page - Public with Layout */}
+            {/* Public Pages with Layout */}
             <Route path="/about" element={
               <MainLayout>
                 <AboutPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/support" element={
+              <MainLayout>
+                <SupportPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/faq" element={
+              <MainLayout>
+                <FAQPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/blog" element={
+              <MainLayout>
+                <BlogPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/careers" element={
+              <MainLayout>
+                <CareersPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/privacy" element={
+              <MainLayout>
+                <PrivacyPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/terms" element={
+              <MainLayout>
+                <TermsPage />
+              </MainLayout>
+            } />
+            
+            <Route path="/contact" element={
+              <MainLayout>
+                <ContactPage />
               </MainLayout>
             } />
 
@@ -211,13 +261,25 @@ const App: React.FC = () => {
               }
             />
             
-            {/* Templates, Profile, Settings */}
+            {/* Templates */}
             <Route 
               path="/templates"
               element={
                 <ProtectedRoute>
                   <MainLayout>
                     <TemplatesPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            
+            {/* User Profile */}
+            <Route 
+              path="/user"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <UserPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
@@ -242,47 +304,10 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
-            <Route 
-              path="/user"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <UserPage />
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
-            <Route 
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <MainLayout>
-                    <div>Settings Page Placeholder</div>
-                  </MainLayout>
-                </ProtectedRoute>
-              }
-            />
             
-            {/* Redirect root path to dashboard */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Navigate to="/dashboard" replace />
-                </ProtectedRoute>
-              }
-            />
-            
-            {/* 404 Not Found */}
+            {/* Redirect to dashboard if logged in, otherwise to login page */}
             <Route path="*" element={
-              <MainLayout>
-                <div style={{ textAlign: 'center', paddingTop: '2rem' }}>
-                  <Typography variant="h4">404 - Page Not Found</Typography>
-                  <Typography variant="body1" sx={{ mt: 2 }}>
-                    The page you're looking for doesn't exist.
-                  </Typography>
-                </div>
-              </MainLayout>
+              <Navigate to="/dashboard" />
             } />
           </Routes>
         </BrowserRouter>

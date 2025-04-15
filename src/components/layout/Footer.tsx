@@ -55,37 +55,37 @@ const Footer: React.FC = () => {
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/support" color="text.secondary" underline="hover" fontSize="0.875rem">
               Support
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/faq" color="text.secondary" underline="hover" fontSize="0.875rem">
               FAQ
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/blog" color="text.secondary" underline="hover" fontSize="0.875rem">
               Blog
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/careers" color="text.secondary" underline="hover" fontSize="0.875rem">
               Careers
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/privacy" color="text.secondary" underline="hover" fontSize="0.875rem">
               Privacy
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/terms" color="text.secondary" underline="hover" fontSize="0.875rem">
               Terms
             </Link>
           </Box>
           <Box component="li" sx={{ display: 'inline' }}>
-            <Link component={RouterLink} to="#" color="text.secondary" underline="hover" fontSize="0.875rem">
+            <Link component={RouterLink} to="/contact" color="text.secondary" underline="hover" fontSize="0.875rem">
               Contact
             </Link>
           </Box>
