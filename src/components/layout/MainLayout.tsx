@@ -34,12 +34,14 @@ import {
   ExitToApp as LogoutIcon,
   AccountCircle as AccountIcon,
   Key as KeyIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Info as InfoIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 import { getUserProfile } from '../../services/profileService';
 import { Profile } from '../../types/models';
+import Footer from './Footer';
 
 // Define navigation items
 const navItems = [
@@ -293,7 +295,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar 
         position="fixed" 
         sx={{
@@ -508,7 +510,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         sx={{ 
           flexGrow: 1,
           p: 0,
-          width: '100%',
+          width: { 
+            xs: '100%',
+            md: drawerOpen ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${miniDrawerWidth}px)`
+          },
           marginTop: {
             xs: '56px', // Mobile header height
             sm: '56px', // Small tablets
@@ -524,9 +529,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           }),
           opacity: 0,
           animation: 'fadeIn 0.5s ease-out forwards 0.2s',
+          display: 'flex',
+          flexDirection: 'column',
+          minHeight: 'calc(100vh - 64px)', // Subtract the header height
         }}
       >
-        {children}
+        <Box sx={{ flexGrow: 1 }}>
+          {children}
+        </Box>
+        <Footer />
       </Box>
 
       {/* Floating toggle button - only visible on non-mobile */}

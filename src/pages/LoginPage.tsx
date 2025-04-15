@@ -40,7 +40,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ authMode = 'login' }) => {
         </Toolbar>
       </AppBar>
 
-      <Container component="main" maxWidth="sm">
+      <Container component="main" maxWidth="sm" sx={{ mb: authMode === 'register' ? 6 : 3 }}>
         <Box
           sx={{
             marginTop: 12, // Increased from 8 to account for the AppBar

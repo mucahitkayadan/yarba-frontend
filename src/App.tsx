@@ -21,7 +21,8 @@ import {
   UserPage,
   CoverLettersPage,
   CoverLetterNewPage,
-  CoverLetterViewPage
+  CoverLetterViewPage,
+  AboutPage
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -52,6 +53,13 @@ const App: React.FC = () => {
             {/* Public Routes - No Layout */}
             <Route path="/login" element={<LoginPage authMode="login" />} />
             <Route path="/register" element={<LoginPage authMode="register" />} />
+            
+            {/* About Page - Public with Layout */}
+            <Route path="/about" element={
+              <MainLayout>
+                <AboutPage />
+              </MainLayout>
+            } />
 
             {/* Protected Routes - Use MainLayout */}
             <Route 

@@ -24,6 +24,7 @@ import { getResumes } from '../services/resumeService';
 import { getCoverLetters } from '../services/coverLetterService';
 import { getUserPortfolio } from '../services/portfolioService';
 import { getUserProfile } from '../services/profileService';
+import { getResumeById } from '../services/resumeService';
 import { Resume, CoverLetter, Portfolio, Profile } from '../types/models';
 
 // Define a unified type for recent items
@@ -46,6 +47,7 @@ const DashboardPage: React.FC = () => {
   const [portfolioComplete, setPortfolioComplete] = useState(false);
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [resumeTitles, setResumeTitles] = useState<Record<string, string>>({});
 
   // Fetch data on component mount
   useEffect(() => {
@@ -89,6 +91,24 @@ const DashboardPage: React.FC = () => {
           setPortfolioComplete(false);
         }
         
+        // Collect resume IDs from cover letters
+        const resumeIds = coverLettersResponse.items.map((cl: CoverLetter) => cl.resume_id);
+        const uniqueResumeIds = Array.from(new Set(resumeIds));
+        
+        // Fetch resume titles for cover letters
+        const resumeTitlesMap: Record<string, string> = {};
+        await Promise.all(
+          uniqueResumeIds.map(async (resumeId) => {
+            try {
+              const resume = await getResumeById(resumeId);
+              resumeTitlesMap[resumeId] = resume.title;
+            } catch (err) {
+              console.warn(`Failed to fetch resume ${resumeId}:`, err);
+            }
+          })
+        );
+        setResumeTitles(resumeTitlesMap);
+        
         // Combine recent items, sort by date, and take the 5 most recent
         const combinedItems: RecentItem[] = [
           ...resumesResponse.items.map((resume: Resume) => ({
@@ -99,7 +119,9 @@ const DashboardPage: React.FC = () => {
           })),
           ...coverLettersResponse.items.map((coverLetter: CoverLetter) => ({
             id: coverLetter.id,
-            title: `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`,
+            title: resumeTitlesMap[coverLetter.resume_id] 
+              ? `${resumeTitlesMap[coverLetter.resume_id]}` 
+              : `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`,
             type: 'cover-letter' as const,
             date: coverLetter.updated_at || coverLetter.created_at
           }))
@@ -108,7 +130,7 @@ const DashboardPage: React.FC = () => {
         // Sort by date (newest first) and take the most recent 3
         const sortedItems = combinedItems.sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
-        ).slice(0, 3);
+        ).slice(0, 6);
         
         setRecentItems(sortedItems);
       } catch (err) {
