@@ -46,10 +46,12 @@ import theme from './theme';
 const App: React.FC = () => {
   // Log environment variables on app initialization
   React.useEffect(() => {
-    console.log('Environment variables check:');
-    console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
-    console.log('REACT_APP_FIREBASE_API_KEY:', process.env.REACT_APP_FIREBASE_API_KEY);
-    console.log('NODE_ENV:', process.env.NODE_ENV);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Environment variables check:');
+      console.log('REACT_APP_API_URL:', process.env.REACT_APP_API_URL);
+      console.log('REACT_APP_FIREBASE_API_KEY:', process.env.REACT_APP_FIREBASE_API_KEY);
+      console.log('NODE_ENV:', process.env.NODE_ENV);
+    }
   }, []);
 
   return (
