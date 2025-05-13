@@ -45,11 +45,14 @@ import {
   LocationOn as LocationIcon,
   CalendarToday as CalendarIcon,
   Visibility as VisibilityIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Refresh as RefreshIcon,
+  AutoFixHigh as AutoFixHighIcon
 } from '@mui/icons-material';
-import { getResumeById, getResumePdf, deleteResume } from '../services/resumeService';
+import { getResumeById, getResumePdf, deleteResume, regenerateResumeContent } from '../services/resumeService';
 import { Resume } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
+import { Toast } from '../components/common';
 
 // Type for the PDF response from the server
 interface PdfResponse {
@@ -79,6 +82,10 @@ const ViewResumePage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingResume, setDeletingResume] = useState(false);
   const [jobDescriptionExpanded, setJobDescriptionExpanded] = useState(false);
+  const [regeneratingContent, setRegeneratingContent] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   
   // PDF viewer state
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
@@ -308,6 +315,31 @@ const ViewResumePage: React.FC = () => {
 
   const handleToggleJobDescription = () => {
     setJobDescriptionExpanded(!jobDescriptionExpanded);
+  };
+
+  const handleCloseToast = () => {
+    setToastOpen(false);
+  };
+
+  const handleRegenerateContent = async () => {
+    if (!id) return;
+    setRegeneratingContent(true);
+    setError(null);
+    try {
+      const updatedResume = await regenerateResumeContent(id, true);
+      setResume(updatedResume);
+      setToastMessage('Resume content regenerated successfully!');
+      setToastSeverity('success');
+      setToastOpen(true);
+    } catch (err: any) {
+      console.error('Failed to regenerate content:', err);
+      setError(err.message || 'Failed to regenerate content');
+      setToastMessage('Failed to regenerate content. Please try again.');
+      setToastSeverity('error');
+      setToastOpen(true);
+    } finally {
+      setRegeneratingContent(false);
+    }
   };
 
   // Format date for display
@@ -1268,7 +1300,7 @@ const ViewResumePage: React.FC = () => {
     <Box sx={{ 
       width: '100%', 
       p: 3, 
-      pl: 2, 
+      pl: { xs: 2, md: 3 },
       pt: 2
     }}>
       {/* Breadcrumbs Navigation */}
@@ -1343,6 +1375,15 @@ const ViewResumePage: React.FC = () => {
             size="small"
           >
             Edit
+          </Button>
+          <Button 
+            variant="outlined"
+            startIcon={regeneratingContent ? <CircularProgress size={16} /> : <AutoFixHighIcon />}
+            onClick={handleRegenerateContent}
+            disabled={regeneratingContent || generatingPdf || deletingResume}
+            size="small"
+          >
+            {regeneratingContent ? 'Regenerating...' : 'Regenerate Content'}
           </Button>
           <Button 
             variant="outlined"
@@ -1600,6 +1641,14 @@ const ViewResumePage: React.FC = () => {
           </Box>
         </DialogActions>
       </Dialog>
+
+      {/* Toast Notification */}
+      <Toast
+        open={toastOpen}
+        message={toastMessage}
+        severity={toastSeverity}
+        onClose={handleCloseToast}
+      />
     </Box>
   );
 };

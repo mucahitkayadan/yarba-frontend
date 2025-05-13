@@ -340,7 +340,7 @@ const ProfilePage: React.FC = () => {
           <Box sx={{ width: '100%' }}>
             {/* Career Summary */}
             <Typography variant="h6" gutterBottom>
-              Career Summary
+              Career Summary (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -349,7 +349,7 @@ const ProfilePage: React.FC = () => {
                   Minimum Words:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.career_summary_details?.min_words || 'Not set'}
+                  {profile.prompt_preferences?.career_summary?.min_words || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -357,14 +357,14 @@ const ProfilePage: React.FC = () => {
                   Maximum Words:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.career_summary_details?.max_words || 'Not set'}
+                  {profile.prompt_preferences?.career_summary?.max_words || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
             {/* Work Experience */}
             <Typography variant="h6" gutterBottom>
-              Work Experience
+              Work Experience (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -373,7 +373,7 @@ const ProfilePage: React.FC = () => {
                   Maximum Jobs:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.work_experience_details?.max_jobs || 'Not set'}
+                  {profile.prompt_preferences?.work_experience?.max_jobs || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -381,14 +381,14 @@ const ProfilePage: React.FC = () => {
                   Bullet Points Per Job:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.work_experience_details?.bullet_points_per_job || 'Not set'}
+                  {profile.prompt_preferences?.work_experience?.bullet_points_per_job || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
             {/* Projects */}
             <Typography variant="h6" gutterBottom>
-              Projects
+              Projects (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -397,7 +397,7 @@ const ProfilePage: React.FC = () => {
                   Maximum Projects:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.project_details?.max_projects || 'Not set'}
+                  {profile.prompt_preferences?.project?.max_projects || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -405,14 +405,14 @@ const ProfilePage: React.FC = () => {
                   Bullet Points Per Project:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.project_details?.bullet_points_per_project || 'Not set'}
+                  {profile.prompt_preferences?.project?.bullet_points_per_project || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
             {/* Skills */}
             <Typography variant="h6" gutterBottom>
-              Skills
+              Skills (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -421,7 +421,7 @@ const ProfilePage: React.FC = () => {
                   Maximum Categories:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.skills_details?.max_categories || 'Not set'}
+                  {profile.prompt_preferences?.skills?.max_categories || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -429,7 +429,7 @@ const ProfilePage: React.FC = () => {
                   Min Skills Per Category:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.skills_details?.min_skills_per_category || 'Not set'}
+                  {profile.prompt_preferences?.skills?.min_skills_per_category || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -437,14 +437,14 @@ const ProfilePage: React.FC = () => {
                   Max Skills Per Category:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.skills_details?.max_skills_per_category || 'Not set'}
+                  {profile.prompt_preferences?.skills?.max_skills_per_category || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
             {/* Education */}
             <Typography variant="h6" gutterBottom>
-              Education
+              Education (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -453,7 +453,7 @@ const ProfilePage: React.FC = () => {
                   Maximum Entries:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.education_details?.max_entries || 'Not set'}
+                  {profile.prompt_preferences?.education?.max_entries || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -461,14 +461,14 @@ const ProfilePage: React.FC = () => {
                   Maximum Courses:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.education_details?.max_courses || 'Not set'}
+                  {profile.prompt_preferences?.education?.max_courses || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
             {/* Cover Letter */}
             <Typography variant="h6" gutterBottom>
-              Cover Letter
+              Cover Letter (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -477,7 +477,7 @@ const ProfilePage: React.FC = () => {
                   Paragraphs:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.cover_letter_details?.paragraphs || 'Not set'}
+                  {profile.prompt_preferences?.cover_letter?.paragraphs || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -485,14 +485,14 @@ const ProfilePage: React.FC = () => {
                   Target Age:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.cover_letter_details?.target_age || 'Not set'}
+                  {profile.prompt_preferences?.cover_letter?.target_age || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
-            {/* Other Sections */}
+            {/* Awards and Publications (Prompt Preferences) */}
             <Typography variant="h6" gutterBottom>
-              Other Sections
+              Awards & Publications (Prompt Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -501,7 +501,7 @@ const ProfilePage: React.FC = () => {
                   Maximum Awards:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.awards_details?.max_awards || 'Not set'}
+                  {profile.prompt_preferences?.awards?.max_awards || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -509,86 +509,14 @@ const ProfilePage: React.FC = () => {
                   Maximum Publications:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.publications_details?.max_publications || 'Not set'}
+                  {profile.prompt_preferences?.publications?.max_publications || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
-            {/* Section Processing */}
+            {/* Default Templates (System Preferences) */}
             <Typography variant="h6" gutterBottom>
-              Section Processing
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Personal Information:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.personal_information || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Career Summary:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.career_summary || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Skills:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.skills || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Work Experience:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.work_experience || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Education:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.education || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Projects:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.projects || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Awards:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.awards || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Publications:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.section_preferences?.publications || 'Not set'}
-                </Typography>
-              </Box>
-            </Box>
-            
-            {/* Default Templates */}
-            <Typography variant="h6" gutterBottom>
-              Default Templates
+              Default Templates (System Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -597,7 +525,7 @@ const ProfilePage: React.FC = () => {
                   Resume Template:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.default_latex_templates?.default_resume_template_id || 'Not set'}
+                  {profile.system_preferences?.templates?.default_resume_template_id || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -605,81 +533,49 @@ const ProfilePage: React.FC = () => {
                   Cover Letter Template:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.default_latex_templates?.default_cover_letter_template_id || 'Not set'}
+                  {profile.system_preferences?.templates?.default_cover_letter_template_id || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
-            {/* LaTeX Template Preferences */}
+            {/* Privacy Settings (System Preferences) */}
             <Typography variant="h6" gutterBottom>
-              LaTeX Template Preferences
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ mb: 4 }}>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Resume Template:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.latex_template_preferences?.resume_template || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Cover Letter Template:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.latex_template_preferences?.cover_letter_template || 'Not set'}
-                </Typography>
-              </Box>
-            </Box>
-            
-            {/* Privacy Settings */}
-            <Typography variant="h6" gutterBottom>
-              Privacy Settings
+              Privacy Settings (System Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
               <Typography variant="body2" color="text.secondary">
-                {Object.keys(profile.preferences?.privacy || {}).length > 0 
+                {Object.keys(profile.system_preferences?.privacy || {}).length > 0 
                   ? 'Custom privacy settings configured' 
                   : 'No privacy settings configured'}
               </Typography>
             </Box>
             
-            {/* Notification Settings */}
+            {/* Notification Settings (System Preferences) */}
             <Typography variant="h6" gutterBottom>
-              Notification Settings
+              Notification Settings (System Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
               <Typography variant="body2" color="text.secondary">
-                {Object.keys(profile.preferences?.notifications || {}).length > 0 
+                {Object.keys(profile.system_preferences?.notifications || {}).length > 0 
                   ? 'Custom notification settings configured' 
                   : 'No notification settings configured'}
               </Typography>
             </Box>
             
-            {/* AI Settings */}
+            {/* AI Settings (System Preferences) */}
             <Typography variant="h6" gutterBottom>
-              AI Settings
+              AI Settings (System Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
               <Box sx={{ display: 'flex', mb: 1 }}>
                 <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
-                  Model Type:
-                </Typography>
-                <Typography variant="body2">
-                  {profile.preferences?.llm_preferences?.model_type || 'Not set'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ width: 200, fontWeight: 'bold' }}>
                   Model Name:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.llm_preferences?.model_name || 'Not set'}
+                  {profile.system_preferences?.llm?.model_name || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -687,14 +583,14 @@ const ProfilePage: React.FC = () => {
                   Temperature:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.llm_preferences?.temperature || 'Not set'}
+                  {profile.system_preferences?.llm?.temperature || 'Not set'}
                 </Typography>
               </Box>
             </Box>
             
-            {/* Feature Preferences */}
+            {/* Feature Preferences (System Preferences) */}
             <Typography variant="h6" gutterBottom>
-              Feature Preferences
+              Feature Preferences (System Preferences)
             </Typography>
             <Divider sx={{ mb: 2 }} />
             <Box sx={{ mb: 4 }}>
@@ -703,7 +599,7 @@ const ProfilePage: React.FC = () => {
                   Dark Mode:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.feature_preferences?.dark_mode ? 'Enabled' : 'Disabled'}
+                  {profile.system_preferences?.features?.dark_mode ? 'Enabled' : 'Disabled'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -711,7 +607,7 @@ const ProfilePage: React.FC = () => {
                   Auto Save:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.feature_preferences?.auto_save ? 'Enabled' : 'Disabled'}
+                  {profile.system_preferences?.features?.auto_save ? 'Enabled' : 'Disabled'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -719,7 +615,7 @@ const ProfilePage: React.FC = () => {
                   Check Clearance:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.preferences?.feature_preferences?.check_clearance ? 'Enabled' : 'Disabled'}
+                  {profile.system_preferences?.features?.check_clearance ? 'Enabled' : 'Disabled'}
                 </Typography>
               </Box>
             </Box>

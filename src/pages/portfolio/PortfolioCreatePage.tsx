@@ -111,7 +111,7 @@ const PortfolioCreatePage: React.FC = () => {
     try {
       // Prepare portfolio data - start with minimal required data
       const portfolioData = {
-        profile_id: profile.id,
+        profile_id: profile._id,
         skills: skills
           .filter(category => category.skills.length > 0)
           .map(category => ({

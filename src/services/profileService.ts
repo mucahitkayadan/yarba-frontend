@@ -25,9 +25,21 @@ export const updatePersonalInformation = async (personalInfo: Profile['personal_
   return response.data;
 };
 
-// Update preferences
-export const updatePreferences = async (preferences: Partial<NonNullable<Profile['preferences']>>): Promise<Profile> => {
-  const response = await api.patch('/profiles/me/preferences', preferences);
+// // Update preferences (Old function - commented out)
+// export const updatePreferences = async (preferences: Partial<NonNullable<Profile['preferences']>>): Promise<Profile> => {
+//   const response = await api.patch('/profiles/me/preferences', preferences);
+//   return response.data;
+// };
+
+// Update prompt preferences
+export const updatePromptPreferences = async (promptPrefs: Partial<NonNullable<Profile['prompt_preferences']>>): Promise<Profile> => {
+  const response = await api.put('/profiles/me/preferences/prompt', promptPrefs);
+  return response.data;
+};
+
+// Update system preferences
+export const updateSystemPreferences = async (systemPrefs: Partial<NonNullable<Profile['system_preferences']>>): Promise<Profile> => {
+  const response = await api.put('/profiles/me/preferences/system', systemPrefs);
   return response.data;
 };
 

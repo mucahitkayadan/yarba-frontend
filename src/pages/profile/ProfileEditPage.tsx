@@ -22,7 +22,13 @@ import {
   FormControl
 } from '@mui/material';
 import { Save as SaveIcon, Cancel as CancelIcon } from '@mui/icons-material';
-import { getUserProfile, updateProfile, updatePersonalInformation, updatePreferences, updateLifeStory } from '../../services/profileService';
+import { 
+  getUserProfile, 
+  updatePersonalInformation,
+  updateLifeStory,
+  updatePromptPreferences,
+  updateSystemPreferences
+} from '../../services/profileService';
 import { Profile } from '../../types/models';
 
 interface TabPanelProps {
@@ -89,22 +95,21 @@ const ProfileEditPage: React.FC = () => {
     education_max_courses: '',
     awards_max_awards: '',
     publications_max_publications: '',
-    certifications_max_certifications: '',
     feature_check_clearance: true,
     feature_auto_save: true,
     feature_dark_mode: false,
-    section_personal_information: 'Hardcode',
-    section_career_summary: 'Process',
-    section_skills: 'Process',
-    section_work_experience: 'Process',
-    section_education: 'Process',
-    section_projects: 'Process',
-    section_awards: 'Hardcode',
-    section_publications: 'Hardcode',
     default_resume_template_id: 'classic',
-    default_cover_letter_template_id: 'standard'
+    default_cover_letter_template_id: 'standard',
+    llm_model_name: '',
+    llm_temperature: '0.1',
   });
   
+  // Helper function to safely parse number values
+  const parseNumberOrDefault = (value: string, defaultValue: number = 0): number => {
+    const parsed = parseInt(value);
+    return isNaN(parsed) ? defaultValue : parsed;
+  };
+
   // Fetch profile data on component mount
   useEffect(() => {
     fetchProfile();
@@ -135,37 +140,30 @@ const ProfileEditPage: React.FC = () => {
       setLifeStory(profileData.life_story || '');
       
       // Initialize preferences form
-      if (profileData.preferences) {
+      if (profileData.prompt_preferences || profileData.system_preferences) {
         setPreferences({
-          career_summary_min_words: profileData.preferences.career_summary_details?.min_words?.toString() || '',
-          career_summary_max_words: profileData.preferences.career_summary_details?.max_words?.toString() || '',
-          work_experience_max_jobs: profileData.preferences.work_experience_details?.max_jobs?.toString() || '',
-          work_experience_bullet_points_per_job: profileData.preferences.work_experience_details?.bullet_points_per_job?.toString() || '',
-          project_max_projects: profileData.preferences.project_details?.max_projects?.toString() || '',
-          project_bullet_points_per_project: profileData.preferences.project_details?.bullet_points_per_project?.toString() || '',
-          cover_letter_paragraphs: profileData.preferences.cover_letter_details?.paragraphs?.toString() || '',
-          cover_letter_target_age: profileData.preferences.cover_letter_details?.target_age?.toString() || '',
-          skills_max_categories: profileData.preferences.skills_details?.max_categories?.toString() || '',
-          skills_min_per_category: profileData.preferences.skills_details?.min_skills_per_category?.toString() || '',
-          skills_max_per_category: profileData.preferences.skills_details?.max_skills_per_category?.toString() || '',
-          education_max_entries: profileData.preferences.education_details?.max_entries?.toString() || '',
-          education_max_courses: profileData.preferences.education_details?.max_courses?.toString() || '',
-          awards_max_awards: profileData.preferences.awards_details?.max_awards?.toString() || '',
-          publications_max_publications: profileData.preferences.publications_details?.max_publications?.toString() || '',
-          certifications_max_certifications: profileData.preferences.certifications_max_certifications?.toString() || '',
-          feature_check_clearance: profileData.preferences.feature_preferences?.check_clearance || true,
-          feature_auto_save: profileData.preferences.feature_preferences?.auto_save || true,
-          feature_dark_mode: profileData.preferences.feature_preferences?.dark_mode || false,
-          section_personal_information: profileData.preferences.section_preferences?.personal_information || 'Hardcode',
-          section_career_summary: profileData.preferences.section_preferences?.career_summary || 'Process',
-          section_skills: profileData.preferences.section_preferences?.skills || 'Process',
-          section_work_experience: profileData.preferences.section_preferences?.work_experience || 'Process',
-          section_education: profileData.preferences.section_preferences?.education || 'Process',
-          section_projects: profileData.preferences.section_preferences?.projects || 'Process',
-          section_awards: profileData.preferences.section_preferences?.awards || 'Hardcode',
-          section_publications: profileData.preferences.section_preferences?.publications || 'Hardcode',
-          default_resume_template_id: profileData.preferences.default_latex_templates?.default_resume_template_id || 'classic',
-          default_cover_letter_template_id: profileData.preferences.default_latex_templates?.default_cover_letter_template_id || 'standard'
+          career_summary_min_words: profileData.prompt_preferences?.career_summary?.min_words?.toString() || '',
+          career_summary_max_words: profileData.prompt_preferences?.career_summary?.max_words?.toString() || '',
+          work_experience_max_jobs: profileData.prompt_preferences?.work_experience?.max_jobs?.toString() || '',
+          work_experience_bullet_points_per_job: profileData.prompt_preferences?.work_experience?.bullet_points_per_job?.toString() || '',
+          project_max_projects: profileData.prompt_preferences?.project?.max_projects?.toString() || '',
+          project_bullet_points_per_project: profileData.prompt_preferences?.project?.bullet_points_per_project?.toString() || '',
+          cover_letter_paragraphs: profileData.prompt_preferences?.cover_letter?.paragraphs?.toString() || '',
+          cover_letter_target_age: profileData.prompt_preferences?.cover_letter?.target_age?.toString() || '',
+          skills_max_categories: profileData.prompt_preferences?.skills?.max_categories?.toString() || '',
+          skills_min_per_category: profileData.prompt_preferences?.skills?.min_skills_per_category?.toString() || '',
+          skills_max_per_category: profileData.prompt_preferences?.skills?.max_skills_per_category?.toString() || '',
+          education_max_entries: profileData.prompt_preferences?.education?.max_entries?.toString() || '',
+          education_max_courses: profileData.prompt_preferences?.education?.max_courses?.toString() || '',
+          awards_max_awards: profileData.prompt_preferences?.awards?.max_awards?.toString() || '',
+          publications_max_publications: profileData.prompt_preferences?.publications?.max_publications?.toString() || '',
+          feature_check_clearance: profileData.system_preferences?.features?.check_clearance !== undefined ? profileData.system_preferences.features.check_clearance : true,
+          feature_auto_save: profileData.system_preferences?.features?.auto_save !== undefined ? profileData.system_preferences.features.auto_save : true,
+          feature_dark_mode: profileData.system_preferences?.features?.dark_mode !== undefined ? profileData.system_preferences.features.dark_mode : false,
+          llm_model_name: profileData.system_preferences?.llm?.model_name || '',
+          llm_temperature: profileData.system_preferences?.llm?.temperature?.toString() || '0.1',
+          default_resume_template_id: profileData.system_preferences?.templates?.default_resume_template_id || 'classic',
+          default_cover_letter_template_id: profileData.system_preferences?.templates?.default_cover_letter_template_id || 'standard',
         });
       }
     } catch (err: any) {
@@ -251,97 +249,7 @@ const ProfileEditPage: React.FC = () => {
         setSuccess('Life story updated successfully!');
         navigate('/profile');
       } else if (tabValue === 2) {
-        // Helper function to safely parse number values
-        const parseNumberOrDefault = (value: string): number => {
-          return value === '' ? 0 : parseInt(value);
-        };
-        
-        // Transform flat preferences to nested structure that matches backend
-        const preferencesData: Partial<NonNullable<Profile['preferences']>> = {
-          career_summary_details: {
-            min_words: parseNumberOrDefault(preferences.career_summary_min_words),
-            max_words: parseNumberOrDefault(preferences.career_summary_max_words)
-          },
-          work_experience_details: {
-            max_jobs: parseNumberOrDefault(preferences.work_experience_max_jobs),
-            bullet_points_per_job: parseNumberOrDefault(preferences.work_experience_bullet_points_per_job)
-          },
-          project_details: {
-            max_projects: parseNumberOrDefault(preferences.project_max_projects),
-            bullet_points_per_project: parseNumberOrDefault(preferences.project_bullet_points_per_project)
-          },
-          skills_details: {
-            max_categories: parseNumberOrDefault(preferences.skills_max_categories),
-            min_skills_per_category: parseNumberOrDefault(preferences.skills_min_per_category),
-            max_skills_per_category: parseNumberOrDefault(preferences.skills_max_per_category)
-          },
-          education_details: {
-            max_entries: parseNumberOrDefault(preferences.education_max_entries),
-            max_courses: parseNumberOrDefault(preferences.education_max_courses)
-          },
-          cover_letter_details: {
-            paragraphs: parseNumberOrDefault(preferences.cover_letter_paragraphs),
-            target_age: parseNumberOrDefault(preferences.cover_letter_target_age)
-          },
-          awards_details: {
-            max_awards: parseNumberOrDefault(preferences.awards_max_awards)
-          },
-          publications_details: {
-            max_publications: parseNumberOrDefault(preferences.publications_max_publications)
-          },
-          feature_preferences: {
-            check_clearance: preferences.feature_check_clearance,
-            auto_save: preferences.feature_auto_save,
-            dark_mode: preferences.feature_dark_mode
-          },
-          section_preferences: {
-            personal_information: preferences.section_personal_information,
-            career_summary: preferences.section_career_summary,
-            skills: preferences.section_skills,
-            work_experience: preferences.section_work_experience,
-            education: preferences.section_education,
-            projects: preferences.section_projects,
-            awards: preferences.section_awards,
-            publications: preferences.section_publications
-          },
-          default_latex_templates: {
-            default_resume_template_id: preferences.default_resume_template_id,
-            default_cover_letter_template_id: preferences.default_cover_letter_template_id
-          }
-        };
-        
-        // Make sure we keep any other preferences fields that exist in the current profile
-        // but aren't directly editable in our form
-        if (profile?.preferences) {
-          // Preserve feature preferences
-          if (profile.preferences.feature_preferences) {
-            preferencesData.feature_preferences = profile.preferences.feature_preferences;
-          }
-          
-          // Preserve LLM preferences
-          if (profile.preferences.llm_preferences) {
-            preferencesData.llm_preferences = profile.preferences.llm_preferences;
-          }
-          
-          // Preserve section preferences
-          if (profile.preferences.section_preferences) {
-            preferencesData.section_preferences = profile.preferences.section_preferences;
-          }
-          
-          // Preserve LaTeX template preferences
-          if (profile.preferences.latex_template_preferences) {
-            preferencesData.latex_template_preferences = profile.preferences.latex_template_preferences;
-          }
-          
-          // Preserve default LaTeX templates
-          if (profile.preferences.default_latex_templates) {
-            preferencesData.default_latex_templates = profile.preferences.default_latex_templates;
-          }
-        }
-        
-        await updatePreferences(preferencesData);
-        setSuccess('Preferences updated successfully!');
-        navigate('/profile');
+        await handleSavePreferences();
       }
       
       // Refresh profile data
@@ -356,6 +264,81 @@ const ProfileEditPage: React.FC = () => {
 
   const handleCancel = () => {
     navigate('/profile');
+  };
+
+  const handleSavePreferences = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const promptPreferencesData: Partial<NonNullable<Profile['prompt_preferences']>> = {
+        career_summary: {
+          min_words: parseNumberOrDefault(preferences.career_summary_min_words),
+          max_words: parseNumberOrDefault(preferences.career_summary_max_words)
+        },
+        work_experience: {
+          max_jobs: parseNumberOrDefault(preferences.work_experience_max_jobs),
+          bullet_points_per_job: parseNumberOrDefault(preferences.work_experience_bullet_points_per_job)
+        },
+        project: {
+          max_projects: parseNumberOrDefault(preferences.project_max_projects),
+          bullet_points_per_project: parseNumberOrDefault(preferences.project_bullet_points_per_project)
+        },
+        skills: {
+          max_categories: parseNumberOrDefault(preferences.skills_max_categories),
+          min_skills_per_category: parseNumberOrDefault(preferences.skills_min_per_category),
+          max_skills_per_category: parseNumberOrDefault(preferences.skills_max_per_category)
+        },
+        education: {
+          max_entries: parseNumberOrDefault(preferences.education_max_entries),
+          max_courses: parseNumberOrDefault(preferences.education_max_courses)
+        },
+        cover_letter: {
+          paragraphs: parseNumberOrDefault(preferences.cover_letter_paragraphs),
+          target_age: parseNumberOrDefault(preferences.cover_letter_target_age)
+        },
+        awards: {
+          max_awards: parseNumberOrDefault(preferences.awards_max_awards)
+        },
+        publications: {
+          max_publications: parseNumberOrDefault(preferences.publications_max_publications)
+        }
+      };
+
+      const systemPreferencesData: Partial<NonNullable<Profile['system_preferences']>> = {
+        features: {
+          check_clearance: preferences.feature_check_clearance,
+          auto_save: preferences.feature_auto_save,
+          dark_mode: preferences.feature_dark_mode
+        },
+        llm: {
+          model_name: preferences.llm_model_name,
+          temperature: parseFloat(preferences.llm_temperature)
+        },
+        templates: {
+          default_resume_template_id: preferences.default_resume_template_id,
+          default_cover_letter_template_id: preferences.default_cover_letter_template_id
+        }
+      };
+      
+      // Preserve existing privacy and notification settings from the full profile if they exist
+      if (profile?.system_preferences?.privacy) {
+        systemPreferencesData.privacy = profile.system_preferences.privacy;
+      }
+      if (profile?.system_preferences?.notifications) {
+        systemPreferencesData.notifications = profile.system_preferences.notifications;
+      }
+
+      await updatePromptPreferences(promptPreferencesData);
+      await updateSystemPreferences(systemPreferencesData);
+      
+      setSuccess('Preferences updated successfully!');
+    } catch (err: any) {
+      console.error('Failed to update preferences:', err);
+      setError('Failed to update preferences. ' + (err.response?.data?.detail || err.message));
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (profileLoading) {
@@ -854,121 +837,6 @@ const ProfileEditPage: React.FC = () => {
                 label="Dark Mode" 
               />
             </FormGroup>
-
-            <Typography variant="subtitle1" gutterBottom sx={{ mt: 4 }}>
-              Section Processing Preferences
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            
-            <Typography variant="body2" color="text.secondary" paragraph>
-              Control how each section is processed: "Hardcode" uses exact content from your portfolio, "Process" allows AI to enhance the content.
-            </Typography>
-            
-            <Stack spacing={1} sx={{ mb: 3 }}>
-              <FormControl fullWidth>
-                <InputLabel>Personal Information</InputLabel>
-                <Select
-                  name="section_personal_information"
-                  value={preferences.section_personal_information}
-                  label="Personal Information"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Career Summary</InputLabel>
-                <Select
-                  name="section_career_summary"
-                  value={preferences.section_career_summary}
-                  label="Career Summary"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Skills</InputLabel>
-                <Select
-                  name="section_skills"
-                  value={preferences.section_skills}
-                  label="Skills"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Work Experience</InputLabel>
-                <Select
-                  name="section_work_experience"
-                  value={preferences.section_work_experience}
-                  label="Work Experience"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Education</InputLabel>
-                <Select
-                  name="section_education"
-                  value={preferences.section_education}
-                  label="Education"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Projects</InputLabel>
-                <Select
-                  name="section_projects"
-                  value={preferences.section_projects}
-                  label="Projects"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Awards</InputLabel>
-                <Select
-                  name="section_awards"
-                  value={preferences.section_awards}
-                  label="Awards"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-              
-              <FormControl fullWidth>
-                <InputLabel>Publications</InputLabel>
-                <Select
-                  name="section_publications"
-                  value={preferences.section_publications}
-                  label="Publications"
-                  onChange={handlePreferenceChange}
-                >
-                  <MenuItem value="Hardcode">Hardcode</MenuItem>
-                  <MenuItem value="Process">Process</MenuItem>
-                </Select>
-              </FormControl>
-            </Stack>
 
             <Typography variant="subtitle1" gutterBottom sx={{ mt: 4 }}>
               Default Templates

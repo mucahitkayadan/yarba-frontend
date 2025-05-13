@@ -97,37 +97,52 @@ const DashboardPage: React.FC = () => {
         
         // Fetch resume titles for cover letters
         const resumeTitlesMap: Record<string, string> = {};
+        
+        // Check if resumes exist before adding them to the titles map
         await Promise.all(
           uniqueResumeIds.map(async (resumeId) => {
             try {
               const resume = await getResumeById(resumeId);
-              resumeTitlesMap[resumeId] = resume.title;
+              if (resume) {
+                resumeTitlesMap[resumeId] = resume.title;
+              }
             } catch (err) {
-              console.warn(`Failed to fetch resume ${resumeId}:`, err);
+              console.warn(`Resume ${resumeId} might have been deleted:`, err);
+              // Don't add to map if it doesn't exist
             }
           })
         );
         setResumeTitles(resumeTitlesMap);
         
-        // Combine recent items, sort by date, and take the 5 most recent
-        const combinedItems: RecentItem[] = [
-          ...resumesResponse.items.map((resume: Resume) => ({
-            id: resume.id,
-            title: resume.title,
-            type: 'resume' as const,
-            date: resume.updated_at || resume.created_at
-          })),
-          ...coverLettersResponse.items.map((coverLetter: CoverLetter) => ({
+        // Combine recent items, sort by date, filter out deleted items, and take the 5 most recent
+        
+        // First, handle resumes
+        const validResumes = resumesResponse.items.map((resume: Resume) => ({
+          id: resume.id,
+          title: resume.title,
+          type: 'resume' as const,
+          date: resume.updated_at || resume.created_at
+        }));
+        
+        // Then handle cover letters, only including ones with valid resumes
+        const validCoverLetters = coverLettersResponse.items
+          .filter((coverLetter: CoverLetter) => 
+            // Only include cover letters that have a valid resume title (meaning the resume exists)
+            resumeTitlesMap[coverLetter.resume_id] !== undefined
+          )
+          .map((coverLetter: CoverLetter) => ({
             id: coverLetter.id,
             title: resumeTitlesMap[coverLetter.resume_id] 
               ? `${resumeTitlesMap[coverLetter.resume_id]}` 
               : `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`,
             type: 'cover-letter' as const,
             date: coverLetter.updated_at || coverLetter.created_at
-          }))
-        ];
+          }));
         
-        // Sort by date (newest first) and take the most recent 3
+        // Combine valid items
+        const combinedItems: RecentItem[] = [...validResumes, ...validCoverLetters];
+        
+        // Sort by date (newest first) and take the most recent 6
         const sortedItems = combinedItems.sort((a, b) => 
           new Date(b.date).getTime() - new Date(a.date).getTime()
         ).slice(0, 6);

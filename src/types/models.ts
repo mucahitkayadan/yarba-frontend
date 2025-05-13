@@ -20,8 +20,9 @@ export interface User {
 
 // Profile Interface
 export interface Profile {
-  id: string;
+  _id: string;
   user_id: string;
+  user: User | null;
   personal_information: {
     full_name: string;
     email: string;
@@ -30,84 +31,74 @@ export interface Profile {
     website?: string;
     linkedin?: string;
     github?: string;
-    summary?: string;
   };
   profile_picture_key?: string;
   signature_key?: string;
-  profile_picture_url?: string;
-  signature_url?: string;
   life_story?: string;
-  preferences?: {
-    // Nested preference objects
-    project_details?: {
+  api_keys?: Record<string, any>;
+  prompt_preferences?: {
+    project?: {
       max_projects: number;
       bullet_points_per_project: number;
     };
-    work_experience_details?: {
+    work_experience?: {
       max_jobs: number;
       bullet_points_per_job: number;
     };
-    skills_details?: {
+    skills?: {
       max_categories: number;
       min_skills_per_category: number;
       max_skills_per_category: number;
     };
-    career_summary_details?: {
+    career_summary?: {
       min_words: number;
       max_words: number;
     };
-    education_details?: {
+    education?: {
       max_entries: number;
       max_courses: number;
     };
-    cover_letter_details?: {
+    cover_letter?: {
       paragraphs: number;
       target_age: number;
     };
-    awards_details?: {
+    awards?: {
       max_awards: number;
     };
-    publications_details?: {
+    publications?: {
       max_publications: number;
     };
-    feature_preferences?: {
+  };
+  system_preferences?: {
+    features?: {
       check_clearance: boolean;
       auto_save: boolean;
       dark_mode: boolean;
     };
     notifications?: Record<string, any>;
     privacy?: Record<string, any>;
-    llm_preferences?: {
-      model_type: string;
+    llm?: {
       model_name: string;
       temperature: number;
     };
-    section_preferences?: Record<string, string>; // Maps section names to processing methods
-    latex_template_preferences?: {
-      resume_template: string;
-      cover_letter_template: string;
-    };
-    default_latex_templates?: {
-      default_resume_template_id: string;
+    templates?: {
       default_cover_letter_template_id: string;
+      default_resume_template_id: string;
     };
-    // Legacy flat preferences for backward compatibility
-    career_summary_min_words?: number;
-    career_summary_max_words?: number;
-    work_experience_max_jobs?: number;
-    work_experience_bullet_points_per_job?: number;
-    project_max_projects?: number;
-    project_bullet_points_per_project?: number;
-    cover_letter_paragraphs?: number;
-    cover_letter_target_age?: number;
-    skills_max_categories?: number;
-    skills_min_per_category?: number;
-    skills_max_per_category?: number;
-    education_max_entries?: number;
-    education_max_courses?: number;
-    awards_max_awards?: number;
-    publications_max_publications?: number;
-    certifications_max_certifications?: number;
+  };
+  llm_usage?: {
+    total_tokens: number;
+    total_input_tokens: number;
+    total_output_tokens: number;
+    total_cost: number;
+    usage_by_model?: Record<string, { tokens: number; cost: number }>;
+    usage_by_operation?: Record<string, { tokens: number; cost: number }>;
+    monthly_quota?: number | null;
+    monthly_cost_limit?: number | null;
+    last_used: string;
+    current_month_tokens: number;
+    current_month_cost: number;
+    monthly_history?: Record<string, { tokens: number; cost: number }>;
   };
   created_at: string;
   updated_at: string;

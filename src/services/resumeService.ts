@@ -122,4 +122,24 @@ export const generateResumeContent = async (
     selected_sections: sections
   });
   return response.data;
-}; 
+};
+
+// Delete Resume PDF
+export const deleteResumePdf = async (resumeId: string): Promise<{ pdf_url: null }> => {
+  const response = await api.delete(`/resumes/${resumeId}/pdf`);
+  return response.data;
+};
+
+// Regenerate Resume Content (and optionally PDF)
+export const regenerateResumeContent = async (
+  resumeId: string, 
+  generatePdf: boolean = false
+): Promise<Resume> => {
+  const response = await api.post(`/resumes/${resumeId}/regenerate`, null, {
+    params: { generate_pdf: generatePdf }
+  });
+  return response.data;
+};
+
+// Get Cover Letters For Resume
+// ... existing code ... 

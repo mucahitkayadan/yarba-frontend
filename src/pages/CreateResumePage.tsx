@@ -219,56 +219,56 @@ const CreateResumePage: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Career Summary:</Typography>
                       <Typography variant="body2">
-                        {profile?.preferences?.career_summary_details?.min_words || 'Not set'} - {profile?.preferences?.career_summary_details?.max_words || 'Not set'} words
+                        {profile?.prompt_preferences?.career_summary?.min_words || 'Not set'} - {profile?.prompt_preferences?.career_summary?.max_words || 'Not set'} words
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Work Experience:</Typography>
                       <Typography variant="body2">
-                        Max {profile?.preferences?.work_experience_details?.max_jobs || 'Not set'} jobs, {profile?.preferences?.work_experience_details?.bullet_points_per_job || 'Not set'} bullets each
+                        Max {profile?.prompt_preferences?.work_experience?.max_jobs || 'Not set'} jobs, {profile?.prompt_preferences?.work_experience?.bullet_points_per_job || 'Not set'} bullets each
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Projects:</Typography>
                       <Typography variant="body2">
-                        Max {profile?.preferences?.project_details?.max_projects || 'Not set'} projects, {profile?.preferences?.project_details?.bullet_points_per_project || 'Not set'} bullets each
+                        Max {profile?.prompt_preferences?.project?.max_projects || 'Not set'} projects, {profile?.prompt_preferences?.project?.bullet_points_per_project || 'Not set'} bullets each
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Skills:</Typography>
                       <Typography variant="body2">
-                        {profile?.preferences?.skills_details?.max_categories || 'Not set'} categories, {profile?.preferences?.skills_details?.min_skills_per_category || 'Not set'}-{profile?.preferences?.skills_details?.max_skills_per_category || 'Not set'} skills each
+                        {profile?.prompt_preferences?.skills?.max_categories || 'Not set'} categories, {profile?.prompt_preferences?.skills?.min_skills_per_category || 'Not set'}-{profile?.prompt_preferences?.skills?.max_skills_per_category || 'Not set'} skills each
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Education:</Typography>
                       <Typography variant="body2">
-                        Max {profile?.preferences?.education_details?.max_entries || 'Not set'} entries, {profile?.preferences?.education_details?.max_courses || 'Not set'} courses
+                        Max {profile?.prompt_preferences?.education?.max_entries || 'Not set'} entries, {profile?.prompt_preferences?.education?.max_courses || 'Not set'} courses
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Awards:</Typography>
                       <Typography variant="body2">
-                        Max {profile?.preferences?.awards_details?.max_awards || 'Not set'} awards
+                        Max {profile?.prompt_preferences?.awards?.max_awards || 'Not set'} awards
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Publications:</Typography>
                       <Typography variant="body2">
-                        Max {profile?.preferences?.publications_details?.max_publications || 'Not set'} publications
+                        Max {profile?.prompt_preferences?.publications?.max_publications || 'Not set'} publications
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Cover Letter:</Typography>
                       <Typography variant="body2">
-                        {profile?.preferences?.cover_letter_details?.paragraphs || 'Not set'} paragraphs, age {profile?.preferences?.cover_letter_details?.target_age || 'Not set'}
+                        {profile?.prompt_preferences?.cover_letter?.paragraphs || 'Not set'} paragraphs, age {profile?.prompt_preferences?.cover_letter?.target_age || 'Not set'}
                       </Typography>
                     </Box>
                   </Box>
@@ -276,49 +276,20 @@ const CreateResumePage: React.FC = () => {
                 
                 {/* Processing Preferences */}
                 <Box>
-                  <Typography variant="subtitle2" gutterBottom color="primary">Processing Preferences</Typography>
+                  <Typography variant="subtitle2" gutterBottom color="primary">System Settings</Typography>
                   
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Security Check:</Typography>
                       <Typography variant="body2">
-                        {profile?.preferences?.feature_preferences?.check_clearance ? 'Enabled' : 'Disabled'}
+                        {profile?.system_preferences?.features?.check_clearance ? 'Enabled' : 'Disabled'}
                       </Typography>
                     </Box>
                     
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Model:</Typography>
                       <Typography variant="body2">
-                        {profile?.preferences?.llm_preferences?.model_type || 'Not set'} ({profile?.preferences?.llm_preferences?.model_name?.split('-').slice(-1)[0] || 'Default'})
-                      </Typography>
-                    </Box>
-                    
-                    <Typography variant="subtitle2" gutterBottom color="primary" sx={{ mt: 1 }}>Section Processing</Typography>
-                    
-                    {profile?.preferences?.section_preferences && Object.entries(profile.preferences.section_preferences).map(([key, value]) => (
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }} key={key}>
-                        <Typography variant="body2" color="text.secondary">
-                          {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}:
-                        </Typography>
-                        <Typography variant="body2">
-                          {value as string}
-                        </Typography>
-                      </Box>
-                    ))}
-                    
-                    <Typography variant="subtitle2" gutterBottom color="primary" sx={{ mt: 1 }}>Templates</Typography>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" color="text.secondary">Resume Template:</Typography>
-                      <Typography variant="body2">
-                        {profile?.preferences?.default_latex_templates?.default_resume_template_id || 'Classic'}
-                      </Typography>
-                    </Box>
-                    
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <Typography variant="body2" color="text.secondary">Cover Letter Template:</Typography>
-                      <Typography variant="body2">
-                        {profile?.preferences?.default_latex_templates?.default_cover_letter_template_id || 'Standard'}
+                        {profile?.system_preferences?.llm?.model_name || 'Not set'} (Temperature: {profile?.system_preferences?.llm?.temperature || 'Default'})
                       </Typography>
                     </Box>
                   </Box>
