@@ -267,4 +267,14 @@ export interface CoverLetterCreateRequest {
   resume_id: string;
   template_id?: string;
   generate_pdf?: boolean;
+}
+
+// For the /resumes/list-for-selection endpoint
+export interface ResumeForSelection {
+  id: string;
+  resume_name: string;
+}
+
+export interface ResumesForSelectionResponse {
+  resumes: ResumeForSelection[];
 } 

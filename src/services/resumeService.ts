@@ -1,5 +1,6 @@
 import api from './api';
 import { Resume, ResumeCreateRequest } from '../types/models';
+import { ResumesForSelectionResponse } from '../types/models';
 
 // Get all resumes
 export const getResumes = async (
@@ -142,4 +143,17 @@ export const regenerateResumeContent = async (
 };
 
 // Get Cover Letters For Resume
+// ... existing code ... 
+
+// Get lightweight list of resumes for selection dropdowns
+export const getResumesForSelection = async (sortBy?: string): Promise<ResumesForSelectionResponse> => {
+  let requestUrl = '/resumes/list-for-selection';
+  if (sortBy) {
+    requestUrl += `?sort_by=${encodeURIComponent(sortBy)}`;
+  }
+  const response = await api.get(requestUrl);
+  return response.data;
+};
+
+// Get resume by ID
 // ... existing code ... 

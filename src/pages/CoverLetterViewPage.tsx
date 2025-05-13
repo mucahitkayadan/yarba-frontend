@@ -296,32 +296,31 @@ const CoverLetterViewPage: React.FC = () => {
         gap: 2
       }}>
         <Box sx={{ maxWidth: { xs: '100%', md: '60%' } }}>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {coverLetterTitle}
-          </Typography>
-          <Stack direction="row" spacing={1} sx={{ mb: 1, flexWrap: 'wrap', gap: 0.5 }}>
-            <Chip 
-              label="Cover Letter" 
-              color="primary" 
-              variant="outlined" 
-              size="small" 
-            />
-            <Chip 
-              label={resumeTitle || `Resume ID: ${coverLetter.resume_id.substring(0, 8)}`} 
-              size="small" 
-            />
-          </Stack>
+          {/* Removed H4 title and Chips stack in previous step */}
+          {/* Remove Last Updated Typography */}
+          {/* 
           <Typography variant="body2" color="text.secondary">
             Last updated: {formatDate(coverLetter.updated_at)}
           </Typography>
+          */}
         </Box>
         
-        <Stack direction="row" spacing={1}>
-          <Button
-            startIcon={<ArrowBackIcon />}
+        <Stack 
+          direction="row" 
+          spacing={1}
+          sx={{ 
+            flexWrap: 'wrap', 
+            gap: 1,
+            width: { xs: '100%', md: 'auto' },
+            justifyContent: { xs: 'flex-start', md: 'flex-end' }
+          }}
+        >
+          {/* Add Back button similar to ViewResumePage */}
+          <Button 
+            variant="outlined" 
+            startIcon={<ArrowBackIcon />} 
             onClick={handleBack}
-            variant="outlined"
-            sx={{ display: { xs: 'flex', md: 'none' } }}
+            size="small"
           >
             Back
           </Button>
