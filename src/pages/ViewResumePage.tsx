@@ -86,6 +86,8 @@ const ViewResumePage: React.FC = () => {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [generationErrorDialogOpen, setGenerationErrorDialogOpen] = useState(false);
+  const [generationErrorMessage, setGenerationErrorMessage] = useState<string | null>(null);
   
   // PDF viewer state
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
@@ -164,19 +166,28 @@ const ViewResumePage: React.FC = () => {
     } catch (err: any) {
       console.error('Failed to load PDF:', err);
       
-      let errorMsg = 'Failed to load PDF';
+      let errorMsg = 'Failed to load PDF. Please try again later or contact support if the issue persists.';
       if (err.response?.data instanceof Blob) {
         try {
           const errorText = await err.response.data.text();
-          errorMsg = errorText || errorMsg;
+          // Avoid showing very long or unhelpful backend HTML error pages directly
+          if (errorText && errorText.length < 500 && !errorText.toLowerCase().includes('<html')) {
+            errorMsg = `Failed to load PDF: ${errorText}`;
+          }          
         } catch (blobError) {
           // If we can't read the blob as text, use the default message
+          console.warn('Could not parse error response blob:', blobError);
         }
       } else if (err.message) {
-        errorMsg = err.message;
+        // Avoid showing generic Axios messages if possible
+        if (!err.message.toLowerCase().includes('request failed')) {
+            errorMsg = err.message;
+        }
       }
       
-      setError(errorMsg);
+      setGenerationErrorMessage(errorMsg);
+      setGenerationErrorDialogOpen(true);
+      setError(null); // Clear any previous generic errors if we're showing the dialog
     } finally {
       setGeneratingPdf(false);
     }
@@ -250,29 +261,31 @@ const ViewResumePage: React.FC = () => {
         link.setAttribute('download', filename);
         document.body.appendChild(link);
         link.click();
-        
-        // Clean up
-        document.body.removeChild(link);
+        link.remove();
         window.URL.revokeObjectURL(url);
       } else {
-        throw new Error('Unexpected response format from PDF service');
+        throw new Error('Unexpected response format from PDF service when downloading');
       }
     } catch (err: any) {
       console.error('Failed to download PDF:', err);
-      
-      let errorMsg = 'Failed to download PDF';
+      let downloadErrorMsg = 'Failed to download PDF. Please try again later or contact support if the issue persists.';
       if (err.response?.data instanceof Blob) {
         try {
           const errorText = await err.response.data.text();
-          errorMsg = errorText || errorMsg;
+          if (errorText && errorText.length < 500 && !errorText.toLowerCase().includes('<html')) {
+            downloadErrorMsg = `Failed to download PDF: ${errorText}`;
+          }
         } catch (blobError) {
-          // If we can't read the blob as text, use the default message
+          console.warn('Could not parse error response blob for download:', blobError);
         }
       } else if (err.message) {
-        errorMsg = err.message;
+        if (!err.message.toLowerCase().includes('request failed')) {
+            downloadErrorMsg = err.message;
+        }
       }
-      
-      setError(errorMsg);
+      setGenerationErrorMessage(downloadErrorMsg);
+      setGenerationErrorDialogOpen(true);
+      setError(null);
     } finally {
       setGeneratingPdf(false);
     }
@@ -333,10 +346,21 @@ const ViewResumePage: React.FC = () => {
       setToastOpen(true);
     } catch (err: any) {
       console.error('Failed to regenerate content:', err);
-      setError(err.message || 'Failed to regenerate content');
-      setToastMessage('Failed to regenerate content. Please try again.');
-      setToastSeverity('error');
-      setToastOpen(true);
+      let regenerationErrorMsg = 'Failed to regenerate content. Please try again or contact support.';
+      // Check if the error message indicates a PDF generation issue
+      if (err.message && (err.message.toLowerCase().includes('pdf') || err.message.toLowerCase().includes('latex'))) {
+        regenerationErrorMsg = 'Content was regenerated, but an error occurred during PDF creation. You can view the updated content, but PDF generation may fail until the issue is resolved.';
+      } else if (err.message && !err.message.toLowerCase().includes('request failed')) {
+        regenerationErrorMsg = err.message; 
+      }
+
+      setGenerationErrorMessage(regenerationErrorMsg);
+      setGenerationErrorDialogOpen(true);
+      // Keep existing toast for partial success/alternative error display if not a PDF issue handled by dialog
+      // setError(err.message || 'Failed to regenerate content'); 
+      // setToastMessage('Failed to regenerate content. Please try again.');
+      // setToastSeverity('error');
+      // setToastOpen(true);
     } finally {
       setRegeneratingContent(false);
     }
@@ -1649,6 +1673,33 @@ const ViewResumePage: React.FC = () => {
         severity={toastSeverity}
         onClose={handleCloseToast}
       />
+
+      {/* PDF Generation Error Dialog */}
+      <Dialog
+        open={generationErrorDialogOpen}
+        onClose={() => setGenerationErrorDialogOpen(false)}
+      >
+        <DialogTitle>Resume Generation Error</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {generationErrorMessage || "An unexpected error occurred while generating the resume."}
+          </DialogContentText>
+          <DialogContentText sx={{ mt: 2 }}>
+            If the problem persists, please contact support.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setGenerationErrorDialogOpen(false)}>
+            Close
+          </Button>
+          <Button 
+            href="mailto:admin@yarba.app?subject=Resume%20Generation%20Error"
+            variant="contained"
+          >
+            Contact Support
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
