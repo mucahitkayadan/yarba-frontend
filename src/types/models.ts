@@ -213,10 +213,9 @@ export interface CoverLetter {
   portfolio_id: string;
   resume_id: string;
   template_id: string;
-  content: {
-    cover_letter_content: string;
-  };
+  content: string;
   has_pdf: boolean;
+  llm_usage?: any;
   created_at: string;
   updated_at: string;
 }

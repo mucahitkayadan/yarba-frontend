@@ -1,9 +1,18 @@
 import api from './api';
 import { Profile } from '../types/models';
 
+// Define a type specifically for the Personal Information response
+export type PersonalInformation = Profile['personal_information'];
+
 // Get user's profile (will auto-create if it doesn't exist)
 export const getUserProfile = async (): Promise<Profile> => {
   const response = await api.get('/profiles/me');
+  return response.data;
+};
+
+// Get user's personal information
+export const getPersonalInformation = async (): Promise<PersonalInformation> => {
+  const response = await api.get('/profiles/me/personal-information');
   return response.data;
 };
 

@@ -22,6 +22,7 @@ import {
 import { createCoverLetter } from '../services/coverLetterService';
 import { getResumes } from '../services/resumeService';
 import { Resume } from '../types/models';
+import { Refresh as RefreshIcon } from '@mui/icons-material';
 
 const CoverLetterNewPage: React.FC = () => {
   const navigate = useNavigate();
@@ -144,13 +145,33 @@ const CoverLetterNewPage: React.FC = () => {
         
         <Divider sx={{ mb: 4 }} />
         
-        {error && (
-          <Alert severity="error" sx={{ mb: 3 }}>
+        {error && !resumesLoading && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={fetchResumes}
+                startIcon={<RefreshIcon />}
+              >
+                Retry
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}
         
-        <Box component="form" onSubmit={handleSubmit}>
+        {resumesLoading && (
+          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px', mb: 3 }}>
+            <CircularProgress />
+            <Typography sx={{ ml: 2 }}>Loading Resumes...</Typography>
+          </Box>
+        )}
+        
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: resumesLoading || (error && resumes.length === 0) ? 'none' : 'block' }}>
           <Typography variant="subtitle1" gutterBottom>
             Base your cover letter on an existing resume
           </Typography>

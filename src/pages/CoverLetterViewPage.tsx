@@ -26,16 +26,11 @@ import {
   PictureAsPdf as PdfIcon,
   Delete as DeleteIcon,
   Close as CloseIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon,
-  LinkedIn as LinkedInIcon,
-  GitHub as GitHubIcon,
-  Language as WebsiteIcon,
-  LocationOn as LocationIcon
 } from '@mui/icons-material';
 import { getCoverLetterById, getCoverLetterPdf, deleteCoverLetter } from '../services/coverLetterService';
 import { getResumeById } from '../services/resumeService';
-import { CoverLetter, Resume } from '../types/models';
+import { getUserProfile } from '../services/profileService';
+import { CoverLetter, Resume, Profile } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 // Set up the PDF.js worker
@@ -51,6 +46,11 @@ const CoverLetterViewPage: React.FC = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletingCoverLetter, setDeletingCoverLetter] = useState(false);
   
+  // Profile Data state
+  const [profileData, setProfileData] = useState<Profile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
   // PDF viewer state
   const [pdfViewerOpen, setPdfViewerOpen] = useState(false);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
@@ -99,6 +99,25 @@ const CoverLetterViewPage: React.FC = () => {
 
     fetchCoverLetter();
   }, [id]);
+
+  // Fetch Full Profile Data
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      setProfileLoading(true);
+      setProfileError(null);
+      try {
+        const data = await getUserProfile(); // Fetch full profile
+        setProfileData(data);
+      } catch (err: any) {
+        console.error('Failed to fetch profile data:', err);
+        setProfileError(err.message || 'Failed to load profile data.');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, []); // Runs once on mount
 
   // Generate a title for the cover letter
   const coverLetterTitle = coverLetter ? (resumeTitle || `Cover Letter (${coverLetter.resume_id.substring(0, 8)})`) : '';
@@ -371,7 +390,8 @@ const CoverLetterViewPage: React.FC = () => {
             </Grid>
             
             <Grid item xs={12} sm={6} md={4}>
-              <Typography variant="subtitle2" color="text.secondary">Has PDF</Typography>
+              <Typography variant="subtitle2" color="text.secondary">Has PDF</Typography> 
+              {/* Reverted to check has_pdf */}
               <Typography variant="body2">{coverLetter.has_pdf ? 'Yes' : 'No'}</Typography>
             </Grid>
           </Grid>
@@ -384,179 +404,89 @@ const CoverLetterViewPage: React.FC = () => {
           </Typography>
           <Divider sx={{ mb: 2 }} />
           
-          <Box sx={{ px: 2 }}>
-            {/* Cover Letter Content */}
-            {coverLetter.content?.cover_letter_content ? (
-              (() => {
-                const rawContent = coverLetter.content.cover_letter_content;
-                let contentToRender;
-
-                // Case 1: rawContent is an object with llm_output
-                if (typeof rawContent === 'object' && rawContent !== null && 'llm_output' in rawContent) {
-                  contentToRender = (rawContent as any).llm_output;
-                  return (
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {contentToRender}
-                    </Typography>
-                  );
-                } 
-                
-                // Case 2: rawContent is a string
-                if (typeof rawContent === 'string') {
-                  try {
-                    // Try to parse as JSON
-                    const parsedJson = JSON.parse(rawContent);
-
-                    // Case 2a: Parsed JSON is an object with llm_output
-                    if (typeof parsedJson === 'object' && parsedJson !== null && 'llm_output' in parsedJson) {
-                      contentToRender = (parsedJson as any).llm_output;
-                      return (
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {contentToRender}
-                        </Typography>
-                      );
-                    } 
-                    // Case 2b: Parsed JSON is the structured CoverLetterContent object
-                    else if (typeof parsedJson === 'object' && parsedJson !== null && ('greeting' in parsedJson || 'paragraphs' in parsedJson || 'closing' in parsedJson || 'full_document' in parsedJson)) {
-                      const structuredContent = parsedJson as { greeting?: string; paragraphs?: string[]; closing?: string; full_document?: string; applicant_name?: string; };
-                      // Render formatted cover letter (existing logic)
-                      return (
-                        <Paper elevation={0} sx={{ 
-                          p: { xs: 3, sm: 5 }, 
-                          backgroundColor: '#fcfcfc',
-                          backgroundImage: 'linear-gradient(to bottom, #f9f9f9, #fcfcfc 15%)',
-                          border: '1px solid #e0e0e0',
-                          borderRadius: 2,
-                          boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                          fontFamily: '"Georgia", serif',
-                          lineHeight: 1.6,
-                          maxWidth: '800px',
-                          margin: '0 auto',
-                          position: 'relative',
-                        }}>
-                          {/* Personal Information Header - This was part of the original removed code, re-adding a simplified version or ensuring it exists */}
-                          {resumeData?.content?.personal_information && (() => {
-                            let personalInfo;
-                            try {
-                              if (typeof resumeData.content.personal_information === 'string') {
-                                personalInfo = JSON.parse(resumeData.content.personal_information);
-                              } else {
-                                personalInfo = resumeData.content.personal_information;
-                              }
-                              return (
-                                <Box sx={{ mb: 4, textAlign: 'center' }}>
-                                  <Typography variant="h4" sx={{ fontWeight: 700, textTransform: 'uppercase', letterSpacing: 1, mb: 1.5, color: '#333'}}>
-                                    {personalInfo.full_name}
-                                  </Typography>
-                                  {/* Simplified contact info rendering for brevity, ensure full original logic if needed */}
-                                  <Typography variant="body2">{personalInfo.email} | {personalInfo.phone}</Typography>
-                                  <Divider sx={{ width: '100%', mb: 3, mt: 2 }} />
-                                </Box>
-                              );
-                            } catch (e) { console.error('Error parsing personal info for cover letter:', e); return null; }
-                          })()}
-                          
-                          {/* Date */}
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 4 }}>
-                            <Typography sx={{ color: '#555' }}>
-                              {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
-                            </Typography>
-                          </Box>
-
-                          {/* Greeting */}
-                          {structuredContent.greeting && (
-                            <Typography variant="body1" sx={{ mb: 3, fontWeight: 500, fontSize: '1.05rem' }}>
-                              {structuredContent.greeting}
-                            </Typography>
-                          )}
-                          
-                          {/* Body Paragraphs or Full Document */}
-                          {structuredContent.full_document ? (
-                            <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                              {structuredContent.full_document}
-                            </Typography>
-                          ) : structuredContent.paragraphs && Array.isArray(structuredContent.paragraphs) ? (
-                            structuredContent.paragraphs.map((paragraph: string, index: number) => (
-                              <Typography key={index} variant="body1" sx={{ mb: 2.5, textIndent: '1.5em', fontSize: '1.02rem', color: '#222', textAlign: 'justify' }}>
-                                {paragraph}
-                              </Typography>
-                            ))
-                          ) : null}
-                          
-                          {/* Closing */}
-                          {structuredContent.closing && (
-                            <Box sx={{ mt: 5 }}>
-                              <Typography variant="body1" sx={{ mb: 4, fontStyle: 'italic' }}>
-                                {structuredContent.closing}
-                              </Typography>
-                              <Box sx={{ height: 60, mb: 1 }} /> {/* Signature space */}
-                              <Typography variant="body1" sx={{ fontWeight: 500, borderTop: '1px solid #eaeaea', pt: 1, display: 'inline-block' }}>
-                                {structuredContent.applicant_name || resumeData?.content?.personal_information?.full_name || ""}
-                              </Typography>
-                            </Box>
-                          )}
-                        </Paper>
-                      );
-                    }
-                    // Case 2c: Parsed JSON is something else, or not an object
-                    contentToRender = rawContent; // Fallback to raw string if JSON is not the expected structure
-                  } catch (e) {
-                    // If it's not valid JSON, check if it's the object with llm_output
-                    const rawContent = coverLetter.content.cover_letter_content;
-                    if (typeof rawContent === 'object' && rawContent !== null && 'llm_output' in rawContent) {
-                      return (
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {(rawContent as any).llm_output}
-                        </Typography>
-                      );
-                    } else if (typeof rawContent === 'string') {
-                      // If it's a string (and not JSON), render as is
-                      return (
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {rawContent}
-                        </Typography>
-                      );
-                    } else {
-                      // Fallback for other unexpected types in this catch block
-                      return (
-                        <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                          Content is in an unexpected format.
-                        </Typography>
-                      );
-                    }
-                  }
-                  return (
-                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {contentToRender}
-                    </Typography>
-                  );
-                }
-
-                // Case 3: rawContent is not an object and not a string (e.g. number, boolean)
-                // Or if it's an object but not the llm_output kind.
-                // This will render the stringified version of the object, which caused the original error.
-                // We should provide a more graceful fallback.
-                if (typeof rawContent === 'object' && rawContent !== null) {
-                    return (
-                        <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                            Cover letter content is an object but not in the expected format: {JSON.stringify(rawContent, null, 2)}
-                        </Typography>
-                    );
-                }
-                
-                // Fallback for any other case or if content is empty/unrecognized
-                return (
-                  <Typography variant="body1" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    Content is not available or in an unrecognized format.
+          {/* Cover Letter Content - Re-applying visual structure */}
+          {coverLetter.content && typeof coverLetter.content === 'string' ? (
+            <Paper elevation={0} sx={{ 
+              p: { xs: 3, sm: 5 }, 
+              backgroundColor: '#fcfcfc',
+              backgroundImage: 'linear-gradient(to bottom, #f9f9f9, #fcfcfc 15%)',
+              border: '1px solid #e0e0e0',
+              borderRadius: 2,
+              boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+              fontFamily: '"Georgia", serif',
+              lineHeight: 1.6,
+              maxWidth: '800px',
+              margin: '0 auto',
+              position: 'relative',
+            }}>
+              {/* Personal Information Header - Use profileData now */}
+              {profileLoading ? (
+                <Box sx={{ textAlign: 'center', my: 2}}><CircularProgress size={20} /></Box>
+              ) : profileError ? (
+                <Alert severity="warning" sx={{ mb: 2 }}>Error loading profile data: {profileError}</Alert>
+              ) : profileData?.personal_information ? (
+                <Box sx={{ mb: 4, textAlign: 'center', borderBottom: '1px solid #eee', pb: 3 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5, mb: 1, color: '#333'}}>
+                    {profileData.personal_information.full_name}
                   </Typography>
-                );
-              })()
-            ) : (
-              <Typography variant="body2" color="text.secondary">
-                No content is available. Generate or edit the cover letter to add content.
+                  <Typography variant="body2" color="text.secondary">
+                    {profileData.personal_information.email && `${profileData.personal_information.email}`}
+                    {profileData.personal_information.phone && ` | ${profileData.personal_information.phone}`}
+                    {profileData.personal_information.website && (
+                      <> | <MuiLink href={profileData.personal_information.website} target="_blank" rel="noopener noreferrer" color="inherit">Website</MuiLink></>
+                    )}
+                    {profileData.personal_information.linkedin && (
+                      <> | <MuiLink href={profileData.personal_information.linkedin} target="_blank" rel="noopener noreferrer" color="inherit">LinkedIn</MuiLink></>
+                    )}
+                    {profileData.personal_information.github && (
+                      <> | <MuiLink href={profileData.personal_information.github} target="_blank" rel="noopener noreferrer" color="inherit">GitHub</MuiLink></>
+                    )}
+                  </Typography>
+                </Box>
+              ) : (
+                <Box sx={{ mb: 4, textAlign: 'center', borderBottom: '1px solid #eee', pb: 3 }}>
+                   <Typography variant="body2" color="text.secondary">Personal information not available.</Typography>
+                </Box>
+              )}
+              
+              {/* Cover Letter Body */}
+              <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap', mb: 5, fontSize: '1.02rem', color: '#222', textAlign: 'justify' }}>
+                {coverLetter.content}
               </Typography>
-            )}
-          </Box>
+              
+              {/* Closing and Signature */}
+              <Box sx={{ mt: 6 }}>
+                <Typography variant="body1" sx={{ mb: 4, fontStyle: 'normal', fontSize: '1.02rem' }}>
+                  Sincerely,
+                </Typography>
+                {/* Signature Image */}
+                <Box sx={{ height: 60, mb: 1 }}>
+                  {profileData?.signature_key && (
+                    <img 
+                      // Prepend CloudFront URL and use signature_key
+                      src={`${process.env.REACT_APP_CLOUDFRONT_URL}${profileData.signature_key}`}
+                      alt="Signature" 
+                      style={{ maxHeight: '60px', maxWidth: '200px' }} 
+                    />
+                  )}
+                </Box>
+                <Typography variant="body1" sx={{ fontWeight: 500, borderTop: '1px solid #eaeaea', pt: 1, display: 'inline-block', fontSize: '1.02rem' }}>
+                  {/* Get name from profileData state */}
+                  {profileData?.personal_information?.full_name || ''}
+                </Typography>
+                {/* Date - MOVED HERE, aligned to the left under the name by default */}
+                <Box sx={{ mt: 1 }}> 
+                  <Typography sx={{ color: '#555', fontSize: '0.9rem' }}>
+                    {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+                  </Typography>
+                </Box>
+              </Box>
+            </Paper>
+          ) : (
+            <Typography variant="body2" color="text.secondary">
+              No content is available or content is not in the expected format. Generate or edit the cover letter to add content.
+            </Typography>
+          )}
         </Paper>
       </Box>
       
