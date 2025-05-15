@@ -15,7 +15,8 @@ import {
   ListItemText,
   Chip,
   Avatar,
-  Grid
+  Grid,
+  IconButton
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -26,7 +27,8 @@ import {
   Code as ProjectsIcon,
   EmojiEvents as AwardsIcon,
   MenuBook as PublicationsIcon,
-  Badge as CertificationsIcon
+  Badge as CertificationsIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { getUserPortfolio, getPortfolioById } from '../../services/portfolioService';
 import { Portfolio } from '../../types/models';
@@ -108,6 +110,7 @@ interface ViewPortfolio {
     bullet_points?: string[];
     date?: string;
     url?: string;
+    link?: string;
     start_date?: string;
     end_date?: string;
     current?: boolean;
@@ -609,13 +612,30 @@ const PortfolioViewPage: React.FC = () => {
               boxShadow: 'rgba(0, 0, 0, 0.05) 0px 6px 24px 0px, rgba(0, 0, 0, 0.08) 0px 0px 0px 1px' 
             }}>
               <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', mb: 2 }}>
-                <Typography variant="h6" fontWeight="bold" color="primary.main">{project.name}</Typography>
-                <Chip 
-                  label={project.date || `${project.start_date || ''}${project.end_date ? ` - ${project.end_date}` : ''}${project.current ? ' - Present' : ''}`}
-                  size="small" 
-                  color="secondary" 
-                  sx={{ alignSelf: { xs: 'flex-start', sm: 'flex-start' }, mt: { xs: 1, sm: 0 } }}
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography variant="h6" component="div" color="primary.main" sx={{ fontWeight: 'bold' }}>
+                    {project.name}
+                  </Typography>
+                  {/* Display Project Link */}
+                  {project.link && (
+                    <IconButton 
+                      size="small" 
+                      component="a" 
+                      href={project.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      aria-label={`Link to ${project.name}`}
+                      sx={{ ml: 1 }}
+                    >
+                      <LinkIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+                {(project.date || project.start_date) && (
+                  <Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                    {project.date || project.start_date}
+                  </Typography>
+                )}
               </Box>
               
               {project.description && (
@@ -665,19 +685,6 @@ const PortfolioViewPage: React.FC = () => {
                     ))}
                   </Box>
                 </>
-              )}
-              
-              {project.url && (
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  sx={{ mt: 2 }}
-                  href={project.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  View Project
-                </Button>
               )}
             </Box>
           ))}

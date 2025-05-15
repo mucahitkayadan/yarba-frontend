@@ -141,6 +141,7 @@ const PortfolioEditPage: React.FC = () => {
     name: string;
     bullet_points: string[];
     date: string;
+    link?: string;
   }>>([]);
   const [newBulletPoint, setNewBulletPoint] = useState('');
   
@@ -241,7 +242,8 @@ const PortfolioEditPage: React.FC = () => {
         setProjects(portfolioData.projects.map((proj: any) => ({
           name: proj.name || '',
           bullet_points: proj.bullet_points || proj.achievements || [],
-          date: proj.date || proj.start_date || ''
+          date: proj.date || proj.start_date || '',
+          link: proj.link || ''
         })));
       } else {
         setProjects([]);
@@ -1317,7 +1319,6 @@ const PortfolioEditPage: React.FC = () => {
                     size="small"
                   />
                 </Grid>
-                
                 <Grid item xs={12} sm={4}>
                   <TextField
                     fullWidth
@@ -1331,6 +1332,21 @@ const PortfolioEditPage: React.FC = () => {
                     variant="outlined"
                     size="small"
                     placeholder="e.g., 2023"
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Project Link"
+                    value={project.link || ''}
+                    onChange={(e) => {
+                      const updatedProjects = [...projects];
+                      updatedProjects[projectIndex].link = e.target.value;
+                      setProjects(updatedProjects);
+                    }}
+                    variant="outlined"
+                    size="small"
+                    placeholder="e.g., https://github.com/user/project"
                   />
                 </Grid>
               </Grid>
@@ -1424,7 +1440,8 @@ const PortfolioEditPage: React.FC = () => {
                 {
                   name: '',
                   bullet_points: [],
-                  date: ''
+                  date: '',
+                  link: ''
                 }
               ]);
             }}

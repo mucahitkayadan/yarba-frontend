@@ -867,117 +867,89 @@ const ViewResumePage: React.FC = () => {
   };
 
   const renderProjects = (data: any) => {
-    // Projects can be a nested JSON string
-    let projects;
-    try {
-      if (typeof data === 'string') {
-        const parsed = JSON.parse(data);
-        projects = parsed.projects || parsed;
-      } else if (typeof data === 'object') {
-        if (Array.isArray(data)) {
-          projects = data;
-        } else if (data.projects && Array.isArray(data.projects)) {
-          projects = data.projects;
-        } else {
-          projects = data;
-        }
-      } else {
-        projects = [];
-      }
-    } catch (e) {
-      console.error('Error parsing projects:', e);
-      if (Array.isArray(data)) {
-        projects = data;
-      } else {
-        projects = [];
-      }
+    if (!data || !Array.isArray(data) || data.length === 0) {
+      return <Typography variant="body2">No project information available.</Typography>;
     }
-    
-    if (!Array.isArray(projects) || projects.length === 0) {
-      return <Typography variant="body2">No project information available</Typography>;
-    }
-    
-    // Filter out empty or invalid projects
-    const validProjects = projects.filter(
-      project => project && project.name && (project.description || (project.achievements && project.achievements.length > 0) || (project.bullet_points && project.bullet_points.length > 0))
-    );
-    
+
+    const validProjects = data.filter(project => project && project.name);
+
     if (validProjects.length === 0) {
       return <Typography variant="body2">No project information available</Typography>;
     }
-    
+
     return (
       <Grid container spacing={2}>
-        {validProjects.map((project, index) => (
-          <Grid item xs={12} key={index}>
-            <Card variant="outlined">
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                  <Box>
-                    <Typography variant="subtitle1" component="div" color="primary">
-                      {project.name}
-                    </Typography>
+        {validProjects.map((project, index) => {
+          const projectLink = project.link || project.url; // Prioritize link, fallback to url
+          return (
+            <Grid item xs={12} key={index}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Typography variant="subtitle1" component="div" color="primary" sx={{ fontWeight: 'bold' }}>
+                        {project.name}
+                      </Typography>
+                      {projectLink && (
+                        <Tooltip title={projectLink.startsWith('http') ? "View Project" : projectLink}>
+                          <IconButton 
+                            size="small" 
+                            component="a" 
+                            href={projectLink.startsWith('http') ? projectLink : `https://${projectLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            sx={{ ml: 1 }}
+                          >
+                            <LinkIcon fontSize="small" />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
                     {(project.date || project.start_date) && (
                       <Typography variant="caption" color="text.secondary">
                         {project.date || formatDateRange(project.start_date, project.end_date, project.current)}
                       </Typography>
                     )}
                   </Box>
-                  {project.url && (
-                    <Tooltip title="View Project">
-                      <IconButton 
-                        size="small" 
-                        component="a" 
-                        href={project.url} 
-                        target="_blank"
-                      >
-                        <LinkIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                  
+                  {project.description && (
+                    <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-line' }}>
+                      {project.description}
+                    </Typography>
                   )}
-                </Box>
-                
-                {project.description && (
-                  <Typography variant="body2" sx={{ mt: 1 }}>
-                    {project.description}
-                  </Typography>
-                )}
-                
-                {project.technologies && project.technologies.length > 0 && (
-                  <Box sx={{ mt: 1.5 }}>
-                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                      Technologies:
-                    </Typography>
-                    <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
-                      {project.technologies.map((tech: string, techIndex: number) => (
-                        <Chip key={techIndex} label={tech} size="small" variant="outlined" />
-                      ))}
-                    </Stack>
-                  </Box>
-                )}
-                
-                {(project.achievements || project.bullet_points) && 
-                 (project.achievements?.length > 0 || project.bullet_points?.length > 0) && (
-                  <Box sx={{ mt: 1.5 }}>
-                    <Typography variant="caption" color="text.secondary" gutterBottom>
-                      Key Achievements:
-                    </Typography>
-                    <List dense sx={{ pl: 2, mt: 0.5 }}>
-                      {(project.achievements || project.bullet_points || []).map((achievement: string, achievementIndex: number) => (
-                        <ListItem key={achievementIndex} sx={{ py: 0, display: 'list-item', listStyleType: 'disc' }}>
-                          <ListItemText 
-                            primary={achievement} 
-                            primaryTypographyProps={{ variant: 'body2' }}
-                          />
-                        </ListItem>
-                      ))}
-                    </List>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        ))}
+                  
+                  {project.achievements && project.achievements.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                      <Typography variant="caption" color="text.secondary" gutterBottom>
+                        Key Achievements:
+                      </Typography>
+                      <List dense sx={{ pl: 2 }}>
+                        {project.achievements.map((achievement: string, अidx: number) => (
+                          <ListItem key={अidx} sx={{ display: 'list-item', pl: 0, py: 0.2, listStyleType: 'disc', listStylePosition: 'inside' }}>
+                            <ListItemText primary={achievement} primaryTypographyProps={{ variant: 'body2' }} />
+                          </ListItem>
+                        ))}
+                      </List>
+                    </Box>
+                  )}
+
+                  {project.technologies && project.technologies.length > 0 && (
+                    <Box sx={{ mt: 1 }}>
+                       <Typography variant="caption" color="text.secondary" gutterBottom>
+                        Technologies Used:
+                      </Typography>
+                      <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
+                        {project.technologies.map((tech: string, techIdx: number) => (
+                          <Chip key={techIdx} label={tech} size="small" variant="outlined" />
+                        ))}
+                      </Stack>
+                    </Box>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          );
+        })}
       </Grid>
     );
   };

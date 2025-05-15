@@ -144,6 +144,7 @@ export interface Portfolio {
     name: string;
     description: string;
     url?: string;
+    link?: string;
     start_date?: string; // Format: "YYYY-MM"
     end_date?: string; // Format: "YYYY-MM"
     current: boolean;
