@@ -280,7 +280,22 @@ const PortfolioEditPage: React.FC = () => {
       
     } catch (err: any) {
       console.error('Failed to fetch portfolio:', err);
-      setError('Failed to load portfolio. Please try again later.');
+      let errorMessage = 'Failed to load portfolio. Please try again later.';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else {
+          // If detail is not a string, try to stringify it or use a generic message
+          try {
+            errorMessage = JSON.stringify(err.response.data.detail);
+          } catch (stringifyError) {
+            errorMessage = 'An unexpected error occurred. The error detail could not be displayed.';
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -388,7 +403,11 @@ const PortfolioEditPage: React.FC = () => {
           break;
           
         case 4: // Projects tab
-          await updateProjects(id, projects);
+          const projectsToSave = projects.map(p => ({
+            ...p,
+            link: p.link === '' ? undefined : p.link,
+          }));
+          await updateProjects(id, projectsToSave);
           setSuccess('Projects updated successfully!');
           break;
           
@@ -416,7 +435,22 @@ const PortfolioEditPage: React.FC = () => {
       
     } catch (err: any) {
       console.error('Failed to update portfolio:', err);
-      setError(err.response?.data?.detail || 'Failed to update portfolio. Please try again.');
+      let errorMessage = 'Failed to update portfolio. Please try again.';
+      if (err.response?.data?.detail) {
+        if (typeof err.response.data.detail === 'string') {
+          errorMessage = err.response.data.detail;
+        } else {
+          // If detail is not a string, try to stringify it or use a generic message
+          try {
+            errorMessage = JSON.stringify(err.response.data.detail);
+          } catch (stringifyError) {
+            errorMessage = 'An unexpected error occurred. The error detail could not be displayed.';
+          }
+        }
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
     } finally {
       setSaving(false);
     }

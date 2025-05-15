@@ -110,6 +110,7 @@ export const updateProjects = async (
     name: string;
     bullet_points: string[];
     date: string;
+    link?: string;
   }>
 ): Promise<Portfolio> => {
   const response = await api.patch(`/portfolios/${portfolioId}/projects`, projects);
