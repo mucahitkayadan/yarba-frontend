@@ -193,13 +193,19 @@ const CoverLetterViewPage: React.FC = () => {
 
   const handleDownloadPdf = async () => {
     if (!id || !coverLetter) return;
-    
+
     setGeneratingPdf(true);
     try {
       const pdfResponse = await getCoverLetterPdf(id);
-      
-      // Open PDF URL in a new tab for download
-      window.open(pdfResponse.pdf_url, '_blank');
+      const filename = coverLetterTitle ? `${coverLetterTitle}.pdf` : `cover-letter-${id}.pdf`;
+
+      const link = document.createElement('a');
+      link.href = pdfResponse.pdf_url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
     } catch (err: any) {
       console.error('Failed to download PDF:', err);
       setError('Failed to download PDF. Please try again.');

@@ -274,9 +274,16 @@ const CoverLettersPage: React.FC = () => {
     setGeneratingPdf(true);
     try {
       const pdfResponse = await getCoverLetterPdf(coverLetterId);
-      
-      // Open PDF URL in a new tab for download
-      window.open(pdfResponse.pdf_url, '_blank');
+      const coverLetter = coverLetters.find(cl => cl.id === coverLetterId);
+      const filename = coverLetter ? `${getCoverLetterTitle(coverLetter)}.pdf` : `cover-letter-${coverLetterId}.pdf`;
+
+      const link = document.createElement('a');
+      link.href = pdfResponse.pdf_url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
     } catch (error: any) {
       console.error('Failed to download PDF:', error);
       let errorMsg = 'Failed to generate PDF';
