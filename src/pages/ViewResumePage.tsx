@@ -54,17 +54,14 @@ import { Resume } from '../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Toast } from '../components/common';
 
-// Type for the PDF response from the server
 interface PdfResponse {
   pdf_url: string;
 }
 
-// Type guard to check if response is PdfResponse
 const isPdfResponse = (response: any): response is PdfResponse => {
   return response && typeof response.pdf_url === 'string';
 };
 
-// Type guard to check if response is Blob
 const isBlob = (response: any): response is Blob => {
   return response instanceof Blob;
 };
@@ -161,7 +158,6 @@ const ViewResumePage: React.FC = () => {
         throw new Error('Unexpected response format from PDF service');
       }
       
-      // Open the PDF viewer modal
       setPdfViewerOpen(true);
     } catch (err: any) {
       console.error('Failed to load PDF:', err);
@@ -223,49 +219,40 @@ const ViewResumePage: React.FC = () => {
     
     setGeneratingPdf(true);
     try {
-      // Check if portfolio_id exists and is valid
       if (!resume.portfolio_id) {
         setError('This resume has no associated portfolio. Please update the resume with a valid portfolio first.');
+        setGeneratingPdf(false); // Ensure loading state is reset
         return;
       }
       
       const response = await getResumePdf(id);
+      const filename = `${resume.title}.pdf`;
       
-      // Handle the new response format that returns a pdf_url
+      let blobToDownload: Blob;
+
       if (isPdfResponse(response)) {
-        // Create a link element to trigger download of remote file
-        const link = document.createElement('a');
-        link.href = response.pdf_url;
-        
-        // Set the filename
-        const filename = `${resume.title}.pdf`;
-        link.setAttribute('download', filename);
-        
-        // Append to the document
-        document.body.appendChild(link);
-        link.click();
-        
-        // Clean up
-        document.body.removeChild(link);
+        // Fetch the PDF from the URL as a blob first
+        const fetchedResponse = await fetch(response.pdf_url);
+        if (!fetchedResponse.ok) {
+          throw new Error(`Failed to fetch PDF from URL: ${fetchedResponse.statusText}`);
+        }
+        blobToDownload = await fetchedResponse.blob();
       } else if (isBlob(response)) {
-        // Fallback to old approach (treating response as blob)
-        
-        // Create a download link
-        const url = window.URL.createObjectURL(response);
-        const link = document.createElement('a');
-        link.href = url;
-        
-        // Set the filename
-        const filename = `${resume.title}.pdf`;
-        
-        link.setAttribute('download', filename);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        window.URL.revokeObjectURL(url);
+        blobToDownload = response;
       } else {
         throw new Error('Unexpected response format from PDF service when downloading');
       }
+      
+      // Common blob download logic
+      const url = window.URL.createObjectURL(blobToDownload);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove(); // Modern way to remove the element
+      window.URL.revokeObjectURL(url);
+
     } catch (err: any) {
       console.error('Failed to download PDF:', err);
       let downloadErrorMsg = 'Failed to download PDF. Please try again later or contact support if the issue persists.';
@@ -1613,20 +1600,39 @@ const ViewResumePage: React.FC = () => {
               <Button
                 variant="contained"
                 startIcon={<PdfIcon />}
-                onClick={() => {
-                  // For direct pdf_url from server, we can just open it in new tab 
-                  // or trigger download using the URL we already have
-                  if (pdfUrl.startsWith('http')) {
-                    // Create a link element to trigger download
-                    const link = document.createElement('a');
-                    link.href = pdfUrl;
-                    link.setAttribute('download', `${resume?.title || 'resume'}.pdf`);
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                  } else {
-                    // For blob URLs or other cases, fallback to regular download flow
-                    handleDownloadPdf();
+                onClick={async () => {
+                  setGeneratingPdf(true);
+                  try {
+                    if (pdfUrl.startsWith('http')) {
+                      // Fetch the PDF from the URL as a blob first
+                      const fetchedResponse = await fetch(pdfUrl);
+                      if (!fetchedResponse.ok) {
+                        setGenerationErrorMessage(`Failed to fetch PDF for download: ${fetchedResponse.statusText}`);
+                        setGenerationErrorDialogOpen(true);
+                        throw new Error(`Failed to fetch PDF from URL: ${fetchedResponse.statusText}`);
+                      }
+                      const blob = await fetchedResponse.blob();
+                      
+                      // Now use the blob download logic
+                      const objectUrl = window.URL.createObjectURL(blob);
+                      const link = document.createElement('a');
+                      link.href = objectUrl;
+                      link.setAttribute('download', `${resume?.title || 'resume'}.pdf`);
+                      document.body.appendChild(link);
+                      link.click();
+                      link.remove();
+                      window.URL.revokeObjectURL(objectUrl);
+                    } else {
+                       await handleDownloadPdf(); 
+                    }
+                  } catch (e: any) {
+                    console.error("Error downloading PDF from modal:", e);
+                    if (!generationErrorDialogOpen) { // Avoid opening if already opened by a specific error
+                        setGenerationErrorMessage(e.message || "Error downloading PDF from modal.");
+                        setGenerationErrorDialogOpen(true);
+                    }
+                  } finally {
+                    setGeneratingPdf(false);
                   }
                 }}
                 size="small"
