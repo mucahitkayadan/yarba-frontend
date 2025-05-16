@@ -23,6 +23,7 @@ export { default as ProfileEditPage } from './profile/ProfileEditPage';
 export { default as PortfolioCreatePage } from './portfolio/PortfolioCreatePage';
 export { default as PortfolioEditPage } from './portfolio/PortfolioEditPage';
 export { default as PortfolioViewPage } from './portfolio/PortfolioViewPage';
+export { default as UploadPortfolioPage } from './portfolio/UploadPortfolioPage';
 
 // Add UserPage to the exports
 export { default as UserPage } from './user/UserPage';

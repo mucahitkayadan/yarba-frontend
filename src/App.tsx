@@ -30,7 +30,8 @@ import {
   CareersPage,
   PrivacyPage,
   TermsPage,
-  ContactPage
+  ContactPage,
+  UploadPortfolioPage,
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -228,6 +229,16 @@ const App: React.FC = () => {
                 <ProtectedRoute>
                   <MainLayout>
                     <PortfolioViewPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route 
+              path="/portfolio/upload"
+              element={
+                <ProtectedRoute>
+                  <MainLayout>
+                    <UploadPortfolioPage />
                   </MainLayout>
                 </ProtectedRoute>
               }
