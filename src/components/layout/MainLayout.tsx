@@ -35,7 +35,8 @@ import {
   AccountCircle as AccountIcon,
   Key as KeyIcon,
   Refresh as RefreshIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Login as LoginIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -63,17 +64,18 @@ const navItems = [
 
 interface MainLayoutProps {
   children: ReactNode;
+  hideDrawer?: boolean;
 }
 
 const drawerWidth = 210;
 const miniDrawerWidth = 65;
 
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout: React.FC<MainLayoutProps> = ({ children, hideDrawer = false }) => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-  const [drawerOpen, setDrawerOpen] = useState(!isMobile);
+  const [drawerOpen, setDrawerOpen] = useState(!isMobile && !hideDrawer);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [imageVersion, setImageVersion] = useState<number>(Date.now());
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -85,7 +87,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     if (user) {
       fetchProfile();
     }
-  }, [user]);
+    if (hideDrawer) {
+        setDrawerOpen(false);
+    }
+  }, [user, hideDrawer]);
 
   // Add a timer to refresh the image version periodically to catch updates
   useEffect(() => {
@@ -114,7 +119,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   };
 
   const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
+    if (!hideDrawer) {
+        setDrawerOpen(!drawerOpen);
+    }
   };
 
   const handleDrawerClose = () => {
@@ -323,7 +330,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
             aria-label="open drawer"
             edge="start"
             onClick={toggleDrawer}
-            sx={{ mr: 2, display: { sm: 'block', md: 'none' } }}
+            sx={{ mr: 2, display: (hideDrawer || !user) ? 'none' : { sm: 'block', md: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
@@ -332,7 +339,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <img src="/logo.svg" alt="YARBA" style={{ height: '50px', width: 'auto' }} />
             </RouterLink>
           </Typography>
-          {user && (
+          {user ? (
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <Typography 
                 sx={{ 
@@ -455,53 +462,77 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </MenuItem>
               </Menu>
             </Box>
+          ) : (
+            <Button 
+              component={RouterLink}
+              to="/login"
+              variant="contained"
+              color="secondary"
+              startIcon={<LoginIcon />}
+              sx={{
+                fontWeight: 600,
+                borderRadius: 2,
+                px: 2,
+                py: 0.5,
+                boxShadow: 2,
+                '&:hover': {
+                  boxShadow: 4,
+                  backgroundColor: 'secondary.dark'
+                },
+                textTransform: 'none'
+              }}
+            >
+              Sign In
+            </Button>
           )}
         </Toolbar>
       </AppBar>
 
       {/* Responsive drawer */}
-      <Drawer
-        variant={isMobile ? "temporary" : "permanent"}
-        open={isMobile ? drawerOpen : true}
-        onClose={isMobile ? toggleDrawer : undefined}
-        keepMounted={false}
-        disableScrollLock={true}
-        ModalProps={{
-          keepMounted: false,
-          disableAutoFocus: true,
-          disableEnforceFocus: true,
-          disableRestoreFocus: true,
-          disablePortal: true,
-          hideBackdrop: !isMobile,
-          BackdropProps: {
-            sx: {
-              backgroundColor: 'rgba(0, 0, 0, 0.5)', // Proper scrim opacity
+      {!hideDrawer && user && (
+        <Drawer
+          variant={isMobile ? "temporary" : "permanent"}
+          open={isMobile ? drawerOpen : true}
+          onClose={isMobile ? toggleDrawer : undefined}
+          keepMounted={false}
+          disableScrollLock={true}
+          ModalProps={{
+            keepMounted: false,
+            disableAutoFocus: true,
+            disableEnforceFocus: true,
+            disableRestoreFocus: true,
+            disablePortal: true,
+            hideBackdrop: !isMobile,
+            BackdropProps: {
+              sx: {
+                backgroundColor: 'rgba(0, 0, 0, 0.5)', // Proper scrim opacity
+              }
             }
-          }
-        }}
-        sx={{
-          display: 'block',
-          '& .MuiDrawer-paper': {
-            position: 'fixed',
-            width: isMobile ? 240 : (drawerOpen ? drawerWidth : miniDrawerWidth),
-            overflowX: 'hidden',
-            transition: theme.transitions.create('width', {
-              easing: theme.transitions.easing.sharp,
-              duration: theme.transitions.duration.enteringScreen,
-            }),
-            boxSizing: 'border-box',
-            paddingTop: isMobile ? '56px' : '64px', // Proper padding for header height
-            marginTop: 0, // Ensure no additional margin
-            height: '100%',
-            backgroundColor: '#ffffff',
-            backgroundImage: 'linear-gradient(to bottom right, rgb(142, 92, 150), rgb(122, 172, 216))',
-            boxShadow: '0px 8px 10px -5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12)', // 16dp elevation
-            zIndex: theme.zIndex.drawer,
-          },
-        }}
-      >
-        {drawer}
-      </Drawer>
+          }}
+          sx={{
+            display: 'block',
+            '& .MuiDrawer-paper': {
+              position: 'fixed',
+              width: isMobile ? 240 : (drawerOpen ? drawerWidth : miniDrawerWidth),
+              overflowX: 'hidden',
+              transition: theme.transitions.create('width', {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+              }),
+              boxSizing: 'border-box',
+              paddingTop: isMobile ? '56px' : '64px', // Proper padding for header height
+              marginTop: 0, // Ensure no additional margin
+              height: '100%',
+              backgroundColor: '#ffffff',
+              backgroundImage: 'linear-gradient(to bottom right, rgb(142, 92, 150), rgb(122, 172, 216))',
+              boxShadow: '0px 8px 10px -5px rgba(0,0,0,0.2), 0px 16px 24px 2px rgba(0,0,0,0.14), 0px 6px 30px 5px rgba(0,0,0,0.12)', // 16dp elevation
+              zIndex: theme.zIndex.drawer,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
+      )}
 
       {/* Main content */}
       <Box 
@@ -512,7 +543,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           p: 0,
           width: { 
             xs: '100%',
-            md: drawerOpen ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${miniDrawerWidth}px)`
+            md: (hideDrawer || !user) ? '100%' : (drawerOpen ? `calc(100% - ${drawerWidth}px)` : `calc(100% - ${miniDrawerWidth}px)`)
           },
           marginTop: {
             xs: '56px', // Mobile header height
@@ -521,7 +552,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           },
           marginLeft: {
             xs: 0, // Mobile: no margin
-            md: drawerOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px` // Desktop: margin based on drawer width
+            md: (hideDrawer || !user) ? 0 : (drawerOpen ? `${drawerWidth}px` : `${miniDrawerWidth}px`)
           },
           transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.easeOut,
@@ -540,8 +571,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         <Footer />
       </Box>
 
-      {/* Floating toggle button - only visible on non-mobile */}
-      {!isMobile && (
+      {/* Floating toggle button - only visible on non-mobile and if drawer is not hidden and user is logged in */}
+      {!isMobile && !hideDrawer && user && (
         <Fab
           size="small"
           onClick={toggleDrawer}

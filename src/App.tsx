@@ -32,6 +32,7 @@ import {
   TermsPage,
   ContactPage,
   UploadPortfolioPage,
+  MainPage,
 } from './pages';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
@@ -61,6 +62,13 @@ const App: React.FC = () => {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            {/* Default Main Page Route with Layout */}
+            <Route path="/" element={
+              <MainLayout hideDrawer={true}>
+                <MainPage />
+              </MainLayout>
+            } />
+
             {/* Public Routes - No Layout */}
             <Route path="/login" element={<LoginPage authMode="login" />} />
             <Route path="/register" element={<LoginPage authMode="register" />} />
