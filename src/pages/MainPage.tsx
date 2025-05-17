@@ -84,7 +84,7 @@ const MainPage: React.FC = () => {
             overflow: 'hidden'
           })}
         >
-          <Grid container spacing={0} alignItems="stretch"> 
+          <Grid container spacing={0}> 
             <Grid 
               item 
               xs={12} 
@@ -94,7 +94,7 @@ const MainPage: React.FC = () => {
                 justifyContent: 'flex-start',
                 order: { xs: 1, md: 1 },
                 p: 0,
-                height: '100%'
+                height: { xs: 'auto', md: '100%' }
               }}
             >
               <Box
@@ -112,6 +112,7 @@ const MainPage: React.FC = () => {
               />
             </Grid>
             <Grid 
+              container
               item 
               xs={12} 
               md={7} 
@@ -120,58 +121,64 @@ const MainPage: React.FC = () => {
                 pl: { md: 4 },
                 pr: { md: 4 },
                 order: { xs: 2, md: 2 },
-                mb: { xs: 0, md: 0 }
+                mb: { xs: 0, md: 0 },
+                flexDirection: 'column'
               }}
             >
-              <Box sx={{ 
-                textAlign: { xs: 'center', md: 'left' },
-                p: { xs: 2, md: 0 }
-              }}> 
-                <Typography 
-                  variant="h4" 
-                  component="h1" 
-                  gutterBottom 
-                  sx={theme => ({ 
-                    fontWeight: 700,
-                    fontSize: { xs: '2rem', sm: '2.5rem', md: '2.8rem' },
-                    letterSpacing: '0.5px',
-                    mb: 2,
-                    textAlign: { xs: 'center', md: 'left' },
-                    color: theme.palette.primary.dark,
-                    '& .firstLetter': {
-                      color: '#E05B49'
-                    }
-                  })}
-                >
-                  {'YET ANOTHER RESUME BUILDER APP'.split(' ').map((word, index) => (
-                    <React.Fragment key={index}>
-                      <span className="firstLetter">{word.charAt(0)}</span>
-                      {word.slice(1)}
-                      {index < 4 ? ' ' : ''}
-                    </React.Fragment>
-                  ))}
-                </Typography>
-                <Typography 
-                  variant="h6" 
-                  paragraph 
-                  sx={theme => ({ 
-                    mb: 3, 
-                    fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
-                    color: theme.palette.text.primary, 
-                    fontWeight: 500,
-                    lineHeight: 1.5,
-                    textAlign: { xs: 'center', md: 'left' }
-                  })}
-                >
-                  We Do Not Generate Fake Resumes, We Choose From Your Portfolio.
-                </Typography>
-                
+              <Grid item>
+                <Box sx={{ 
+                  textAlign: { xs: 'center', md: 'left' },
+                  p: { xs: 2, md: 0 }
+                }}> 
+                  <Typography 
+                    variant="h4" 
+                    component="h1" 
+                    gutterBottom 
+                    sx={theme => ({ 
+                      fontWeight: 700,
+                      fontSize: { xs: '2rem', sm: '2.5rem', md: '2.8rem' },
+                      letterSpacing: '0.5px',
+                      mb: 2,
+                      textAlign: { xs: 'center', md: 'left' },
+                      color: theme.palette.primary.dark,
+                      '& .firstLetter': {
+                        color: '#E05B49'
+                      }
+                    })}
+                  >
+                    {'YET ANOTHER RESUME BUILDER APP'.split(' ').map((word, index) => (
+                      <React.Fragment key={index}>
+                        <span className="firstLetter">{word.charAt(0)}</span>
+                        {word.slice(1)}
+                        {index < 4 ? ' ' : ''}
+                      </React.Fragment>
+                    ))}
+                  </Typography>
+                  <Typography 
+                    variant="h6" 
+                    paragraph 
+                    sx={theme => ({ 
+                      mb: 3, 
+                      fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
+                      color: theme.palette.text.primary, 
+                      fontWeight: 500,
+                      lineHeight: 1.5,
+                      textAlign: { xs: 'center', md: 'left' }
+                    })}
+                  >
+                    We Do Not Generate Fake Resumes, We Choose From Your Portfolio.
+                  </Typography>
+                </Box>
+              </Grid>
+              
+              {/* Buttons below text only */}
+              <Grid item sx={{ mt: 2 }}>
                 <Box sx={{ 
                   display: 'flex', 
                   justifyContent: { xs: 'center', md: 'flex-start' }, 
                   gap: 2, 
                   flexWrap: 'wrap',
-                  mt: { xs: 3, md: 2 }
+                  p: { xs: 2, md: 0 }
                 }}>
                   <Button component={RouterLink} to="/register" variant="contained" color="primary" size="large" sx={{boxShadow: 3, '&:hover': { boxShadow: 5 } }}>
                     Get Started for Free
@@ -180,7 +187,7 @@ const MainPage: React.FC = () => {
                     Already have an account?
                   </Button>
                 </Box>
-              </Box>
+              </Grid>
             </Grid>
           </Grid>
         </Container>
