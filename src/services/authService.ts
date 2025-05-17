@@ -126,7 +126,7 @@ export const registerWithEmail = async (data: RegisterRequest): Promise<{ messag
       storeToken(tokenResponse.access_token);
       
       // Register additional user info with the backend
-      await api.post('/auth/firebase/register', {
+      await api.post('/auth/register', {
         username: data.username,
         email: data.email,
         full_name: data.full_name
