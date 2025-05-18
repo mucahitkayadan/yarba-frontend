@@ -34,6 +34,9 @@ import {
   UploadPortfolioPage,
   MainPage,
 } from './pages';
+import PersonalInfoSetupPage from './pages/user/setup/PersonalInfoSetupPage';
+import PreferencesSetupPage from './pages/user/setup/PreferencesSetupPage';
+import LifeStorySetupPage from './pages/user/setup/LifeStorySetupPage';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
@@ -72,6 +75,38 @@ const App: React.FC = () => {
             {/* Public Routes - No Layout */}
             <Route path="/login" element={<LoginPage authMode="login" />} />
             <Route path="/register" element={<LoginPage authMode="register" />} />
+            
+            {/* User Setup Pages - No Drawer */}
+            <Route 
+              path="/user/setup/personal-info"
+              element={(
+                <ProtectedRoute>
+                  <MainLayout hideDrawer={true}>
+                    <PersonalInfoSetupPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              )}
+            />
+            <Route 
+              path="/user/setup/preferences"
+              element={(
+                <ProtectedRoute>
+                  <MainLayout hideDrawer={true}>
+                    <PreferencesSetupPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              )}
+            />
+            <Route 
+              path="/user/setup/life-story"
+              element={(
+                <ProtectedRoute>
+                  <MainLayout hideDrawer={true}>
+                    <LifeStorySetupPage />
+                  </MainLayout>
+                </ProtectedRoute>
+              )}
+            />
             
             {/* Public Pages with Layout */}
             <Route path="/about" element={

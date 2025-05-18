@@ -305,7 +305,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, hideDrawer = false })
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar 
         position="fixed" 
-        sx={{
+        sx={{ 
           width: '100%',
           ml: 0,
           backgroundImage: 'linear-gradient(to right,rgb(142, 92, 150),rgb(122, 172, 216))',
@@ -325,15 +325,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, hideDrawer = false })
             px: { xs: 1, sm: 2 } // Reduce horizontal padding on mobile for more space
           }}
         >
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={toggleDrawer}
-            sx={{ mr: 2, display: (hideDrawer || !user) ? 'none' : { sm: 'block', md: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
+          {!hideDrawer && (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={toggleDrawer}
+              sx={{ mr: 2, display: !user ? 'none' : { sm: 'block', md: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+          )}
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
               <img src="/logo.svg" alt="YARBA" style={{ height: '50px', width: 'auto' }} />

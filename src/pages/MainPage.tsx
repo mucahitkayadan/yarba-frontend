@@ -69,7 +69,7 @@ const MainPage: React.FC = () => {
   ];
 
   return (
-    <MainLayout>
+    <MainLayout hideDrawer={true}>
       <AnimatedBackground animationName="fallingFoodFiesta" />
       <Box sx={{ overflowX: 'hidden' }}>
         <Container 

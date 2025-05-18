@@ -25,7 +25,6 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [fullName, setFullName] = useState('');
   const [localError, setLocalError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +33,7 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
   const { 
     login, 
     register, 
-    signInWithGoogle, 
+    signInWithGoogleFlow,
     error: contextError, 
     setError,
     isOfflineMode,
@@ -70,7 +69,6 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
     setEmail('');
     setPassword('');
     setConfirmPassword('');
-    setFullName('');
     setLocalError(null);
     setError(null);
   }, [setError]);
@@ -93,11 +91,6 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
     }
 
     if (mode === 'register') {
-      if (!fullName) {
-        setLocalError('Please fill in all required fields');
-        return;
-      }
-      
       if (password !== confirmPassword) {
         setLocalError('Passwords do not match');
         return;
@@ -118,12 +111,12 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
         navigate('/dashboard', { replace: true });
       } else {
         debug.log('Attempting to register');
-        await register(email, password, "", fullName);
+        await register(email, password);
         debug.log('Registration successful');
         
         // Force navigation - don't wait for isAuthenticated state change
-        debug.log('Force navigating to dashboard after registration');
-        navigate('/dashboard', { replace: true });
+        debug.log('Force navigating to user setup after registration');
+        navigate('/user/setup/personal-info', { replace: true });
       }
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
@@ -136,7 +129,6 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
 
   // Handle Google sign-in
   const handleGoogleSignIn = async () => {
-    // Check for offline mode first
     if (isOffline) {
       setLocalError('Cannot authenticate with Google while offline. Please check your internet connection.');
       return;
@@ -148,12 +140,16 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
     setIsSubmitting(true);
     
     try {
-      await signInWithGoogle();
-      debug.log('Google sign-in successful');
+      const { isNewUser } = await signInWithGoogleFlow();
+      debug.log('Google sign-in successful. isNewUser:', isNewUser);
       
-      // Force navigation - don't wait for isAuthenticated state change
-      debug.log('Force navigating to dashboard after Google sign-in');
-      navigate('/dashboard', { replace: true });
+      if (isNewUser) {
+        debug.log('Force navigating to user setup after Google sign-in for new user');
+        navigate('/user/setup/personal-info', { replace: true });
+      } else {
+        debug.log('Force navigating to dashboard after Google sign-in for existing user');
+        navigate(from, { replace: true });
+      }
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
       debug.error('Google sign-in error:', error);
@@ -232,7 +228,7 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
             style={{ 
               maxWidth: '100%',
               width: '100%',
-              height: 'auto',
+              height: '100%',
               objectFit: 'cover',
               display: 'block'
             }}
@@ -251,9 +247,9 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
       >
         <Box sx={{ 
           width: '100%',
-          aspectRatio: { md: mode === 'login' ? '1/1' : '2/3' },
           display: 'flex',
-          alignItems: 'stretch'
+          alignItems: 'stretch',
+          height: '100%'
         }}>
           <Paper elevation={0} sx={{ 
             p: 4, 
@@ -261,39 +257,32 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
             borderRadius: 0,
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: mode === 'login' ? 'space-between' : 'flex-start'
+            justifyContent: 'flex-start'
           }}>
             <Typography variant="h5" component="h1" align="center" gutterBottom>
               {mode === 'login' ? 'Sign In' : 'Create an Account'}
             </Typography>
 
             {errorMessage && (
-              <Alert 
-                severity="error" 
-                sx={{ 
-                  mb: 3,
-                  display: 'flex',
-                  alignItems: 'center',
-                  '& .MuiAlert-icon': {
-                    fontSize: '1.5rem' 
-                  },
-                  borderRadius: 1,
-                  boxShadow: 1
-                }}
-                icon={<ErrorOutlineIcon fontSize="inherit" />}
-              >
-                <Box sx={{ ml: 0.5 }}>
-                  <Typography variant="subtitle2" fontWeight="600">
-                    Sign-in Failed
-                  </Typography>
-                  <Typography variant="body2">
-                    {errorMessage}
-                  </Typography>
-                </Box>
-              </Alert>
+              <Box sx={{ mb: 2, width: '100%' }}>
+                <Alert 
+                  severity="error" 
+                  icon={<ErrorOutlineIcon fontSize="inherit" />}
+                  sx={{ 
+                    width: '100%',
+                    '.MuiAlert-message': {
+                      width: '100%', 
+                      textAlign: 'center',
+                      fontWeight: 500
+                    }
+                  }}
+                >
+                  {errorMessage}
+                </Alert>
+              </Box>
             )}
 
-            <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+            <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
               <Grid container spacing={2}>
                 <Grid item xs={12}>
                   <TextField
@@ -307,6 +296,7 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isSubmitting}
+                    error={!!localError && email === ''}
                   />
                 </Grid>
                 
@@ -366,19 +356,6 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
                         }}
                         error={confirmPassword !== '' && password !== confirmPassword}
                         helperText={confirmPassword !== '' && password !== confirmPassword ? 'Passwords do not match' : ''}
-                      />
-                    </Grid>
-                    
-                    <Grid item xs={12}>
-                      <TextField
-                        required
-                        fullWidth
-                        id="fullName"
-                        label="Full Name"
-                        name="fullName"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        disabled={isSubmitting}
                       />
                     </Grid>
                   </>

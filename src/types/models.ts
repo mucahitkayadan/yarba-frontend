@@ -16,6 +16,7 @@ export interface User {
   phone?: string;
   website?: string;
   avatar_url?: string;
+  current_setup_step?: number;
 }
 
 // Profile Interface
@@ -244,10 +245,8 @@ export interface TexHeader {
 
 // API Request/Response Interfaces
 export interface RegisterRequest {
-  username: string;
   email: string;
   password: string;
-  full_name: string;
 }
 
 export interface LoginRequest {
@@ -258,6 +257,10 @@ export interface LoginRequest {
 export interface LoginResponse {
   access_token: string;
   token_type: string;
+  user?: User;
+  isNewUser?: boolean;
+  is_new_user?: boolean;
+  current_setup_step?: number;
 }
 
 export interface ResumeCreateRequest {
@@ -278,4 +281,17 @@ export interface ResumeForSelection {
 
 export interface ResumesForSelectionResponse {
   resumes: ResumeForSelection[];
+}
+
+export interface UpdateSetupProgressRequest {
+  current_setup_step?: number;
+  setup_completed?: boolean;
+}
+
+export interface UserSetupProgressResponse {
+  id: string;
+  email: string;
+  is_new_user: boolean;
+  current_setup_step: number;
+  message: string;
 } 

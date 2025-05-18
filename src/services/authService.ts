@@ -57,7 +57,7 @@ export const getFirebaseIdToken = async (): Promise<string | null> => {
 };
 
 // Exchange Firebase token for backend JWT
-export const exchangeFirebaseTokenForJWT = async (): Promise<{ access_token: string; token_type: string } | null> => {
+export const exchangeFirebaseTokenForJWT = async (): Promise<LoginResponse | null> => {
   // Check if a request is already in progress
   if (tokenExchangeInProgress) {
     debug.warn('Token exchange already in progress, skipping duplicate request');
@@ -87,8 +87,8 @@ export const exchangeFirebaseTokenForJWT = async (): Promise<{ access_token: str
   
   try {
     debug.log('Sending Firebase token to backend for JWT exchange');
-    const response = await api.post('/auth/login', { id_token: idToken });
-    debug.log('JWT exchange successful');
+    const response = await api.post<LoginResponse>('/auth/login', { id_token: idToken });
+    debug.log('JWT exchange successful, response:', response.data);
     
     // Reset error state on success
     tokenExchangeInProgress = false;
@@ -111,34 +111,30 @@ export const exchangeFirebaseTokenForJWT = async (): Promise<{ access_token: str
   }
 };
 
-// Register with Firebase
-export const registerWithEmail = async (data: RegisterRequest): Promise<{ message: string }> => {
+// Register with backend (Flow A)
+export const registerWithEmail = async (data: RegisterRequest): Promise<LoginResponse> => {
   try {
-    debug.log('Starting Firebase registration for:', data.email);
-    // Register with Firebase first
-    const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
-    debug.log('Firebase registration successful');
+    debug.log('Sending registration details to backend for:', data.email);
+    const { email, password } = data;
+    const response = await api.post<LoginResponse>('/auth/register', { email, password });
+    debug.log('Backend registration successful, response:', response.data);
     
-    // Exchange the Firebase token for a backend JWT
-    const tokenResponse = await exchangeFirebaseTokenForJWT();
-    
-    if (tokenResponse?.access_token) {
-      storeToken(tokenResponse.access_token);
-      
-      // Register additional user info with the backend
-      await api.post('/auth/register', {
-        username: data.username,
-        email: data.email,
-        full_name: data.full_name
-      });
-      
-      return { message: 'Registration successful' };
+    if (response.data.access_token) {
+      storeToken(response.data.access_token);
+      // The response from /auth/register should be compatible with LoginResponse
+      return response.data; 
     } else {
-      throw new Error('Failed to get access token');
+      debug.error('Backend registration did not return an access token.');
+      throw new Error('Registration completed but failed to log in automatically.');
     }
   } catch (error) {
-    debug.error('Registration error:', error);
-    throw error;
+    debug.error('Backend registration error:', error);
+    if (axios.isAxiosError(error) && error.response) {
+      // Propagate detailed error message from backend if available
+      const errorDetail = error.response.data?.detail || error.message;
+      throw new Error(errorDetail || 'Registration failed due to a server error.');
+    }
+    throw error; // Re-throw other types of errors
   }
 };
 
@@ -203,19 +199,33 @@ export const loginWithGoogle = async (): Promise<LoginResponse> => {
     
     // Sign in with Google
     const provider = new GoogleAuthProvider();
-    // Add scopes if needed
     provider.addScope('profile');
     provider.addScope('email');
     
     const result = await signInWithPopup(auth, provider);
-    debug.log('Google sign-in successful');
+    const firebaseUser = result.user;
+    debug.log('Google sign-in successful with Firebase user:', firebaseUser.email);
+
+    let isNewUser = false;
+    if (firebaseUser.metadata.creationTime && firebaseUser.metadata.lastSignInTime) {
+      // Check if creation time and last sign-in time are very close (e.g., within a few seconds)
+      // Firebase times are strings, convert to numbers for comparison
+      const creationTimestamp = new Date(firebaseUser.metadata.creationTime).getTime();
+      const lastSignInTimestamp = new Date(firebaseUser.metadata.lastSignInTime).getTime();
+      if (Math.abs(lastSignInTimestamp - creationTimestamp) < 5000) { // 5 seconds threshold
+        isNewUser = true;
+        debug.log('Detected new user from Google Sign-In based on timestamps.');
+      }
+    }
     
     // Exchange Firebase token for backend JWT
+    // The backend /auth/login endpoint might also determine if it's a new user 
+    // and ideally would return this information. For now, we rely on Firebase metadata.
     const tokenResponse = await exchangeFirebaseTokenForJWT();
     
     if (tokenResponse?.access_token) {
       storeToken(tokenResponse.access_token);
-      return tokenResponse;
+      return { ...tokenResponse, isNewUser };
     } else {
       throw new Error('Failed to get access token from backend');
     }

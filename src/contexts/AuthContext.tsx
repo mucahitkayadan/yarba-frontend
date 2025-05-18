@@ -4,12 +4,13 @@ import api from '../services/api';
 import { 
   loginWithEmail,
   registerWithEmail,
-  loginWithGoogle,
+  loginWithGoogle as loginWithGoogleService,
   logout,
   exchangeFirebaseTokenForJWT,
   getCurrentFirebaseUser
 } from '../services/authService';
 import { createDebugger } from '../utils/debug';
+import { UpdateSetupProgressRequest, UserSetupProgressResponse } from '../types/models';
 
 const debug = createDebugger('AuthContext');
 
@@ -21,12 +22,14 @@ export interface AuthContextState {
   loading: boolean;
   error: string | null;
   isOfflineMode: boolean;
+  pendingSetupStep: string | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, username: string, fullName: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  signInWithGoogleFlow: () => Promise<{ isNewUser?: boolean }>;
   signOut: () => Promise<void>;
   setError: (error: string | null) => void;
   updateProfile: (userData: any) => Promise<void>;
+  updateUserSetupProgress: (data: UpdateSetupProgressRequest) => Promise<void>;
 }
 
 // Create the context with a default value
@@ -37,12 +40,14 @@ const AuthContext = createContext<AuthContextState>({
   loading: false,
   error: null,
   isOfflineMode: false,
+  pendingSetupStep: null,
   login: async () => {},
   register: async () => {},
-  signInWithGoogle: async () => {},
+  signInWithGoogleFlow: async () => ({ isNewUser: false }),
   signOut: async () => {},
   setError: () => {},
-  updateProfile: async () => {}
+  updateProfile: async () => {},
+  updateUserSetupProgress: async () => {}
 });
 
 // Custom hook to use the auth context
@@ -57,6 +62,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [error, setError] = useState<string | null>(null);
   // Add a state to track network connectivity issues
   const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+  const [pendingSetupStep, setPendingSetupStep] = useState<string | null>(null);
 
   // Function to detect if we're offline
   const checkNetworkConnectivity = () => {
@@ -91,7 +97,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('User data successfully fetched', response.data);
       setUser(response.data);
       setIsAuthenticated(true);
-      setLoading(false);
+      // pendingSetupStep will be determined by the useEffect hook based on response.data
     } catch (err: any) {
       debug.error('Error fetching user data:', err);
       // Clear token if it's invalid
@@ -121,7 +127,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const tokenResponse = await exchangeFirebaseTokenForJWT();
       
       if (tokenResponse) {
-        const { access_token } = tokenResponse;
+        const { access_token, user: responseUser, current_setup_step } = tokenResponse;
         localStorage.setItem('auth_token', access_token);
         
         // Set Authorization header for future requests
@@ -131,8 +137,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Set authenticated state immediately so redirects can happen
         setIsAuthenticated(true);
         
-        // Fetch user data
-        await fetchCurrentUser();
+        if (responseUser) setUser(responseUser); // Set user from token exchange if available
+        
+        // Directly use current_setup_step from token response if available
+        if (typeof current_setup_step === 'number') {
+          if (current_setup_step === 1) {
+            setPendingSetupStep('/user/setup/personal-info');
+          } else if (current_setup_step === 2) {
+            setPendingSetupStep('/user/setup/preferences'); // Example for next step
+          } else {
+            setPendingSetupStep(null); // Or based on other step numbers
+          }
+        }
+        // Fetch full user data, which might override pendingSetupStep via useEffect if /auth/me is more authoritative
+        await fetchCurrentUser(); 
       } else {
         debug.warn('Token exchange did not return a valid response');
         setLoading(false);
@@ -198,6 +216,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
   }, []);
 
+  // Effect to determine pending setup step based on user profile
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // Prioritize current_setup_step from the user object if available
+      if (typeof user.current_setup_step === 'number') {
+        if (user.current_setup_step === 1 && !user.full_name) { // Ensure full_name is also checked if step 1 means filling it
+          debug.log('User has current_setup_step 1, setting pendingSetupStep to /user/setup/personal-info');
+          setPendingSetupStep('/user/setup/personal-info');
+        } else if (user.current_setup_step === 2) { // Example for a potential second step
+          debug.log('User has current_setup_step 2, setting pendingSetupStep to /user/setup/preferences');
+          setPendingSetupStep('/user/setup/preferences');
+        // Add more steps as needed
+        // else if (user.current_setup_step === 0 || user.current_setup_step > MAX_SETUP_STEP) {
+        } else {
+          debug.log('User current_setup_step indicates completion or is unknown, clearing pendingSetupStep.');
+          setPendingSetupStep(null);
+        }
+      } else if (!user.full_name) { // Fallback to checking full_name if current_setup_step is not on user object
+        debug.log('User is missing full_name (and current_setup_step is not available/determinative), setting pendingSetupStep to /user/setup/personal-info');
+        setPendingSetupStep('/user/setup/personal-info');
+      } else {
+        debug.log('User has full_name or setup step is complete, clearing pendingSetupStep.');
+        setPendingSetupStep(null);
+      }
+    } else if (!isAuthenticated) {
+      setPendingSetupStep(null);
+    }
+  }, [user, isAuthenticated]);
+
   // Login function
   const login = async (email: string, password: string) => {
     try {
@@ -215,16 +262,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
       
       const authResponse = await loginWithEmail(email, password);
-      // Update Firebase user state from the current Firebase user
       const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
       debug.log('Firebase login successful');
       
-      // The token exchange is already handled by loginWithEmail
       if (authResponse.access_token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${authResponse.access_token}`;
         setIsAuthenticated(true);
-        await fetchCurrentUser();
+        if (authResponse.user) setUser(authResponse.user); // Set user from login response
+
+        // Use current_setup_step from login response
+        if (typeof authResponse.current_setup_step === 'number') {
+          if (authResponse.current_setup_step === 1) {
+            setPendingSetupStep('/user/setup/personal-info');
+          } else if (authResponse.current_setup_step === 2) {
+            setPendingSetupStep('/user/setup/preferences');
+          } else {
+            setPendingSetupStep(null);
+          }
+        }
+        await fetchCurrentUser(); // This will fetch the full user object and might refine pendingSetupStep via useEffect
       }
     } catch (err: any) {
       debug.error('Login error:', err);
@@ -235,7 +292,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Register function
-  const register = async (email: string, password: string, username: string, fullName: string) => {
+  const register = async (email: string, password: string) => {
     try {
       debug.log('Starting registration process for:', email);
       setLoading(true);
@@ -244,19 +301,40 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const registrationData = {
         email,
         password,
-        username,
-        full_name: fullName
       };
       
+      // Check if we're offline first
+      if (checkNetworkConnectivity()) {
+        const errorMsg = 'Cannot register while offline. Please check your internet connection.';
+        debug.error(errorMsg);
+        setError(errorMsg);
+        setLoading(false);
+        throw new Error(errorMsg);
+      }
+      
       const result = await registerWithEmail(registrationData);
-      // Update Firebase user state from the current Firebase user
       const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
       debug.log('Firebase registration successful');
-      
-      // The token exchange is already handled by registerWithEmail
       setIsAuthenticated(true);
-      await fetchCurrentUser();
+
+      if (result.user) setUser(result.user); // Set user from registration response
+
+      // Directly use current_setup_step from registration response
+      if (typeof result.current_setup_step === 'number') {
+        if (result.current_setup_step === 1) {
+            setPendingSetupStep('/user/setup/personal-info');
+        } else if (result.current_setup_step === 2) {
+            setPendingSetupStep('/user/setup/preferences');
+        } else {
+            setPendingSetupStep(null);
+        }
+      } else {
+        // Fallback if current_setup_step is not in the registration response for some reason
+        setPendingSetupStep('/user/setup/personal-info'); 
+      }
+      
+      await fetchCurrentUser(); // Fetches full user data, potentially refining pendingSetupStep
     } catch (err: any) {
       debug.error('Registration error:', err);
       setError(err.message);
@@ -265,27 +343,48 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Sign in with Google
-  const signInWithGoogle = async () => {
+  // Sign in with Google Flow
+  const signInWithGoogleFlow = async (): Promise<{ isNewUser?: boolean }> => {
     try {
-      debug.log('Starting Google sign-in process');
+      debug.log('Starting Google sign-in process in AuthContext');
       setLoading(true);
       setError(null);
       
-      const authResponse = await loginWithGoogle();
-      // Update Firebase user state from the current Firebase user
+      const authResponse = await loginWithGoogleService();
       const fbUser = await getCurrentFirebaseUser();
       setFirebaseUser(fbUser);
-      debug.log('Google sign-in successful');
+      debug.log('Google sign-in service call successful');
       
-      // The token exchange is already handled by loginWithGoogle
       if (authResponse.access_token) {
         api.defaults.headers.common['Authorization'] = `Bearer ${authResponse.access_token}`;
         setIsAuthenticated(true);
+        if (authResponse.user) setUser(authResponse.user);
+        
+        // Use current_setup_step from google response
+        if (typeof authResponse.current_setup_step === 'number') {
+          if (authResponse.current_setup_step === 1) {
+            setPendingSetupStep('/user/setup/personal-info');
+          } else if (authResponse.current_setup_step === 2) {
+            setPendingSetupStep('/user/setup/preferences');
+          } else {
+            setPendingSetupStep(null);
+          }
+        } else if (authResponse.isNewUser || authResponse.is_new_user) {
+            // Fallback for Google sign-in if current_setup_step isn't directly available
+            // but it's a new user
+            setPendingSetupStep('/user/setup/personal-info');
+        }
+
         await fetchCurrentUser();
+        setLoading(false);
+        debug.log('Google sign-in flow complete. isNewUser:', authResponse.isNewUser || authResponse.is_new_user);
+        return { isNewUser: authResponse.isNewUser || authResponse.is_new_user };
       }
+      setLoading(false);
+      debug.warn('Google sign-in flow: No access token received.');
+      return { isNewUser: false }; // Default if no access token
     } catch (err: any) {
-      debug.error('Google sign-in error:', err);
+      debug.error('Google sign-in flow error:', err);
       setError(err.message);
       setLoading(false);
       throw err;
@@ -325,7 +424,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.log('Updating user profile');
       setLoading(true);
       
-      const response = await api.patch('/auth/me', userData);
+      const response = await api.put('/auth/me', userData);
       setUser(response.data);
       
       debug.log('Profile update successful');
@@ -333,6 +432,34 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       debug.error('Profile update error:', err);
       setError(err.message);
       throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // New function to update user setup progress
+  const updateUserSetupProgress = async (data: UpdateSetupProgressRequest) => {
+    try {
+      debug.log('Updating user setup progress with data:', data);
+      setLoading(true);
+      const response = await api.put<UserSetupProgressResponse>('/api/v1/auth/users/me/setup-progress', data);
+      
+      // Update user state with the new current_setup_step and potentially other fields from response
+      setUser((prevUser: any) => ({
+        ...prevUser,
+        id: response.data.id, // Ensure user id remains consistent or is updated if necessary
+        email: response.data.email, // Ensure email remains consistent
+        current_setup_step: response.data.current_setup_step,
+        // If your User object in context needs is_new_user, you can add it here:
+        // is_new_user: response.data.is_new_user, 
+      }));
+      
+      debug.log('User setup progress update successful:', response.data);
+      // The useEffect hook listening to 'user' state should automatically update pendingSetupStep
+    } catch (err: any) {
+      debug.error('User setup progress update error:', err);
+      setError(err.message);
+      throw err; // Re-throw for component-level handling
     } finally {
       setLoading(false);
     }
@@ -346,12 +473,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loading,
     error,
     isOfflineMode,
+    pendingSetupStep,
     login,
     register,
-    signInWithGoogle,
+    signInWithGoogleFlow,
     signOut,
     setError,
-    updateProfile
+    updateProfile,
+    updateUserSetupProgress
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
