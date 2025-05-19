@@ -18,17 +18,23 @@ const debug = createDebugger('AuthContext');
 export enum UserSetupStep {
   NONE = 0,
   PERSONAL_INFO = 1,
-  PREFERENCES = 2,
-  LIFE_STORY = 3,
-  COMPLETE = 4
+  PROMPT_PREFERENCES = 2,
+  SYSTEM_PREFERENCES = 3,
+  LIFE_STORY = 4,
+  PORTFOLIO_UPLOAD = 5,
+  PORTFOLIO_REVIEW = 6,
+  COMPLETE = 7
 }
 
 // Map setup steps to routes for navigation
 export const setupStepToRoute: Record<UserSetupStep, string | null> = {
   [UserSetupStep.NONE]: null,
   [UserSetupStep.PERSONAL_INFO]: '/user/setup/personal-info',
-  [UserSetupStep.PREFERENCES]: '/user/setup/prompt-preferences',
+  [UserSetupStep.PROMPT_PREFERENCES]: '/user/setup/prompt-preferences',
+  [UserSetupStep.SYSTEM_PREFERENCES]: '/user/setup/system-preferences',
   [UserSetupStep.LIFE_STORY]: '/user/setup/life-story',
+  [UserSetupStep.PORTFOLIO_UPLOAD]: '/user/setup/portfolio-upload',
+  [UserSetupStep.PORTFOLIO_REVIEW]: '/user/setup/portfolio-review',
   [UserSetupStep.COMPLETE]: null
 };
 

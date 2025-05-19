@@ -99,8 +99,8 @@ const PromptPreferencesSetupPage: React.FC = () => {
                     },
                     skills: {
                         max_categories: Number(formData.skillsMaxCategories) || undefined,
-                        min_skills_per_category: Number(formData.skillsMinPerCategory) || undefined,
-                        max_skills_per_category: Number(formData.skillsMaxPerCategory) || undefined,
+                        min_per_category: Number(formData.skillsMinPerCategory) || undefined,
+                        max_per_category: Number(formData.skillsMaxPerCategory) || undefined,
                     },
                     education: {
                         max_entries: Number(formData.educationMaxEntries) || undefined,

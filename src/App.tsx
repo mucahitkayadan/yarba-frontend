@@ -39,6 +39,8 @@ import PersonalInfoSetupPage from './pages/user/setup/PersonalInfoSetupPage';
 import PromptPreferencesSetupPage from './pages/user/setup/PromptPreferencesSetupPage';
 import SystemPreferencesSetupPage from './pages/user/setup/SystemPreferencesSetupPage';
 import LifeStorySetupPage from './pages/user/setup/LifeStorySetupPage';
+import PortfolioUploadPage from './pages/user/setup/PortfolioUploadPage';
+import PortfolioReviewPage from './pages/user/setup/PortfolioReviewPage';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
@@ -116,6 +118,26 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <MainLayout hideDrawer={true}>
                       <LifeStorySetupPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                )}
+              />
+              <Route 
+                path="/user/setup/portfolio-upload"
+                element={(
+                  <ProtectedRoute>
+                    <MainLayout hideDrawer={true}>
+                      <PortfolioUploadPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                )}
+              />
+              <Route 
+                path="/user/setup/portfolio-review"
+                element={(
+                  <ProtectedRoute>
+                    <MainLayout hideDrawer={true}>
+                      <PortfolioReviewPage />
                     </MainLayout>
                   </ProtectedRoute>
                 )}

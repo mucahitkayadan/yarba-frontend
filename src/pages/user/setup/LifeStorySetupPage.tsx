@@ -53,17 +53,30 @@ const LifeStorySetupPage: React.FC = () => {
         }
     };
 
-    const handleSaveAndFinish = async () => {
+    const handleSaveAndNext = async () => {
         const savedSuccessfully = await handleSave();
         if (savedSuccessfully) {
             try {
-                await updateUserSetupProgress({ setup_completed: true });
-                navigate('/dashboard');
+                await updateUserSetupProgress({ current_setup_step: 5 });
+                navigate('/user/setup/portfolio-upload');
             } catch (err: any) {
-                console.error("Failed to complete setup:", err);
-                setError(err.message || 'Failed to complete setup.');
+                console.error("Failed to update setup progress:", err);
+                setError(err.message || 'Failed to proceed to the next step.');
                 setSaving(false);
             }
+        }
+    };
+
+    const handleSkip = async () => {
+        try {
+            setSaving(true);
+            await updateUserSetupProgress({ current_setup_step: 5 });
+            navigate('/user/setup/portfolio-upload');
+        } catch (err: any) {
+            console.error("Failed to skip:", err);
+            setError(err.message || 'Failed to proceed to the next step.');
+        } finally {
+            setSaving(false);
         }
     };
 
@@ -77,8 +90,26 @@ const LifeStorySetupPage: React.FC = () => {
     }
 
     return (
-        <Container component="main" maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-            <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+        <Container 
+            component="main" 
+            maxWidth={false} 
+            sx={{ 
+                mt: 8, 
+                mb: 8, 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+            }}
+        >
+            <Paper 
+                elevation={3} 
+                sx={{ 
+                    p: { xs: 2, sm: 3, md: 4 },
+                    width: '100%',
+                    maxWidth: '900px',
+                    boxSizing: 'border-box'
+                }}
+            >
                 <Typography component="h1" variant="h4" align="center" gutterBottom>
                     Share Your Career Journey
                 </Typography>
@@ -107,14 +138,23 @@ const LifeStorySetupPage: React.FC = () => {
                         <Button variant="outlined" onClick={handleBack} disabled={saving}>
                             Back
                         </Button>
-                        <Button 
-                            variant="contained" 
-                            onClick={handleSaveAndFinish} 
-                            disabled={saving}
-                            startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
-                        >
-                            {saving ? 'Saving...' : 'Save & Finish'}
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 2 }}>
+                            <Button 
+                                variant="outlined" 
+                                onClick={handleSkip} 
+                                disabled={saving}
+                            >
+                                Skip for now
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                onClick={handleSaveAndNext} 
+                                disabled={saving}
+                                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
+                            >
+                                {saving ? 'Saving...' : 'Save & Next'}
+                            </Button>
+                        </Box>
                     </Box>
                 </Box>
             </Paper>
