@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
@@ -45,12 +45,38 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { Typography } from '@mui/material';
 import theme from './theme';
+import { Box, CircularProgress } from '@mui/material';
 
 // Note: We'll need to create these page components
 // import ResumeEditPage from './pages/ResumeEditPage';
 // import CoverLettersPage from './pages/CoverLettersPage';
 // import CoverLetterEditPage from './pages/CoverLetterEditPage';
 // import SettingsPage from './pages/SettingsPage';
+
+// Root route component to handle conditional rendering based on auth state
+const RootRoute: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <MainLayout hideDrawer={true}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+          <CircularProgress />
+        </Box>
+      </MainLayout>
+    );
+  }
+  
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return (
+    <MainLayout hideDrawer={true}>
+      <MainPage />
+    </MainLayout>
+  );
+};
 
 const App: React.FC = () => {
   // Log environment variables on app initialization
@@ -71,11 +97,7 @@ const App: React.FC = () => {
           <BrowserRouter>
             <Routes>
               {/* Default Main Page Route with Layout */}
-              <Route path="/" element={
-                <MainLayout hideDrawer={true}>
-                  <MainPage />
-                </MainLayout>
-              } />
+              <Route path="/" element={<RootRoute />} />
 
               {/* Public Routes - No Layout */}
               <Route path="/login" element={<LoginPage authMode="login" />} />
