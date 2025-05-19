@@ -155,7 +155,7 @@ const PersonalInfoSetupPage: React.FC = () => {
                     Tell Us About Yourself
                 </Typography>
                 <Typography align="center" color="text.secondary" sx={{ mb: 4 }}>
-                    This information will help us personalize your experience.
+                    This information will be used in building your resume.
                 </Typography>
 
                 {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
@@ -174,7 +174,7 @@ const PersonalInfoSetupPage: React.FC = () => {
                                 disabled={saving}
                             />
                         </Grid>
-                        <Grid item xs={12}>
+                        <Grid item xs={12} sm={6}>
                             <TextField
                                 name="email"
                                 fullWidth
