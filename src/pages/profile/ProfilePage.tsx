@@ -429,7 +429,7 @@ const ProfilePage: React.FC = () => {
                   Min Skills Per Category:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.prompt_preferences?.skills?.min_skills_per_category || 'Not set'}
+                  {profile.prompt_preferences?.skills?.min_per_category || 'Not set'}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', mb: 1 }}>
@@ -437,7 +437,7 @@ const ProfilePage: React.FC = () => {
                   Max Skills Per Category:
                 </Typography>
                 <Typography variant="body2">
-                  {profile.prompt_preferences?.skills?.max_skills_per_category || 'Not set'}
+                  {profile.prompt_preferences?.skills?.max_per_category || 'Not set'}
                 </Typography>
               </Box>
             </Box>

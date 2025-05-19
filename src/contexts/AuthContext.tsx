@@ -27,7 +27,7 @@ export enum UserSetupStep {
 export const setupStepToRoute: Record<UserSetupStep, string | null> = {
   [UserSetupStep.NONE]: null,
   [UserSetupStep.PERSONAL_INFO]: '/user/setup/personal-info',
-  [UserSetupStep.PREFERENCES]: '/user/setup/preferences',
+  [UserSetupStep.PREFERENCES]: '/user/setup/prompt-preferences',
   [UserSetupStep.LIFE_STORY]: '/user/setup/life-story',
   [UserSetupStep.COMPLETE]: null
 };

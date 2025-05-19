@@ -4,36 +4,21 @@ import {
     Button, Container, Typography, Box, TextField, CircularProgress, Alert, Paper
 } from '@mui/material';
 import { useAuth } from '../../../contexts/AuthContext';
-import { getUserProfile } from '../../../services/profileService';
-import { Profile } from '../../../types/models';
+import { useProfile } from '../../../contexts/ProfileContext';
 
 const LifeStorySetupPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, updateProfile: updateProfileContext, updateUserSetupProgress } = useAuth();
+    const { updateUserSetupProgress, updateProfile } = useAuth();
+    const { profile, loading: profileLoading, refreshProfile } = useProfile();
     const [lifeStory, setLifeStory] = useState('');
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        const fetchProfileData = async () => {
-            try {
-                setLoading(true);
-                const profile: Profile = await getUserProfile();
-                if (profile && profile.life_story) {
-                    setLifeStory(profile.life_story);
-                }
-            } catch (err) {
-                console.error("Failed to fetch profile for life story setup:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (user) {
-            fetchProfileData();
+        if (profile && profile.life_story) {
+            setLifeStory(profile.life_story);
         }
-    }, [user]);
+    }, [profile]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setLifeStory(event.target.value);
@@ -46,7 +31,8 @@ const LifeStorySetupPage: React.FC = () => {
             const profileUpdateData = {
                 life_story: lifeStory,
             };
-            await updateProfileContext(profileUpdateData);
+            await updateProfile(profileUpdateData);
+            await refreshProfile();
             console.log('Life story saved.');
             return true;
         } catch (err: any) {
@@ -59,11 +45,11 @@ const LifeStorySetupPage: React.FC = () => {
 
     const handleBack = async () => {
         try {
-            await updateUserSetupProgress({ current_setup_step: 2 });
-            navigate('/user/setup/preferences');
+            await updateUserSetupProgress({ current_setup_step: 3 });
+            navigate('/user/setup/system-preferences');
         } catch (err) {
             console.error("Failed to navigate back:", err);
-            navigate('/user/setup/preferences');
+            navigate('/user/setup/system-preferences');
         }
     };
 
@@ -81,7 +67,7 @@ const LifeStorySetupPage: React.FC = () => {
         }
     };
 
-    if (loading) {
+    if (profileLoading) {
         return (
             <Container component="main" maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
                 <CircularProgress />

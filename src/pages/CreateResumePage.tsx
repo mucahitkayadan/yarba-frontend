@@ -240,7 +240,7 @@ const CreateResumePage: React.FC = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                       <Typography variant="body2" color="text.secondary">Skills:</Typography>
                       <Typography variant="body2">
-                        {profile?.prompt_preferences?.skills?.max_categories || 'Not set'} categories, {profile?.prompt_preferences?.skills?.min_skills_per_category || 'Not set'}-{profile?.prompt_preferences?.skills?.max_skills_per_category || 'Not set'} skills each
+                        {profile?.prompt_preferences?.skills?.max_categories || 'Not set'} categories, {profile?.prompt_preferences?.skills?.min_per_category || 'Not set'}-{profile?.prompt_preferences?.skills?.max_per_category || 'Not set'} skills each
                       </Typography>
                     </Box>
                     

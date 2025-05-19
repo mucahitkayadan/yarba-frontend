@@ -151,8 +151,8 @@ const ProfileEditPage: React.FC = () => {
           cover_letter_paragraphs: profileData.prompt_preferences?.cover_letter?.paragraphs?.toString() || '',
           cover_letter_target_age: profileData.prompt_preferences?.cover_letter?.target_age?.toString() || '',
           skills_max_categories: profileData.prompt_preferences?.skills?.max_categories?.toString() || '',
-          skills_min_per_category: profileData.prompt_preferences?.skills?.min_skills_per_category?.toString() || '',
-          skills_max_per_category: profileData.prompt_preferences?.skills?.max_skills_per_category?.toString() || '',
+          skills_min_per_category: profileData.prompt_preferences?.skills?.min_per_category?.toString() || '',
+          skills_max_per_category: profileData.prompt_preferences?.skills?.max_per_category?.toString() || '',
           education_max_entries: profileData.prompt_preferences?.education?.max_entries?.toString() || '',
           education_max_courses: profileData.prompt_preferences?.education?.max_courses?.toString() || '',
           awards_max_awards: profileData.prompt_preferences?.awards?.max_awards?.toString() || '',
@@ -286,8 +286,8 @@ const ProfileEditPage: React.FC = () => {
         },
         skills: {
           max_categories: parseNumberOrDefault(preferences.skills_max_categories),
-          min_skills_per_category: parseNumberOrDefault(preferences.skills_min_per_category),
-          max_skills_per_category: parseNumberOrDefault(preferences.skills_max_per_category)
+          min_per_category: parseNumberOrDefault(preferences.skills_min_per_category),
+          max_per_category: parseNumberOrDefault(preferences.skills_max_per_category)
         },
         education: {
           max_entries: parseNumberOrDefault(preferences.education_max_entries),

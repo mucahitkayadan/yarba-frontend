@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Container, Typography, Box, TextField, Grid, CircularProgress, Alert, Paper } from '@mui/material';
 import { useAuth } from '../../../contexts/AuthContext';
-import { getUserProfile } from '../../../services/profileService';
-import { Profile } from '../../../types/models';
+import { useProfile } from '../../../contexts/ProfileContext';
 
 interface PersonalInfoFormData {
     fullName: string;
@@ -16,7 +15,8 @@ interface PersonalInfoFormData {
 
 const PersonalInfoSetupPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, updateProfile: updateProfileContext, updateUserSetupProgress } = useAuth(); // Added updateUserSetupProgress
+    const { user, updateProfile, updateUserSetupProgress } = useAuth();
+    const { profile, loading: profileLoading, refreshProfile } = useProfile();
     const [formData, setFormData] = useState<PersonalInfoFormData>({
         fullName: user?.full_name || user?.username || '',
         phone: '',
@@ -25,7 +25,6 @@ const PersonalInfoSetupPage: React.FC = () => {
         linkedin: '',
         github: '',
     });
-    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -33,32 +32,17 @@ const PersonalInfoSetupPage: React.FC = () => {
     const isFullNameEmpty = formData.fullName.trim() === '';
 
     useEffect(() => {
-        const fetchProfileData = async () => {
-            try {
-                setLoading(true);
-                const profile: Profile = await getUserProfile();
-                if (profile && profile.personal_information) {
-                    setFormData({
-                        fullName: profile.personal_information.full_name || user?.full_name || '',
-                        phone: profile.personal_information.phone || '',
-                        address: profile.personal_information.address || '',
-                        website: profile.personal_information.website || '',
-                        linkedin: profile.personal_information.linkedin || '',
-                        github: profile.personal_information.github || '',
-                    });
-                }
-            } catch (err) {
-                console.error("Failed to fetch profile for setup:", err);
-                // Keep default form data or user data if fetch fails
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (user) {
-            fetchProfileData();
+        if (profile && profile.personal_information) {
+            setFormData({
+                fullName: profile.personal_information.full_name || user?.full_name || '',
+                phone: profile.personal_information.phone || '',
+                address: profile.personal_information.address || '',
+                website: profile.personal_information.website || '',
+                linkedin: profile.personal_information.linkedin || '',
+                github: profile.personal_information.github || '',
+            });
         }
-    }, [user]);
+    }, [profile, user]);
 
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({
@@ -82,7 +66,8 @@ const PersonalInfoSetupPage: React.FC = () => {
                     github: formData.github,
                 },
             };
-            await updateProfileContext(profileUpdateData); // Using updateProfile from AuthContext
+            await updateProfile(profileUpdateData);
+            await refreshProfile();
             console.log('Personal info saved:', profileUpdateData);
             return true;
         } catch (err: any) {
@@ -104,11 +89,8 @@ const PersonalInfoSetupPage: React.FC = () => {
         
         if (savedSuccessfully) {
             try {
-                // Assuming step 2 is the next step (e.g., preferences)
-                // This value should ideally come from a config or be more dynamic
                 await updateUserSetupProgress({ current_setup_step: 2 }); 
-                // Navigation should be handled by AuthContext's pendingSetupStep and a top-level router
-                // navigate('/user/setup/preferences'); // Remove direct navigation
+                navigate('/user/setup/prompt-preferences'); // Navigate to the new prompt preferences page
             } catch (err: any) {
                 console.error("Failed to update setup progress:", err);
                 setError(err.message || 'Failed to proceed to the next step.');
@@ -118,10 +100,9 @@ const PersonalInfoSetupPage: React.FC = () => {
         } else {
             setSaving(false); // Ensure saving is set to false if initial save failed
         }
-        // If save failed, error is shown, and saving is set to false by handleSave
     };
 
-    if (loading) {
+    if (profileLoading) {
         return (
             <Container component="main" maxWidth="sm" sx={{ textAlign: 'center', mt: 8 }}>
                 <CircularProgress />

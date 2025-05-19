@@ -48,8 +48,8 @@ export interface Profile {
     };
     skills?: {
       max_categories: number;
-      min_skills_per_category: number;
-      max_skills_per_category: number;
+      min_per_category: number;
+      max_per_category: number;
     };
     career_summary?: {
       min_words: number;
