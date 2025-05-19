@@ -100,7 +100,7 @@ const PortfolioReviewPage: React.FC = () => {
             setError(null);
 
             // Create portfolio using the parsed data
-            const response = await api.post('/portfolios', parsedData);
+            const response = await api.post('/portfolios/', parsedData);
             console.log('Portfolio created successfully:', response.data);
 
             // Clean up localStorage
@@ -430,7 +430,7 @@ const PortfolioReviewPage: React.FC = () => {
                         disabled={saving}
                         startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
                     >
-                        {saving ? 'Saving...' : 'Confirm & Complete Setup'}
+                        {saving ? 'Saving...' : 'Complete Setup'}
                     </Button>
                 </Box>
             </Paper>
