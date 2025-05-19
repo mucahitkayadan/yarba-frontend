@@ -37,7 +37,8 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
     error: contextError, 
     setError,
     isOfflineMode,
-    isAuthenticated
+    isAuthenticated,
+    getRedirectPathForUser
   } = useAuth();
 
   // Navigation
@@ -52,12 +53,21 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
   useEffect(() => {
     debug.log('Auth state check - isAuthenticated:', isAuthenticated);
     debug.log('Auth state check - from location:', from);
-    
+    debug.log('Auth state check - initialMode:', initialMode);
+    debug.log('Auth state check - current path:', location.pathname);
+
     if (isAuthenticated) {
-      debug.log('User is authenticated, redirecting to:', from);
-      navigate(from, { replace: true });
+      // Only redirect from login page, not the register page
+      // This allows users to register a new account even if already authenticated
+      if (initialMode === 'login') {
+        const redirectPath = getRedirectPathForUser();
+        debug.log('User is authenticated on login page. Redirecting to:', redirectPath);
+        navigate(redirectPath, { replace: true });
+      } else {
+        debug.log('User is authenticated but on register page. No automatic redirect.');
+      }
     }
-  }, [isAuthenticated, navigate, from]);
+  }, [isAuthenticated, navigate, from, initialMode, location.pathname, getRedirectPathForUser]);
 
   // Effect to update mode when initialMode prop changes
   useEffect(() => {
@@ -106,17 +116,18 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
         await login(email, password);
         debug.log('Login successful');
         
-        // Force navigation - don't wait for isAuthenticated state change
-        debug.log('Force navigating to dashboard after login');
-        navigate('/dashboard', { replace: true });
+        // Navigate to the appropriate route based on user state
+        const redirectPath = getRedirectPathForUser();
+        debug.log(`Navigating to ${redirectPath} after login`);
+        navigate(redirectPath, { replace: true });
       } else {
         debug.log('Attempting to register');
-        await register(email, password);
+        const { setupRoute } = await register(email, password);
         debug.log('Registration successful');
         
-        // Force navigation - don't wait for isAuthenticated state change
-        debug.log('Force navigating to user setup after registration');
-        navigate('/user/setup/personal-info', { replace: true });
+        // Navigate directly to the setup route or dashboard
+        debug.log(`Navigating to ${setupRoute} after registration`);
+        navigate(setupRoute, { replace: true });
       }
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
@@ -140,16 +151,13 @@ const FirebaseAuth: React.FC<FirebaseAuthProps> = ({ initialMode = 'login' }) =>
     setIsSubmitting(true);
     
     try {
-      const { isNewUser } = await signInWithGoogleFlow();
+      const { isNewUser, setupRoute } = await signInWithGoogleFlow();
       debug.log('Google sign-in successful. isNewUser:', isNewUser);
       
-      if (isNewUser) {
-        debug.log('Force navigating to user setup after Google sign-in for new user');
-        navigate('/user/setup/personal-info', { replace: true });
-      } else {
-        debug.log('Force navigating to dashboard after Google sign-in for existing user');
-        navigate(from, { replace: true });
-      }
+      // Navigate to the appropriate route
+      const navigateTo = setupRoute || getRedirectPathForUser();
+      debug.log(`Navigating to ${navigateTo} after Google sign-in`);
+      navigate(navigateTo, { replace: true });
     } catch (error: any) {
       const errorMsg = getFirebaseErrorMessage(error);
       debug.error('Google sign-in error:', error);

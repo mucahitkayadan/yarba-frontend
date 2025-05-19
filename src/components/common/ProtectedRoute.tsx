@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading, isOfflineMode } = useAuth();
+  const { isAuthenticated, loading, isOfflineMode, setupRoute, getRedirectPathForUser } = useAuth();
   const location = useLocation();
 
   // If the app is still loading auth state, show spinner
@@ -63,6 +63,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // If authenticated and not loading, render the children components
+  // If authenticated, check for pending setup step before rendering children
+  if (setupRoute && location.pathname !== setupRoute) {
+    return <Navigate to={setupRoute} replace />;
+  }
+
+  // If authenticated and not loading, and no pending setup step, render the children components
   return <>{children}</>;
 }; 

@@ -9,7 +9,7 @@ import { Profile } from '../../../types/models';
 
 const LifeStorySetupPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, updateProfile: updateProfileContext } = useAuth();
+    const { user, updateProfile: updateProfileContext, updateUserSetupProgress } = useAuth();
     const [lifeStory, setLifeStory] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -57,18 +57,27 @@ const LifeStorySetupPage: React.FC = () => {
         }
     };
 
-    const handleBack = () => {
-        navigate('/user/setup/preferences');
-    };
-
-    const handleSkip = () => {
-        navigate('/'); // Navigate to dashboard or home
+    const handleBack = async () => {
+        try {
+            await updateUserSetupProgress({ current_setup_step: 2 });
+            navigate('/user/setup/preferences');
+        } catch (err) {
+            console.error("Failed to navigate back:", err);
+            navigate('/user/setup/preferences');
+        }
     };
 
     const handleSaveAndFinish = async () => {
         const savedSuccessfully = await handleSave();
         if (savedSuccessfully) {
-            navigate('/'); // Navigate to dashboard or home
+            try {
+                await updateUserSetupProgress({ setup_completed: true });
+                navigate('/dashboard');
+            } catch (err: any) {
+                console.error("Failed to complete setup:", err);
+                setError(err.message || 'Failed to complete setup.');
+                setSaving(false);
+            }
         }
     };
 
@@ -112,19 +121,14 @@ const LifeStorySetupPage: React.FC = () => {
                         <Button variant="outlined" onClick={handleBack} disabled={saving}>
                             Back
                         </Button>
-                        <Box>
-                            <Button variant="text" onClick={handleSkip} disabled={saving} sx={{ mr: 2 }}>
-                                Skip & Finish
-                            </Button>
-                            <Button 
-                                variant="contained" 
-                                onClick={handleSaveAndFinish} 
-                                disabled={saving}
-                                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
-                            >
-                                {saving ? 'Saving...' : 'Save & Finish'}
-                            </Button>
-                        </Box>
+                        <Button 
+                            variant="contained" 
+                            onClick={handleSaveAndFinish} 
+                            disabled={saving}
+                            startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
+                        >
+                            {saving ? 'Saving...' : 'Save & Finish'}
+                        </Button>
                     </Box>
                 </Box>
             </Paper>

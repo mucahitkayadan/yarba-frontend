@@ -22,7 +22,7 @@ interface PreferencesFormData {
 
 const PreferencesSetupPage: React.FC = () => {
     const navigate = useNavigate();
-    const { user, updateProfile: updateProfileContext } = useAuth();
+    const { user, updateProfile: updateProfileContext, updateUserSetupProgress } = useAuth();
     const [formData, setFormData] = useState<PreferencesFormData>({
         careerSummaryMinWords: '',
         careerSummaryMaxWords: '',
@@ -103,18 +103,27 @@ const PreferencesSetupPage: React.FC = () => {
         }
     };
 
-    const handleBack = () => {
-        navigate('/user/setup/personal-info');
-    };
-
-    const handleSkip = () => {
-        navigate('/user/setup/life-story');
+    const handleBack = async () => {
+        try {
+            await updateUserSetupProgress({ current_setup_step: 1 });
+            navigate('/user/setup/personal-info');
+        } catch (err) {
+            console.error("Failed to navigate back:", err);
+            navigate('/user/setup/personal-info');
+        }
     };
 
     const handleSaveAndNext = async () => {
         const savedSuccessfully = await handleSave();
         if (savedSuccessfully) {
-            navigate('/user/setup/life-story');
+            try {
+                await updateUserSetupProgress({ current_setup_step: 3 });
+                navigate('/user/setup/life-story');
+            } catch (err: any) {
+                console.error("Failed to update setup progress:", err);
+                setError(err.message || 'Failed to proceed to the next step.');
+                setSaving(false);
+            }
         }
     };
 
@@ -231,19 +240,14 @@ const PreferencesSetupPage: React.FC = () => {
                         <Button variant="outlined" onClick={handleBack} disabled={saving}>
                             Back
                         </Button>
-                        <Box>
-                            <Button variant="text" onClick={handleSkip} disabled={saving} sx={{ mr: 2 }}>
-                                Skip This Step
-                            </Button>
-                            <Button 
-                                variant="contained" 
-                                onClick={handleSaveAndNext} 
-                                disabled={saving}
-                                startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
-                            >
-                                {saving ? 'Saving...' : 'Save & Next'}
-                            </Button>
-                        </Box>
+                        <Button 
+                            variant="contained" 
+                            onClick={handleSaveAndNext} 
+                            disabled={saving}
+                            startIcon={saving ? <CircularProgress size={20} color="inherit" /> : null}
+                        >
+                            {saving ? 'Saving...' : 'Save & Next'}
+                        </Button>
                     </Box>
                 </Box>
             </Paper>
