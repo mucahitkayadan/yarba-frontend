@@ -338,7 +338,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children, hideDrawer = false })
           )}
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             <RouterLink to="/dashboard" style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center' }}>
-              <img src="/logo.svg" alt="YARBA" style={{ height: '50px', width: 'auto' }} />
+              <img src="/logo.svg" alt="YARBA Icon" style={{ height: '40px', width: 'auto', marginRight: '10px' }} />
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography
+                  variant="h5"
+                  component="span"
+                  sx={{
+                    fontFamily: "'Dreaming Outloud Pro', cursive",
+                    fontWeight: 'bold',
+                    color: 'white',
+                    lineHeight: 1,
+                  }}
+                >
+                  YARBA
+                </Typography>
+                <Typography
+                  variant="caption"
+                  component="span"
+                  sx={{
+                    fontFamily: "'Dreaming Outloud Pro', cursive",
+                    color: 'white',
+                    fontSize: '0.85rem',
+                    opacity: 0.9,
+                    lineHeight: 1,
+                  }}
+                >
+                  Yet Another Resume Builder App
+                </Typography>
+              </Box>
             </RouterLink>
           </Typography>
           {user ? (
