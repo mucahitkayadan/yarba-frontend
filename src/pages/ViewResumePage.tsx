@@ -1435,6 +1435,7 @@ const ViewResumePage: React.FC = () => {
                 maxHeight: jobDescriptionExpanded ? 'none' : '100px', 
                 overflow: jobDescriptionExpanded ? 'visible' : 'hidden',
                 textOverflow: jobDescriptionExpanded ? 'unset' : 'ellipsis',
+                whiteSpace: 'pre-wrap',
                 position: 'relative',
                 '&:after': {
                   content: '""',

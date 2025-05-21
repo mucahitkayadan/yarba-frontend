@@ -6,7 +6,7 @@ import { ResumesForSelectionResponse } from '../types/models';
 export const getResumes = async (
   skip: number = 0, 
   limit: number = 10,
-  title?: string,
+  search_term?: string,
   template_id?: string,
   sort_by: string = 'updated_desc'
 ): Promise<{ items: Resume[], total: number }> => {
@@ -14,21 +14,27 @@ export const getResumes = async (
   params.append('skip', skip.toString());
   params.append('limit', limit.toString());
   
-  if (title) params.append('title', title);
+  if (search_term) params.append('search_term', search_term);
   if (template_id) params.append('template_id', template_id);
   
   // Add sorting parameter
   params.append('sort_by', sort_by);
-  console.log(`Adding sort_by=${sort_by}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Adding sort_by=${sort_by}`);
+  }
   
   const requestUrl = `/resumes?${params.toString()}`;
-  console.log(`API Call: GET ${requestUrl}`);
-  console.log(`Full URL would be: ${process.env.REACT_APP_API_URL}${requestUrl}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`API Call: GET ${requestUrl}`);
+    console.log(`Full URL would be: ${process.env.REACT_APP_API_URL}${requestUrl}`);
+  }
   const response = await api.get(requestUrl);
   
   // Backend now returns properly formatted paginated response
   if (response.data && response.data.items && typeof response.data.total === 'number') {
-    console.log(`API returned ${response.data.items.length} items, total: ${response.data.total}`);
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`API returned ${response.data.items.length} items, total: ${response.data.total}`);
+    }
     return response.data;
   }
   
@@ -77,7 +83,9 @@ export const deleteResume = async (id: string): Promise<void> => {
 
 // Generate PDF for a resume
 export const getResumePdf = async (id: string, timeout: number = 30): Promise<Blob | { pdf_url: string }> => {
-  console.log(`Requesting PDF for resume ID: ${id} with timeout: ${timeout}`);
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`Requesting PDF for resume ID: ${id} with timeout: ${timeout}`);
+  }
   try {
     // First try without responseType: 'blob' to check if we get the new JSON response
     const response = await api.get(`/resumes/${id}/pdf?timeout=${timeout}`);
@@ -93,14 +101,18 @@ export const getResumePdf = async (id: string, timeout: number = 30): Promise<Bl
     });
     return blobResponse.data;
   } catch (error: any) {
-    console.error('PDF generation error:', error);
+    if (process.env.NODE_ENV !== 'production') {
+      console.error('PDF generation error:', error);
+    }
     // If we get a response with error details
     if (error.response) {
       // Try to extract text error message if server returned blob
       if (error.response.data instanceof Blob) {
         try {
           const errorText = await error.response.data.text();
-          console.error('Server error message:', errorText);
+          if (process.env.NODE_ENV !== 'production') {
+            console.error('Server error message:', errorText);
+          }
           throw new Error(errorText);
         } catch (blobError) {
           // If we can't read the blob as text, rethrow original error

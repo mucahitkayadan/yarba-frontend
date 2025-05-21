@@ -114,6 +114,7 @@ const ResumesPage: React.FC = () => {
   const [totalResumes, setTotalResumes] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(DEFAULT_PAGE_SIZE);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -140,12 +141,12 @@ const ResumesPage: React.FC = () => {
     try {
       const skip = (page - 1) * pageSize;
       const limit = pageSize;
-      const title = searchTerm ? searchTerm : undefined;
+      const searchTermForApi = debouncedSearchTerm ? debouncedSearchTerm : undefined;
       
-      console.log(`Fetching resumes with skip=${skip}, limit=${limit}, title=${title}, sort_by=updated_desc`);
+      console.log(`Fetching resumes with skip=${skip}, limit=${limit}, search_term=${searchTermForApi}, sort_by=updated_desc`);
       
-      // Use the new sort_by parameter 
-      const result = await getResumes(skip, limit, title, undefined, 'updated_desc');
+      // Use the new sort_by parameter and pass search_term
+      const result = await getResumes(skip, limit, searchTermForApi, undefined, 'updated_desc');
       console.log('API result:', result);
       
       // Log timestamps to verify sorting
@@ -175,7 +176,17 @@ const ResumesPage: React.FC = () => {
   useEffect(() => {
     console.log(`Page/PageSize changed: page=${page}, pageSize=${pageSize}, fetching resumes...`);
     fetchResumes();
-  }, [page, pageSize, searchTerm]);
+  }, [page, pageSize, debouncedSearchTerm]);
+
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
 
   useEffect(() => {
     return () => {

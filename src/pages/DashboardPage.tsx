@@ -168,12 +168,22 @@ const DashboardPage: React.FC = () => {
     });
   };
 
-  const handleCreateResume = () => {
+  const handleCreateResume = (event: React.MouseEvent) => {
+    event.stopPropagation();
     navigate('/resumes/new');
   };
 
-  const handleCreateCoverLetter = () => {
+  const handleCreateCoverLetter = (event: React.MouseEvent) => {
+    event.stopPropagation();
     navigate('/cover-letters/new');
+  };
+
+  const handleViewResumes = () => {
+    navigate('/resumes');
+  };
+
+  const handleViewCoverLetters = () => {
+    navigate('/cover-letters');
   };
 
   const handleEditPortfolio = () => {
@@ -232,8 +242,10 @@ const DashboardPage: React.FC = () => {
             flexDirection: 'column', 
             alignItems: 'center',
             flexGrow: 1,
-            width: { xs: '100%', sm: '33%' }
+            width: { xs: '100%', sm: '33%' },
+            cursor: 'pointer'
           }}
+          onClick={handleViewResumes}
         >
           <ResumeIcon fontSize="large" color="primary" sx={{ mb: 1 }} />
           {loading ? (
@@ -262,8 +274,10 @@ const DashboardPage: React.FC = () => {
             flexDirection: 'column', 
             alignItems: 'center',
             flexGrow: 1,
-            width: { xs: '100%', sm: '33%' }
+            width: { xs: '100%', sm: '33%' },
+            cursor: 'pointer'
           }}
+          onClick={handleViewCoverLetters}
         >
           <CoverLetterIcon fontSize="large" color="primary" sx={{ mb: 1 }} />
           {loading ? (
