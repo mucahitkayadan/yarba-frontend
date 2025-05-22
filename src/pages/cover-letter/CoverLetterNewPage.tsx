@@ -26,9 +26,9 @@ import {
   Select,
   MenuItem
 } from '@mui/material';
-import { createCoverLetter } from '../services/coverLetterService';
-import { getResumesForSelection } from '../services/resumeService';
-import { ResumeForSelection } from '../types/models';
+import { createCoverLetter } from '../../services/coverLetterService';
+import { getResumesForSelection } from '../../services/resumeService';
+import { ResumeForSelection } from '../../types/models';
 import { Refresh as RefreshIcon, Search as SearchIcon, Close as CloseIcon } from '@mui/icons-material';
 
 const CoverLetterNewPage: React.FC = () => {

@@ -27,10 +27,10 @@ import {
   Delete as DeleteIcon,
   Close as CloseIcon,
 } from '@mui/icons-material';
-import { getCoverLetterById, getCoverLetterPdf, deleteCoverLetter } from '../services/coverLetterService';
-import { getResumeById } from '../services/resumeService';
-import { getUserProfile } from '../services/profileService';
-import { CoverLetter, Resume, Profile } from '../types/models';
+import { getCoverLetterById, getCoverLetterPdf, deleteCoverLetter } from '../../services/coverLetterService';
+import { getResumeById } from '../../services/resumeService';
+import { getUserProfile } from '../../services/profileService';
+import { CoverLetter, Resume, Profile } from '../../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 
 // Set up the PDF.js worker

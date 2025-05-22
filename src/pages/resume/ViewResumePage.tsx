@@ -49,10 +49,10 @@ import {
   Refresh as RefreshIcon,
   AutoFixHigh as AutoFixHighIcon
 } from '@mui/icons-material';
-import { getResumeById, getResumePdf, deleteResume, regenerateResumeContent } from '../services/resumeService';
-import { Resume } from '../types/models';
+import { getResumeById, getResumePdf, deleteResume, regenerateResumeContent } from '../../services/resumeService';
+import { Resume } from '../../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Toast } from '../components/common';
+import { Toast } from '../../components/common';
 
 interface PdfResponse {
   pdf_url: string;

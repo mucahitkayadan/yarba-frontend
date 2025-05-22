@@ -15,10 +15,10 @@ import {
   CardContent
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { createResume } from '../services/resumeService';
-import { getUserProfile } from '../services/profileService';
-import { Resume, ResumeCreateRequest, Profile } from '../types/models';
-import { Toast } from '../components/common';
+import { createResume } from '../../services/resumeService';
+import { getUserProfile } from '../../services/profileService';
+import { Resume, ResumeCreateRequest, Profile } from '../../types/models';
+import { Toast } from '../../components/common';
 import { Settings as SettingsIcon } from '@mui/icons-material';
 
 interface TabPanelProps {

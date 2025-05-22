@@ -47,11 +47,11 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { getResumes, deleteResume, getResumePdf, updateResume } from '../services/resumeService';
-import { getUserPortfolio } from '../services/portfolioService';
-import { Portfolio } from '../types/models';
+import { getResumes, deleteResume, getResumePdf, updateResume } from '../../services/resumeService';
+import { getUserPortfolio } from '../../services/portfolioService';
+import { Portfolio } from '../../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Toast } from '../components/common';
+import { Toast } from '../../components/common';
 
 // Type for the PDF response from the server
 interface PdfResponse {

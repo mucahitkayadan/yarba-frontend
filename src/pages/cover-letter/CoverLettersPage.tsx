@@ -47,11 +47,11 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { getCoverLetters, deleteCoverLetter, getCoverLetterPdf } from '../services/coverLetterService';
-import { getResumeById } from '../services/resumeService';
-import { CoverLetter } from '../types/models';
+import { getCoverLetters, deleteCoverLetter, getCoverLetterPdf } from '../../services/coverLetterService';
+import { getResumeById } from '../../services/resumeService';
+import { CoverLetter } from '../../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
-import { Toast } from '../components/common';
+import { Toast } from '../../components/common';
 
 // Define page size options
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
