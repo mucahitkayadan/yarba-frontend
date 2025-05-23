@@ -266,6 +266,7 @@ export interface LoginResponse {
 
 export interface ResumeCreateRequest {
   job_description: string;
+  job_description_url?: string; // Optional URL for the job description
 }
 
 export interface CoverLetterCreateRequest {
