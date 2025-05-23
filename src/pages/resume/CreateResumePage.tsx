@@ -15,11 +15,12 @@ import {
   CardContent
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { createResume } from '../../services/resumeService';
+import { createResume, extractJobDetails, JobExtractionDetails } from '../../services/resumeService';
 import { getUserProfile } from '../../services/profileService';
 import { Resume, ResumeCreateRequest, Profile } from '../../types/models';
 import { Toast } from '../../components/common';
 import { Settings as SettingsIcon } from '@mui/icons-material';
+import ReactMarkdown from 'react-markdown';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -51,16 +52,17 @@ const CreateResumePage: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [profileLoading, setProfileLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
   const [jobDescription, setJobDescription] = useState('');
   const [jobDescriptionUrl, setJobDescriptionUrl] = useState('');
-  const [createdResume, setCreatedResume] = useState<Resume | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastSeverity, setToastSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [extractedJobDetails, setExtractedJobDetails] = useState<JobExtractionDetails | null>(null);
+  const [isJobExtracted, setIsJobExtracted] = useState(false);
+  const [extractionError, setExtractionError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUserProfile();
@@ -79,44 +81,103 @@ const CreateResumePage: React.FC = () => {
 
   const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
     setTabValue(newValue);
+    setExtractionError(null);
+  };
+
+  const handleExtractJobDetails = async () => {
+    if (!jobDescriptionUrl) {
+      setExtractionError('Please enter a Job Posting URL.');
+      setToastMessage('Please enter a Job Posting URL.');
+      setToastSeverity('error');
+      setToastOpen(true);
+      return;
+    }
+    setLoading(true);
+    setError(null);
+    setExtractionError(null);
+    try {
+      const details = await extractJobDetails(jobDescriptionUrl);
+      setExtractedJobDetails(details);
+
+      if (details.description && details.description.trim() !== '') {
+        setJobDescription(details.description);
+        setIsJobExtracted(true);
+        setToastMessage('Job details extracted successfully! Review below or switch to "Job Description" tab to edit.');
+        setToastSeverity('success');
+      } else {
+        setIsJobExtracted(false);
+        const errorMsg = `Successfully contacted URL, but could not extract a usable job description. ${details.title ? 'Title found: ' + details.title + '.' : ''} Please try pasting the description manually or check the URL.`;
+        setExtractionError(errorMsg);
+        setToastMessage(errorMsg);
+        setToastSeverity('warning');
+      }
+      setToastOpen(true);
+    } catch (err: any) {
+      console.error('Failed to extract job details:', err);
+      const errorMessage = err.response?.data?.detail || err.message || 'Failed to extract job details.';
+      setExtractionError(errorMessage);
+      setIsJobExtracted(false);
+      setToastMessage(errorMessage);
+      setToastSeverity('error');
+      setToastOpen(true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateResume = async () => {
     setLoading(true);
     setError(null);
 
-    try {
-      // Get the job description from either tab
-      const finalJobDescription = tabValue === 0 ? jobDescription : jobDescriptionUrl;
-      
-      if (!finalJobDescription) {
-        setError('Please provide a job description or URL.');
+    let jobDescToUse: string | undefined | null = null;
+
+    if (tabValue === 0) {
+      jobDescToUse = jobDescription;
+      if (!jobDescToUse || jobDescToUse.trim() === '') {
+        setError('Please provide a job description.');
+        setToastMessage('Job description is missing or empty.');
+        setToastSeverity('error');
+        setToastOpen(true);
         setLoading(false);
         return;
       }
+    } else if (tabValue === 1) {
+      if (!isJobExtracted || !extractedJobDetails?.description) {
+        setError('Extracted job description is not available. Please extract again or enter manually.');
+        setToastMessage('Extracted job description is not available.');
+        setToastSeverity('error');
+        setToastOpen(true);
+        setLoading(false);
+        return;
+      }
+      jobDescToUse = extractedJobDetails.description;
+    }
 
-      // Prepare request data based on API requirements
+    if (!jobDescToUse || jobDescToUse.trim() === '') {
+      setError('Job description is missing or empty.');
+      setToastMessage('Job description is missing or empty.');
+      setToastSeverity('error');
+      setToastOpen(true);
+      setLoading(false);
+      return;
+    }
+    
+    try {
       const resumeData: ResumeCreateRequest = {
-        job_description: finalJobDescription
+        job_description: jobDescToUse
       };
-
-      // Make the API request
       const response = await createResume(resumeData);
-      
-      // Set success toast and navigate to view resume page
       setToastMessage('Resume created successfully!');
       setToastSeverity('success');
       setToastOpen(true);
-      
-      // Navigate directly to the view resume page
       if (response && response.id) {
         navigate(`/resumes/${response.id}`);
       }
-
     } catch (err: any) {
       console.error('Failed to create resume:', err);
-      setError(err.message || 'Failed to create resume. Please try again.');
-      setToastMessage('Failed to create resume. Please try again.');
+      const errorMsg = err.response?.data?.detail || err.message || 'Failed to create resume. Please try again.';
+      setError(errorMsg);
+      setToastMessage(errorMsg);
       setToastSeverity('error');
       setToastOpen(true);
     } finally {
@@ -149,38 +210,121 @@ const CreateResumePage: React.FC = () => {
             rows={8}
             fullWidth
             value={jobDescription}
-            onChange={(e) => setJobDescription(e.target.value)}
-            placeholder="Paste the job description here..."
+            onChange={(e) => {
+              setJobDescription(e.target.value);
+              if(isJobExtracted) {
+                setIsJobExtracted(false);
+                setExtractedJobDetails(null);
+              }
+            }}
+            placeholder="Paste the job description here, or extract it from a URL in the 'Job URL' tab."
             variant="outlined"
             margin="normal"
           />
+          <Box sx={{ mt: 3, mb: 2 }}>
+            <Button
+              variant="contained"
+              color="primary"
+              fullWidth
+              size="large"
+              onClick={handleCreateResume}
+              disabled={loading || !jobDescription.trim()}
+            >
+              {loading && tabValue === 0 ? <CircularProgress size={24} /> : 'Create Resume'}
+            </Button>
+          </Box>
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>
-          <TextField
-            label="Job Posting URL"
-            fullWidth
-            value={jobDescriptionUrl}
-            onChange={(e) => setJobDescriptionUrl(e.target.value)}
-            placeholder="Enter the URL of the job posting..."
-            variant="outlined"
-            margin="normal"
-            helperText="Please note: URL parsing functionality will be implemented later."
-          />
-        </TabPanel>
+          {!isJobExtracted ? (
+            <>
+              <TextField
+                label="Job Posting URL"
+                fullWidth
+                value={jobDescriptionUrl}
+                onChange={(e) => setJobDescriptionUrl(e.target.value)}
+                placeholder="Enter the URL of the job posting..."
+                variant="outlined"
+                margin="normal"
+                helperText="We'll try to extract the job description from this URL."
+                disabled={loading}
+              />
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  fullWidth
+                  size="large"
+                  onClick={handleExtractJobDetails}
+                  disabled={loading || !jobDescriptionUrl.trim()}
+                >
+                  {loading && !extractionError ? <CircularProgress size={24} /> : 'Extract Job Details'}
+                </Button>
+              </Box>
+              {extractionError && (
+                <Alert severity="warning" sx={{ mt: 2 }}>
+                  {extractionError}
+                </Alert>
+              )}
+            </>
+          ) : (
+            <>
+              <Typography variant="h6" gutterBottom sx={{ mt: 2 }}>
+                Extracted Job Details
+              </Typography>
+              {extractedJobDetails?.title && (
+                <Typography variant="subtitle1" gutterBottom>
+                  <strong>Title:</strong> {extractedJobDetails.title}
+                </Typography>
+              )}
+              <Paper elevation={1} sx={{ p: 2, my: 2, maxHeight: '300px', overflowY: 'auto', backgroundColor: '#f9f9f9', border: '1px solid #e0e0e0' }}>
+                <ReactMarkdown>{extractedJobDetails!.description!}</ReactMarkdown>
+              </Paper>
+              
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  size="large"
+                  onClick={handleCreateResume}
+                  disabled={loading}
+                >
+                  {loading && tabValue === 1 ? <CircularProgress size={24} /> : 'Create Resume with this Description'}
+                </Button>
+              </Box>
 
-        <Box sx={{ mt: 3, mb: 2 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            size="large"
-            onClick={handleCreateResume}
-            disabled={loading}
-          >
-            {loading ? <CircularProgress size={24} /> : 'Create Resume'}
-          </Button>
-        </Box>
+              <Box sx={{ mt: 1, mb: 2, display: 'flex', gap: 2 }}>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  onClick={() => {
+                    setIsJobExtracted(false);
+                    setExtractedJobDetails(null);
+                    setJobDescription('');
+                    setJobDescriptionUrl('');
+                    setExtractionError(null);
+                  }}
+                  disabled={loading}
+                >
+                  Extract Different URL
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="inherit"
+                  fullWidth
+                  onClick={() => {
+                    setTabValue(0);
+                  }}
+                  disabled={loading}
+                >
+                  Edit Manually
+                </Button>
+              </Box>
+            </>
+          )}
+        </TabPanel>
       </Paper>
 
       {error && (
@@ -211,7 +355,6 @@ const CreateResumePage: React.FC = () => {
               </Box>
             ) : (
               <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 3 }}>
-                {/* Content Sections */}
                 <Box>
                   <Typography variant="subtitle2" gutterBottom color="primary">Content Limits</Typography>
                   
@@ -274,7 +417,6 @@ const CreateResumePage: React.FC = () => {
                   </Box>
                 </Box>
                 
-                {/* Processing Preferences */}
                 <Box>
                   <Typography variant="subtitle2" gutterBottom color="primary">System Settings</Typography>
                   
@@ -300,7 +442,6 @@ const CreateResumePage: React.FC = () => {
         </Card>
       )}
       
-      {/* Toast notification */}
       <Toast
         open={toastOpen}
         message={toastMessage}

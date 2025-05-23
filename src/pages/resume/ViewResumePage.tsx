@@ -53,6 +53,7 @@ import { getResumeById, getResumePdf, deleteResume, regenerateResumeContent } fr
 import { Resume } from '../../types/models';
 import { Document, Page, pdfjs } from 'react-pdf';
 import { Toast } from '../../components/common';
+import ReactMarkdown from 'react-markdown';
 
 interface PdfResponse {
   pdf_url: string;
@@ -1431,12 +1432,11 @@ const ViewResumePage: React.FC = () => {
           {resume.job_description && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" color="text.secondary">Job Description</Typography>
-              <Typography variant="body2" sx={{ 
-                maxHeight: jobDescriptionExpanded ? 'none' : '100px', 
+              <Box sx={{ 
+                maxHeight: jobDescriptionExpanded ? 'none' : '100px',
                 overflow: jobDescriptionExpanded ? 'visible' : 'hidden',
-                textOverflow: jobDescriptionExpanded ? 'unset' : 'ellipsis',
-                whiteSpace: 'pre-wrap',
                 position: 'relative',
+                pr: jobDescriptionExpanded ? 0 : '20px',
                 '&:after': {
                   content: '""',
                   position: jobDescriptionExpanded ? 'static' : 'absolute',
@@ -1447,8 +1447,8 @@ const ViewResumePage: React.FC = () => {
                   background: jobDescriptionExpanded ? 'none' : 'linear-gradient(to bottom, rgba(249,249,249,0), rgba(249,249,249,1))'
                 }
               }}>
-                {resume.job_description}
-              </Typography>
+                <ReactMarkdown>{resume.job_description}</ReactMarkdown>
+              </Box>
               <Button 
                 size="small" 
                 sx={{ mt: 0.5 }} 

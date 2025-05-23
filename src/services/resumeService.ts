@@ -2,6 +2,17 @@ import api from './api';
 import { Resume, ResumeCreateRequest } from '../types/models';
 import { ResumesForSelectionResponse } from '../types/models';
 
+// Define the type for the job extraction response
+export interface JobExtractionDetails {
+  title?: string;
+  description?: string;
+  extraction_time?: string;
+  extraction_metadata?: {
+    source_type?: string;
+    [key: string]: any; // For other metadata
+  };
+}
+
 // Get all resumes
 export const getResumes = async (
   skip: number = 0, 
@@ -169,3 +180,9 @@ export const getResumesForSelection = async (sortBy?: string): Promise<ResumesFo
 
 // Get resume by ID
 // ... existing code ... 
+
+// Extract job details from URL
+export const extractJobDetails = async (url: string): Promise<JobExtractionDetails> => {
+  const response = await api.post(`/jobs/extract/?url=${encodeURIComponent(url)}`);
+  return response.data;
+};
