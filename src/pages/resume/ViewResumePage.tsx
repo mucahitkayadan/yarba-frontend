@@ -906,15 +906,17 @@ const ViewResumePage: React.FC = () => {
                     </Typography>
                   )}
                   
-                  {project.achievements && project.achievements.length > 0 && (
+                  {project.bullet_points && project.bullet_points.length > 0 && (
                     <Box sx={{ mt: 1 }}>
                       <Typography variant="caption" color="text.secondary" gutterBottom>
-                        Key Achievements:
+                        Key Points:
                       </Typography>
                       <List dense sx={{ pl: 2 }}>
-                        {project.achievements.map((achievement: string, अidx: number) => (
-                          <ListItem key={अidx} sx={{ display: 'list-item', pl: 0, py: 0.2, listStyleType: 'disc', listStylePosition: 'inside' }}>
-                            <ListItemText primary={achievement} primaryTypographyProps={{ variant: 'body2' }} />
+                        {project.bullet_points.map((point: string, pointIdx: number) => (
+                          <ListItem key={pointIdx} sx={{ display: 'list-item', pl: 0, py: 0.2, listStyleType: 'disc', listStylePosition: 'inside' }}>
+                            <Typography component="span" variant="body2">
+                              {point}
+                            </Typography>
                           </ListItem>
                         ))}
                       </List>
@@ -1428,6 +1430,15 @@ const ViewResumePage: React.FC = () => {
               <Typography variant="body2">{formatDate(resume.updated_at)}</Typography>
             </Box>
           </Box>
+              
+          {resume.job_description_url && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Job Description URL</Typography>
+              <Link href={resume.job_description_url} target="_blank" rel="noopener noreferrer">
+                {resume.job_description_url}
+              </Link>
+            </Box>
+          )}
               
           {resume.job_description && (
             <Box sx={{ mt: 2 }}>

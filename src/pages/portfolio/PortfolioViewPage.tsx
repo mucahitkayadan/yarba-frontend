@@ -12,7 +12,6 @@ import {
   Divider,
   List,
   ListItem,
-  ListItemText,
   Chip,
   Avatar,
   Grid,
@@ -639,11 +638,28 @@ const PortfolioViewPage: React.FC = () => {
               </Box>
               
               {project.description && (
-                <Typography variant="body1" sx={{ mt: 1, mb: 2 }}>
+                <Typography variant="body2" sx={{ mt: 1, whiteSpace: 'pre-line' }}>
                   {project.description}
                 </Typography>
               )}
-              
+
+              {project.bullet_points && project.bullet_points.length > 0 && (
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" gutterBottom>
+                    Key Points:
+                  </Typography>
+                  <List dense sx={{ pl: 2 }}>
+                    {project.bullet_points.map((point, pointIndex) => (
+                      <ListItem key={pointIndex} sx={{ display: 'list-item', pl: 0, py: 0.2, listStyleType: 'disc', listStylePosition: 'inside' }}>
+                        <Typography component="span" variant="body2">
+                          {point}
+                        </Typography>
+                      </ListItem>
+                    ))}
+                  </List>
+                </Box>
+              )}
+
               {project.technologies && project.technologies.length > 0 && (
                 <Box sx={{ mt: 2, mb: 2 }}>
                   <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1 }}>Technologies:</Typography>
@@ -653,38 +669,6 @@ const PortfolioViewPage: React.FC = () => {
                     ))}
                   </Box>
                 </Box>
-              )}
-              
-              {project.bullet_points && project.bullet_points.length > 0 && (
-                <>
-                  <Divider sx={{ my: 1.5 }} />
-                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Points:</Typography>
-                  <Box component="ul" sx={{ m: 0, pl: 3 }}>
-                    {project.bullet_points.map((point, pointIndex) => (
-                      <Box component="li" key={pointIndex} sx={{ mb: 1 }}>
-                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
-                          {point}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </>
-              )}
-              
-              {!project.bullet_points && project.achievements && project.achievements.length > 0 && (
-                <>
-                  <Divider sx={{ my: 1.5 }} />
-                  <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5 }}>Key Achievements:</Typography>
-                  <Box component="ol" sx={{ m: 0, pl: 3 }}>
-                    {project.achievements.map((achievement, achievementIndex) => (
-                      <Box component="li" key={achievementIndex} sx={{ mb: 1 }}>
-                        <Typography variant="body2" sx={{ lineHeight: 1.5 }}>
-                          {achievement}
-                        </Typography>
-                      </Box>
-                    ))}
-                  </Box>
-                </>
               )}
             </Box>
           ))}

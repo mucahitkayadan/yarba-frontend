@@ -188,6 +188,7 @@ export interface Resume {
   job_title?: string;
   company_name?: string;
   job_description?: string;
+  job_description_url?: string; // Optional URL for the job description
   content?: {
     personal_information?: any;
     career_summary?: any;
