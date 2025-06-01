@@ -166,6 +166,12 @@ const CreateResumePage: React.FC = () => {
       const resumeData: ResumeCreateRequest = {
         job_description: jobDescToUse
       };
+      
+      // Add job_description_url if creating from URL tab
+      if (tabValue === 1 && jobDescriptionUrl) {
+        resumeData.job_description_url = jobDescriptionUrl;
+      }
+      
       const response = await createResume(resumeData);
       setToastMessage('Resume created successfully!');
       setToastSeverity('success');
