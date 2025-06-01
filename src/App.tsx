@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { ProtectedRoute } from './components/common/ProtectedRoute';
 import MainLayout from './components/layout/MainLayout';
+import { Analytics } from "@vercel/analytics/react";
 import { 
   LoginPage, 
   RegisterPage, 
@@ -426,6 +427,7 @@ const App: React.FC = () => {
           </BrowserRouter>
         </ProfileProvider>
       </AuthProvider>
+      <Analytics />
     </ThemeProvider>
   );
 };
