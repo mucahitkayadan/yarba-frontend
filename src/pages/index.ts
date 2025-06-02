@@ -36,4 +36,5 @@ export { default as BlogPage } from './footer/BlogPage';
 export { default as CareersPage } from './footer/CareersPage';
 export { default as PrivacyPage } from './footer/PrivacyPage';
 export { default as TermsPage } from './footer/TermsPage';
-export { default as ContactPage } from './footer/ContactPage'; 
+export { default as ContactPage } from './footer/ContactPage';
+export { default as WebsitePage } from './WebsitePage'; 

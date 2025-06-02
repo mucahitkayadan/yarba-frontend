@@ -296,4 +296,60 @@ export interface UserSetupProgressResponse {
   is_new_user: boolean;
   current_setup_step: number;
   message: string;
+}
+
+// Add new interfaces for Portfolio Website Management
+
+export interface DeploymentStatus {
+  status: string; // e.g., pending, building, success, failed
+  deployment_url?: string; // HttpUrl
+  s3_bucket_name?: string;
+  cloudfront_distribution_id?: string;
+  cloudfront_domain?: string;
+  build_id?: string;
+  build_logs?: string;
+  build_duration?: number; // seconds
+  created_at: string; // datetime
+  started_at?: string; // datetime
+  completed_at?: string; // datetime
+  error_message?: string;
+  error_code?: string;
+}
+
+export interface PortfolioWebsiteConfig {
+  theme: string; // default: modern
+  primary_color: string; // hex color, default: #3B82F6
+  secondary_color: string; // hex color, default: #1F2937
+  meta_title?: string;
+  meta_description?: string;
+  meta_keywords?: string[];
+  social_media_enabled: boolean; // default: true
+  enabled_sections: string[]; // e.g., about, experience, education, skills, projects, contact
+  section_order: string[]; // same as enabled_sections, defining display order
+  contact_form_enabled: boolean; // default: true
+}
+
+export interface PortfolioWebsiteResponse {
+  website_url: string; // HttpUrl
+  subdomain: string;
+  deployment_status: DeploymentStatus;
+  config: PortfolioWebsiteConfig;
+  last_updated: string; // datetime
+}
+
+export interface SubdomainAvailabilityResponse {
+  subdomain: string;
+  available: boolean;
+  suggested_alternatives?: string[];
+}
+
+export interface WebsiteAnalytics { // Illustrative structure based on documentation
+  page_views: number;
+  unique_visitors: number;
+  bounce_rate: number;
+  avg_session_duration: number;
+  top_pages: Array<{ [key: string]: number }>; // Example: [{ "path_example": 100 }]
+  traffic_sources: { [key: string]: number }; // Example: { "source_example": 50 }
+  period_start: string; // datetime
+  period_end: string; // datetime
 } 

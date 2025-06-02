@@ -36,7 +36,8 @@ import {
   Key as KeyIcon,
   Refresh as RefreshIcon,
   Info as InfoIcon,
-  Login as LoginIcon
+  Login as LoginIcon,
+  Language as LanguageIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { Link as RouterLink, useLocation } from 'react-router-dom';
@@ -51,6 +52,7 @@ const navItems = [
   { text: 'Cover Letters', icon: <CoverLetterIcon />, path: '/cover-letters' },
   { text: 'Portfolio', icon: <PortfolioIcon />, path: '/portfolio' },
   { text: 'Profile', icon: <ProfileIcon />, path: '/profile' },
+  { text: 'Website', icon: <LanguageIcon />, path: '/website' },
   // To add nested navigation in the future, we could use this structure:
   // { 
   //   text: 'Settings', 

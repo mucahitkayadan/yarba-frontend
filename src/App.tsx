@@ -35,6 +35,7 @@ import {
   ContactPage,
   UploadPortfolioPage,
   MainPage,
+  WebsitePage,
 } from './pages';
 import PersonalInfoSetupPage from './pages/user/setup/PersonalInfoSetupPage';
 import PromptPreferencesSetupPage from './pages/user/setup/PromptPreferencesSetupPage';
@@ -414,6 +415,18 @@ const App: React.FC = () => {
                   <ProtectedRoute>
                     <MainLayout>
                       <ProfileEditPage />
+                    </MainLayout>
+                  </ProtectedRoute>
+                }
+              />
+              
+              {/* Website Management */}
+              <Route 
+                path="/website"
+                element={
+                  <ProtectedRoute>
+                    <MainLayout>
+                      <WebsitePage />
                     </MainLayout>
                   </ProtectedRoute>
                 }
